@@ -39,29 +39,85 @@ import tutorengine.model.Card;
 //
 // HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.util.CSVLoader
-//   Expected: "Loaded 60 cards (need >= 50).", 3 sample card lines, and one
-//   "SKIP line N: ..." line for the planted bad row. Until load() is implemented
-//   the stub prints a TODO line and "Loaded 0 cards".
+//   Expected: "Loaded 60 cards (need >= 50).", 3 sample card lines, and (with a
+//   deliberately broken row planted) one "SKIP line N: ..." line while the
+//   count still prints. Implemented 2026-10-05; David owns the trace + report rows.
 //
 // DEFENSE: why an ArrayList stages the data (positional access the sorts rely on).
 // SPEC: S6 dataset, S11 load/generate.
 public class CSVLoader {
     public static List<Card> load(String path) {
-        // TODO David: replace stub below with steps 3a-3e.
-        System.out.println("TODO David: parse " + path + " -> List<Card>");
-        return new ArrayList<>();
+        // Implemented 2026-10-05 by Bondoc, Karl B. (David's file — unblocking).
+        List<Card> out = new ArrayList<>();
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(Path.of(path));
+        } catch (Exception e) {
+            System.out.println("LOAD ERROR: cannot read " + path + " (" + e.getMessage() + ")");
+            return out; // empty, never null — callers stay simple
+        }
+        for (int i = 1; i < lines.size(); i++) { // line 0 is the header
+            String line = lines.get(i).trim();
+            if (line.isEmpty()) continue;
+            String[] p = splitCsv(line);
+            if (p.length != 11) {
+                System.out.println("SKIP line " + (i + 1) + ": expected 11 columns, got " + p.length);
+                continue;
+            }
+            try {
+                String sku = p[0].trim();
+                String name = p[1].trim();
+                String setName = p[2].trim();
+                String color = p[3].trim();
+                String cardType = p[4].trim();
+                int year = Integer.parseInt(p[5].trim());
+                double price = Double.parseDouble(p[6].trim());
+                int qty = Integer.parseInt(p[7].trim());
+                int demand = Integer.parseInt(p[8].trim());
+                boolean foil = Boolean.parseBoolean(p[9].trim());
+                String box = p[10].trim();
+                if (sku.isEmpty() || name.isEmpty()) {
+                    System.out.println("SKIP line " + (i + 1) + ": empty SKU or name");
+                    continue;
+                }
+                if (price < 0 || qty < 0 || demand < 1 || demand > 100) {
+                    System.out.println("SKIP line " + (i + 1) + ": price/qty/demand out of range");
+                    continue;
+                }
+                out.add(new Card(sku, name, setName, color, cardType,
+                        year, price, qty, demand, foil, box));
+            } catch (NumberFormatException e) {
+                System.out.println("SKIP line " + (i + 1) + ": bad number (" + e.getMessage() + ")");
+            }
+        }
+        return out;
+    }
+
+    // Split on commas, ignoring commas inside double quotes (the quotes themselves
+    // are dropped). Limitation: a literal "" escape inside a quoted name is kept
+    // as-is instead of unescaped — no card name in our data needs it.
+    static String[] splitCsv(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder cur = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char ch = line.charAt(i);
+            if (ch == '"') inQuotes = !inQuotes;
+            else if (ch == ',' && !inQuotes) { fields.add(cur.toString()); cur.setLength(0); }
+            else cur.append(ch);
+        }
+        fields.add(cur.toString());
+        return fields.toArray(new String[0]);
     }
 
     public static void main(String[] args) {
         // DEMO for presentation: shows count + first 3 cards.
-        // TODO David: call load("Dataset/cards.csv") here and print size + 3 samples.
         try {
             List<Card> cards = load("Dataset/cards.csv");
             System.out.println("Loaded " + cards.size() + " cards (need >= 50).");
-            System.out.println("OWNER: David.");
-            Path p = Path.of("Dataset/cards.csv");
-            if (Files.exists(p)) System.out.println("CSV found at Dataset/cards.csv");
-            else System.out.println("MISSING Dataset/cards.csv - create it first.");
+            for (int i = 0; i < Math.min(3, cards.size()); i++)
+                System.out.println("  sample: " + cards.get(i));
+            System.out.println("CSVLoader. OWNER: David; load() implemented 2026-10-05 by Bondoc, Karl B.");
         } catch (Exception e) {
             System.out.println("ERROR: " + e.getMessage());
         }
