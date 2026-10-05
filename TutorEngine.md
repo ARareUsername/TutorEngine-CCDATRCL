@@ -280,7 +280,7 @@ public class Main {
 
 | Member | Owns (do not touch others') | Must deliver | Presents |
 |---|---|---|---|
-| Bondoc, Karl B. (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java` | SKU search (`HashMap`), List Catalog, seed data | Search hit/miss + collision note |
+| Bondoc, Karl B. (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java`, `Dataset/cards.csv` (Scryfall bulk) | SKU search (`HashMap`), List Catalog, seed data, Scryfall Default Cards acquisition 2026-10-04 → 60-record `cards.csv` (converted 2026-10-05) | Search hit/miss + collision note |
 | David, Abraham John D. — Data & Loader | `tutorengine/util/CSVLoader.java`, `Dataset/cards.csv` | 50+ rows, bad-row handling, generation rules | Dataset + Template C |
 | De Jesus, Aeon Miles J. — History & Intake | `tutorengine/model/TransactionLog.java`, `tutorengine/intake/IntakeBuffer.java` | `LinkedList` log, `ArrayDeque` FIFO+LIFO, empty-safe | List + queue/stack traces |
 | Dimazana, Amiel Benedict R. — Catalog/Priority/Sort | `tutorengine/catalog/CatalogIndex.java`, `tutorengine/priority/PriorityDesk.java`, `tutorengine/algorithms/CardSorter.java` | `TreeMap` ops, heap + formula, Insertion vs Selection + counts | BST / heap / sort traces |
