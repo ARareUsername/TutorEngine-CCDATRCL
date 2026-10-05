@@ -59,7 +59,7 @@ public class CSVLoader {
         for (int i = 1; i < lines.size(); i++) { // line 0 is the header
             String line = lines.get(i).trim();
             if (line.isEmpty()) continue;
-            String[] p = splitCsv(line);
+            String[] p = line.split(",", -1);
             if (p.length != 11) {
                 System.out.println("SKIP line " + (i + 1) + ": expected 11 columns, got " + p.length);
                 continue;
@@ -67,6 +67,9 @@ public class CSVLoader {
             try {
                 String sku = p[0].trim();
                 String name = p[1].trim();
+                if (name.length() >= 2 && name.startsWith("\"") && name.endsWith("\"")) {
+                    name = name.substring(1, name.length() -1);
+                }
                 String setName = p[2].trim();
                 String color = p[3].trim();
                 String cardType = p[4].trim();
@@ -87,7 +90,7 @@ public class CSVLoader {
                 out.add(new Card(sku, name, setName, color, cardType,
                         year, price, qty, demand, foil, box));
             } catch (NumberFormatException e) {
-                System.out.println("SKIP line " + (i + 1) + ": bad number (" + e.getMessage() + ")");
+                System.out.println("SKIP line " + (i + 1) + ": bad number");
             }
         }
         return out;
