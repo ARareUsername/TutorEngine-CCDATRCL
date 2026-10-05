@@ -1,0 +1,24 @@
+TutorEngine - Current Features (barebones UI)
+=============================================
+1. Search SKU - exact lookup via HashMap<String, Card>.get(), O(1) average.
+   Type full SKU (e.g. MTG-OTJ-055); shows card or "Not found".
+2. List Catalog - prints every entry in the HashMap catalog to the log window.
+3. Seeded demo data - 3 sample cards loaded at startup.
+4. CLI demo (Main.java) - still present: PriorityQueue top, HashMap search, ArrayDeque BFS.
+
+Model Used (model/Card.java)
+============================
+Fields: sku (unique ID, map key), name, setName, color (W/U/B/R/G/Multi/Colorless),
+cardType (Creature/Instant/Land/...), releaseYear, price (market value),
+quantity (stock count), demandScore (1-100 meta popularity), isFoil (premium flag),
+boxLocationId (storage node, e.g. Showcase Display / Bulk Box C).
+
+Behavior:
+- Comparable<Card> by name (compareToIgnoreCase) for alphabetical ordering.
+- calculatePriority() = (price * 0.50) + (demandScore * 0.35) - (quantity * 3.0) + (isFoil ? 10 : 0).
+  High price/demand rank up; overstock ranks down; foil gets +10 (curl protection).
+- toString() one-line summary: name [SKU] | set | price xqty | demand | FOIL? | location | priority.
+- Getters for all fields; isFoil() boolean accessor.
+
+Removed / parked (not in barebones UI): PriorityQueue top-priority view, store-graph BFS
+route, staged-intake queue + undo stack, sorting/benchmark/CSV loading.

@@ -1,0 +1,5 @@
+sku,name,setName,color,cardType,releaseYear,price,quantity,demandScore,isFoil,boxLocationId
+MTG-MH3-001,"Ajani, Nacatl Pariah",Modern Horizons 3,White,Creature,2024,2150.00,2,92,true,Showcase Display
+MTG-OTJ-055,Mana Drain,Outlaws of Thunder Junction,Blue,Instant,2024,2600.00,1,98,false,Showcase Display
+MTG-FDN-101,Llanowar Elves,Foundations,Green,Creature,2024,48,45,false,Bulk Box C
+# TODO Mate A: expand to 50+ rows. Columns match Card.java. Generation rules (if scripted) go in report S2.
