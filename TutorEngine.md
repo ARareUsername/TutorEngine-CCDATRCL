@@ -280,17 +280,17 @@ public class Main {
 
 | Member | Owns (do not touch others') | Must deliver | Presents |
 |---|---|---|---|
-| Karl (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java` | SKU search (`HashMap`), List Catalog, seed data | Search hit/miss + collision note |
-| Member 1 — Data & Loader | `tutorengine/util/CSVLoader.java`, `Dataset/cards.csv` | 50+ rows, bad-row handling, generation rules | Dataset + Template C |
-| Member 2 — History & Intake | `tutorengine/model/TransactionLog.java`, `tutorengine/intake/IntakeBuffer.java` | `LinkedList` log, `ArrayDeque` FIFO+LIFO, empty-safe | List + queue/stack traces |
-| Member 3 — Catalog/Priority/Sort | `tutorengine/catalog/CatalogIndex.java`, `tutorengine/priority/PriorityDesk.java`, `tutorengine/algorithms/CardSorter.java` | `TreeMap` ops, heap + formula, Insertion vs Selection + counts | BST / heap / sort traces |
-| Member 4 — Graph & Benchmark | `tutorengine/model/StorageLocation.java`, `tutorengine/algorithms/StoreNavigator.java`, `tutorengine/algorithms/SkuCorrector.java`, `tutorengine/util/BenchmarkSuite.java` | 10 nodes/15 edges, BFS path + DFS, typo suggest, `nanoTime` 100/500/1000/5000 table | BFS/DFS + benchmark |
+| Bondoc, Karl B. (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java` | SKU search (`HashMap`), List Catalog, seed data | Search hit/miss + collision note |
+| David, Abraham John D. — Data & Loader | `tutorengine/util/CSVLoader.java`, `Dataset/cards.csv` | 50+ rows, bad-row handling, generation rules | Dataset + Template C |
+| De Jesus, Aeon Miles J. — History & Intake | `tutorengine/model/TransactionLog.java`, `tutorengine/intake/IntakeBuffer.java` | `LinkedList` log, `ArrayDeque` FIFO+LIFO, empty-safe | List + queue/stack traces |
+| Dimazana, Amiel Benedict R. — Catalog/Priority/Sort | `tutorengine/catalog/CatalogIndex.java`, `tutorengine/priority/PriorityDesk.java`, `tutorengine/algorithms/CardSorter.java` | `TreeMap` ops, heap + formula, Insertion vs Selection + counts | BST / heap / sort traces |
+| Huypungco, Matthew James M. — Graph & Benchmark | `tutorengine/model/StorageLocation.java`, `tutorengine/algorithms/StoreNavigator.java`, `tutorengine/algorithms/SkuCorrector.java`, `tutorengine/util/BenchmarkSuite.java` | 10 nodes/15 edges, BFS path + DFS, typo suggest, `nanoTime` 100/500/1000/5000 table | BFS/DFS + benchmark |
 
 ### Per-member checklist (copy into your PR)
 1. Implement TODOs in your files only; keep `main()` demo passing.
-2. Add tests: A: load 50; B: T01-T03; C: T04/T09/T10 + sort pass; D: T07/T08 + benchmark.
+2. Add tests: David: load 50; De Jesus: T01-T03; Dimazana: T04/T09/T10 + sort pass; Huypungco: T07/T08 + benchmark.
 3. Add trace (1 page, real data) to `TracePacket/` named after your file.
-4. Commit on your own branch (`mate-a/...`), open PR, meaningful messages (no "update"/"fix").
+4. Commit on your own branch (`david/...`, `de-jesus/...`, `dimazana/...`, `huypungco/...`), open PR, meaningful messages (no "update"/"fix").
 5. Fill your Template I row: files, commit links, defense Qs.
 
 ### Future assignments
