@@ -281,10 +281,10 @@ public class Main {
 | Member | Owns (do not touch others') | Must deliver | Presents |
 |---|---|---|---|
 | Karl (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java` | SKU search (`HashMap`), List Catalog, seed data | Search hit/miss + collision note |
-| Mate A — Data & Loader | `tutorengine/util/CSVLoader.java`, `Dataset/cards.csv` | 50+ rows, bad-row handling, generation rules | Dataset + Template C |
-| Mate B — History & Intake | `tutorengine/model/TransactionLog.java`, `tutorengine/intake/IntakeBuffer.java` | `LinkedList` log, `ArrayDeque` FIFO+LIFO, empty-safe | List + queue/stack traces |
-| Mate C — Catalog/Priority/Sort | `tutorengine/catalog/CatalogIndex.java`, `tutorengine/priority/PriorityDesk.java`, `tutorengine/algorithms/CardSorter.java` | `TreeMap` ops, heap + formula, Insertion vs Selection + counts | BST / heap / sort traces |
-| Mate D — Graph & Benchmark | `tutorengine/model/StorageLocation.java`, `tutorengine/algorithms/StoreNavigator.java`, `tutorengine/algorithms/SkuCorrector.java`, `tutorengine/util/BenchmarkSuite.java` | 10 nodes/15 edges, BFS path + DFS, typo suggest, `nanoTime` 100/500/1000/5000 table | BFS/DFS + benchmark |
+| Member 1 — Data & Loader | `tutorengine/util/CSVLoader.java`, `Dataset/cards.csv` | 50+ rows, bad-row handling, generation rules | Dataset + Template C |
+| Member 2 — History & Intake | `tutorengine/model/TransactionLog.java`, `tutorengine/intake/IntakeBuffer.java` | `LinkedList` log, `ArrayDeque` FIFO+LIFO, empty-safe | List + queue/stack traces |
+| Member 3 — Catalog/Priority/Sort | `tutorengine/catalog/CatalogIndex.java`, `tutorengine/priority/PriorityDesk.java`, `tutorengine/algorithms/CardSorter.java` | `TreeMap` ops, heap + formula, Insertion vs Selection + counts | BST / heap / sort traces |
+| Member 4 — Graph & Benchmark | `tutorengine/model/StorageLocation.java`, `tutorengine/algorithms/StoreNavigator.java`, `tutorengine/algorithms/SkuCorrector.java`, `tutorengine/util/BenchmarkSuite.java` | 10 nodes/15 edges, BFS path + DFS, typo suggest, `nanoTime` 100/500/1000/5000 table | BFS/DFS + benchmark |
 
 ### Per-member checklist (copy into your PR)
 1. Implement TODOs in your files only; keep `main()` demo passing.
