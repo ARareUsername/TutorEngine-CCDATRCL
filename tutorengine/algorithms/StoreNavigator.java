@@ -42,7 +42,7 @@ import java.util.Set;
 //     - dfs() from Checkout prints every location exactly once (10 names).
 //     - Asking for a location that doesn't exist prints a message and returns
 //       an empty path instead of crashing.
-// public class StoreNavigator {
+public class StoreNavigator {
     public static Map<String, List<String>> sampleMap() {
         // TODO Huypungco: build and return the 10-node/15-edge map. Keep helper
         // separate so bfsPath/dfs stay clean. Undirected: add both directions.

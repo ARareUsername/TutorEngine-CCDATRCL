@@ -35,7 +35,7 @@ import tutorengine.model.Card;
 //     - inorder() prints all 5 names A-Z (case-insensitive).
 //     - After removing one leaf AND the root (first key), inorder() still
 //       prints the rest A-Z with nothing missing or duplicated.
-// public class CatalogIndex {
+public class CatalogIndex {
     private final TreeMap<String, Card> index = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     public void put(Card c) { index.put(c.getName(), c); }

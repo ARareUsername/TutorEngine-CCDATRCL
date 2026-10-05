@@ -20,7 +20,7 @@ import tutorengine.model.Card;
 //     [3] BFS Traversal Route from Checkout Counter: ... -> END
 //   If [1] names a different card, the PriorityQueue comparator is wrong.
 //   If [2] says Not Found, the HashMap key (SKU) mismatches Card.getSku().
-// public class Main {
+public class Main {
     public static void main(String[] args) {
         System.out.println("=============================================");
         System.out.println("   TUTORENGINE: TCG SINGLES INVENTORY ADT    ");

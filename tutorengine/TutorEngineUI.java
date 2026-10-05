@@ -20,7 +20,7 @@ import tutorengine.model.Card;
 //     - Typing MTG-OTJ-055 + Search SKU shows: Found: Mana Drain [MTG-OTJ-055] | ...
 //     - Typing BOGUS-1 + Search SKU shows: Not found: BOGUS-1 (graceful, no crash)
 //     - List Catalog prints one line per card (3 lines with seed data)
-// public class TutorEngineUI {
+public class TutorEngineUI {
     private final Map<String, Card> catalog = new HashMap<>(101);
     private final JTextArea log = new JTextArea(20, 60);
 

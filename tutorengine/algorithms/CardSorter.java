@@ -34,7 +34,7 @@ import tutorengine.model.Card;
 //     - That order matches plain List.sort (the demo verifies it for you).
 //     - Both print their comparisons= and movements= counters (numbers > 0).
 //     - Counters reset on every call (run twice — second run prints fresh counts).
-// public class CardSorter {
+public class CardSorter {
     public static long comparisons, movements;
     private static final Comparator<Card> BY_NAME =
             (a, b) -> a.getName().compareToIgnoreCase(b.getName());

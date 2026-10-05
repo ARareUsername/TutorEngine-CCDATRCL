@@ -40,7 +40,7 @@ import tutorengine.model.Card;
 //     - 3 sample card lines printed below the count.
 //     - A deliberately broken row in the CSV prints "SKIP line N: <reason>"
 //       and the count still prints (bad rows never crash the load).
-// public class CSVLoader {
+public class CSVLoader {
     public static List<Card> load(String path) {
         // TODO David: replace stub below with steps 3a-3e.
         System.out.println("TODO David: parse " + path + " -> List<Card>");

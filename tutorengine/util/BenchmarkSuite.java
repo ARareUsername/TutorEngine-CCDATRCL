@@ -39,7 +39,7 @@ import tutorengine.model.Card;
 //     - Times grow with size (5000 slower than 100); if a small size looks odd,
 //       that becomes your "diverges from theory" sentence in the report.
 //     - The same table is saved to BenchmarkResults/bench.txt.
-// public class BenchmarkSuite {
+public class BenchmarkSuite {
     static List<Card> makeCards(int n) {
         // TODO Huypungco: implement generator (step 1).
         return new ArrayList<>();

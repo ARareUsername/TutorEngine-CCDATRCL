@@ -34,7 +34,7 @@ import tutorengine.model.Card;
 //     - undo() right after returns A again (LIFO — last processed comes back).
 //     - Next processNext() returns B. Queue never skips or duplicates a card.
 //     - processNext()/undo() on an empty buffer print a message and return null.
-// public class IntakeBuffer {
+public class IntakeBuffer {
     private final Deque<Card> queue = new ArrayDeque<>();
     private final Deque<Card> undo = new ArrayDeque<>();
 

@@ -6,7 +6,7 @@ package tutorengine.model;
 //     Mana Drain [MTG-OTJ-055] | Outlaws of Thunder Junction | PHP 2600.00 x1 | ...
 //   The bracket code is the SKU, PHP is the price, and the trailing number is
 //   calculatePriority(). If the priority looks wrong, the formula here is the bug.
-// public class Card implements Comparable<Card> {
+public class Card implements Comparable<Card> {
     private String sku;
     private String name;
     private String setName;

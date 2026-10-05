@@ -42,7 +42,7 @@ import tutorengine.model.Card;
 //       "MTG-OTJ-055" / "MTG-OTJ-056" within depth 2.
 //     - Querying an exact, correct SKU needs no suggestions (already found).
 //     - Querying gibberish ("ZZZ") returns an empty list + message, no crash.
-// public class SkuCorrector {
+public class SkuCorrector {
     static boolean isOneCharDiff(String a, String b) {
         // TODO Huypungco: implement (step 1).
         return false;

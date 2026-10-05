@@ -32,7 +32,7 @@ import java.util.List;
 //     - undoLast() removes and returns entry 3; printing again shows only 1, 2.
 //     - Calling undoLast() on an empty log prints a friendly message and
 //       returns null instead of throwing.
-// public class TransactionLog {
+public class TransactionLog {
     private final LinkedList<String> entries = new LinkedList<>();
 
     public void log(String entry) { entries.addLast(entry); }

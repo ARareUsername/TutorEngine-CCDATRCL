@@ -35,7 +35,7 @@ import tutorengine.model.Card;
 //     - poll() removes Mana Drain; the next peek() is the runner-up.
 //     - Offering an even hotter card LAST makes peek() switch to it immediately.
 //     - Every printed priority equals Card.calculatePriority() by hand-check.
-// public class PriorityDesk {
+public class PriorityDesk {
     private final PriorityQueue<Card> heap = new PriorityQueue<>(
             Comparator.comparingDouble(Card::calculatePriority).reversed());
 

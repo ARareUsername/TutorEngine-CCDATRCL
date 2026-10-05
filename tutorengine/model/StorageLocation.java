@@ -26,7 +26,7 @@ import java.util.Objects;
 //     - Every id printed here also appears as some Card's boxLocationId and as
 //       a node in StoreNavigator.sampleMap() (all three lists agree).
 //     - Two StorageLocations with the same id compare equal (== via equals()).
-// public class StorageLocation {
+public class StorageLocation {
     private final String id;
     private final String label;
     // TODO Huypungco: add zone field + getter (step 1).
