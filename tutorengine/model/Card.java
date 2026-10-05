@@ -1,11 +1,16 @@
 package tutorengine.model;
 
-// HOW TO TEST (Card has no main — it is exercised through other demos):
-//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.Main
-//   PASS IF you see a line like:
-//     Mana Drain [MTG-OTJ-055] | Outlaws of Thunder Junction | PHP 2600.00 x1 | ...
-//   The bracket code is the SKU, PHP is the price, and the trailing number is
-//   calculatePriority(). If the priority looks wrong, the formula here is the bug.
+// Hi! This is the heart of the app — one Card object is one Magic single on
+// the shelf (its code, name, set, price, stock, demand, foil finish, and which
+// box it lives in). Everybody's code touches Cards, so think twice before
+// changing these fields: renames ripple into the CSV, the search, and sorting.
+// There is no main() here on purpose — Cards get exercised through the demos.
+// To check this file, run: mvn -q exec:java -Dexec.mainClass=tutorengine.Main
+// and look for a line like:
+//   Mana Drain [MTG-OTJ-055] | Outlaws of Thunder Junction | PHP 2600.00 x1 | ...
+// The bracketed code is the SKU, PHP is the price, and the trailing number is
+// calculatePriority(). If a priority looks wrong anywhere, this formula is the
+// first suspect.
 public class Card implements Comparable<Card> {
     private String sku;
     private String name;

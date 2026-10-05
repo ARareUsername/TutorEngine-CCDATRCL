@@ -14,12 +14,17 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import tutorengine.model.Card;
 
-// HOW TO TEST (needs a screen — won't render over plain SSH. OWNER: Bondoc, Karl B.):
-//   RUN:  mvn exec:java   (window titled "TutorEngine" opens)
-//   PASS IF:
-//     - Typing MTG-OTJ-055 + Search SKU shows: Found: Mana Drain [MTG-OTJ-055] | ...
-//     - Typing BOGUS-1 + Search SKU shows: Not found: BOGUS-1 (graceful, no crash)
-//     - List Catalog prints one line per card (3 lines with seed data)
+// Hi! This is the click-around window (OWNER: Bondoc, Karl B.) — the thing the
+// store clerk actually sees. Note it needs a real screen, so it won't render
+// over a text-only connection; that's expected, not a bug.
+// To check it, run: mvn exec:java  (a window titled "TutorEngine" opens)
+// Try these three things:
+//   - Type MTG-OTJ-055 and hit Search SKU: you should get a "Found: Mana
+//     Drain [MTG-OTJ-055] | ..." line.
+//   - Type BOGUS-1 and search: you should get a polite "Not found: BOGUS-1"
+//     and the app keeps running.
+//   - Hit List Catalog: one line per card (3 lines with the sample data).
+// As members finish, their features land here as new buttons and panels.
 public class TutorEngineUI {
     private final Map<String, Card> catalog = new HashMap<>(101);
     private final JTextArea log = new JTextArea(20, 60);

@@ -12,14 +12,17 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import tutorengine.model.Card;
 
-// HOW TO TEST (CLI demo, OWNER: Bondoc, Karl B.):
-//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.Main
-//   PASS IF all three sections print:
-//     [1] Highest Action Priority: Mana Drain (Priority Score: 1331.30)
-//     [2] Located: Mana Drain | Price: PHP 2600.0
-//     [3] BFS Traversal Route from Checkout Counter: ... -> END
-//   If [1] names a different card, the PriorityQueue comparator is wrong.
-//   If [2] says Not Found, the HashMap key (SKU) mismatches Card.getSku().
+// Hi! This is the command-line demo (OWNER: Bondoc, Karl B.). It stitches the
+// pieces together on 3 sample cards so the group can see the whole story in one
+// run: which card gets listed first, instant lookup by code, and the store walk.
+// To check it, run: mvn -q exec:java -Dexec.mainClass=tutorengine.Main
+// You should see all three sections:
+//   [1] Highest Action Priority: Mana Drain (Priority Score: 1331.30)
+//   [2] Located: Mana Drain | Price: PHP 2600.0
+//   [3] BFS Traversal Route from Checkout Counter: ... -> END
+// If [1] names a different card, the priority comparison is wrong. If [2] says
+// Not Found, the lookup key doesn't match Card.getSku(). As members finish
+// their classes, this demo grows to call them — that's the final integration.
 public class Main {
     public static void main(String[] args) {
         System.out.println("=============================================");
