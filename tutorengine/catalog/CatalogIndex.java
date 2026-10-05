@@ -1,4 +1,4 @@
-package tutorengine.catalog; 
+package tutorengine.catalog;
 
 import java.util.Collection;
 import java.util.TreeMap;
