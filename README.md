@@ -34,6 +34,7 @@ If you prefer using the command line:
 * [x] SKU search (`HashMap`) + List Catalog view (`TutorEngineUI.java`)
 * [x] Convert Scryfall bulk data into 60-row `Dataset/cards.csv`
 * [x] Set up and verify Maven `pom.xml` build configuration
+* [x] Implement `CSVLoader.load()` with SKIP handling + wire 60-row dataset into `Main` and UI (fallback-safe; David keeps trace + report rows)
 * [ ] Create hash collision demo in `Main.java` (using `new HashMap<>(7)`, two colliding SKUs, and printed bucket chain)
 * [ ] Add input guards for empty or invalid SKUs in search
 * [ ] Implement `tutorengine/ui/CardImageCache.java` with responsive GUI preview (see `TutorEngine.md §8`)

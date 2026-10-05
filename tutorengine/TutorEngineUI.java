@@ -13,6 +13,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import tutorengine.model.Card;
+import tutorengine.util.CSVLoader;
 
 // OWNER: Bondoc, Karl B. — the window the store clerk sees. Finished member
 // features land here as new buttons and panels.
@@ -21,11 +22,12 @@ import tutorengine.model.Card;
 // That is expected, not a bug.
 //
 // HOW TO TEST:
-//   Run: mvn exec:java (window titled "TutorEngine" opens)
+//   Run: mvn exec:java (window titled "TutorEngine" opens, dataset-driven)
 //   Expected:
-//     - MTG-OTJ-055 + Search SKU prints "Found: Mana Drain [MTG-OTJ-055] | ...".
-//     - BOGUS-1 + Search SKU prints "Not found: BOGUS-1" and the app keeps running.
-//     - List Catalog prints one line per card (3 lines with the sample data).
+//     - Status line reads "Loaded 60 cards. Try SKU <real-code> ...".
+//     - Searching the suggested SKU prints its "Found: ..." line.
+//     - BOGUS-1 prints "Not found: BOGUS-1" and the app keeps running.
+//     - List Catalog scrolls one line per card (60 lines with the dataset).
 public class TutorEngineUI {
     private final Map<String, Card> catalog = new HashMap<>(101);
     private final JTextArea log = new JTextArea(20, 60);
@@ -68,15 +70,20 @@ public class TutorEngineUI {
         f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
-        log("Loaded " + catalog.size() + " cards. Type a SKU (e.g. MTG-OTJ-055) and press Search.");
+        String example = catalog.isEmpty() ? "MTG-XXXX-000" : catalog.keySet().iterator().next();
+        log("Loaded " + catalog.size() + " cards. Try SKU " + example + " and press Search.");
     }
 
     private void seed() {
-        for (Card c : List.of(
+        List<Card> loaded = CSVLoader.load("Dataset/cards.csv");
+        if (loaded.isEmpty()) {
+            System.out.println("WARNING: dataset empty or missing, using 3 fallback cards.");
+            loaded = List.of(
                 new Card("MTG-MH3-001", "Ajani, Nacatl Pariah", "Modern Horizons 3", "White", "Creature", 2024, 2150.00, 2, 92, true, "Showcase Display"),
                 new Card("MTG-OTJ-055", "Mana Drain", "Outlaws of Thunder Junction", "Blue", "Instant", 2024, 2600.00, 1, 98, false, "Showcase Display"),
-                new Card("MTG-FDN-101", "Llanowar Elves", "Foundations", "Green", "Creature", 2024, 25.00, 48, 45, false, "Bulk Box C")))
-            catalog.put(c.getSku(), c);
+                new Card("MTG-FDN-101", "Llanowar Elves", "Foundations", "Green", "Creature", 2024, 25.00, 48, 45, false, "Bulk Box C"));
+        }
+        for (Card c : loaded) catalog.put(c.getSku(), c);
     }
 
     private void log(String s) {

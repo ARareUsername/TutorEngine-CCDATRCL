@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import tutorengine.model.Card;
+import tutorengine.util.CSVLoader;
 
 // OWNER: Bondoc, Karl B. — command-line demo and final integration point.
 //
@@ -20,12 +21,13 @@ import tutorengine.model.Card;
 //
 // HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.Main
-//   Expected sections:
-//     [1] Highest Action Priority: Mana Drain (Priority Score: 1331.30)
-//     [2] Located: Mana Drain | Price: PHP 2600.0
+//   Expected sections (dataset-driven; the priority winner depends on the CSV):
+//     [0] "Loaded N cards" with N >= 50 (or a WARNING + 3 fallback cards)
+//     [1] Highest Action Priority: <top card> (Priority Score: <number>)
+//     [2] Located: <first card> + a graceful "Not found" line for NOPE-000
 //     [3] BFS Traversal Route from Checkout Counter: ... -> END
-//   A different card in [1] implicates the priority comparison; "Not Found" in
-//   [2] means the lookup key does not match Card.getSku().
+//   "Loaded 0" plus fallback means Dataset/cards.csv was not found from the
+//   working directory — run from the project root.
 public class Main {
     public static void main(String[] args) {
         System.out.println("=============================================");
@@ -48,20 +50,23 @@ public class Main {
         addEdge(storeFloor, "Intake Sorting Desk", "Bulk Box B (Black/Red)");
         addEdge(storeFloor, "Intake Sorting Desk", "Bulk Box C (Green/Colorless)");
 
-        Card c1 = new Card("MTG-MH3-001", "Ajani, Nacatl Pariah", "Modern Horizons 3",
-                           "White", "Creature", 2024, 2150.00, 2, 92, true, "Showcase Display");
-        Card c2 = new Card("MTG-OTJ-055", "Mana Drain", "Outlaws of Thunder Junction",
-                           "Blue", "Instant", 2024, 2600.00, 1, 98, false, "Showcase Display");
-        Card c3 = new Card("MTG-FDN-101", "Llanowar Elves", "Foundations",
-                           "Green", "Creature", 2024, 25.00, 48, 45, false, "Bulk Box C");
+        List<Card> cards = CSVLoader.load("Dataset/cards.csv");
+        if (cards.isEmpty()) {
+            System.out.println("WARNING: dataset empty or missing, using 3 fallback cards.");
+            cards = new ArrayList<>(List.of(
+                new Card("MTG-MH3-001", "Ajani, Nacatl Pariah", "Modern Horizons 3",
+                         "White", "Creature", 2024, 2150.00, 2, 92, true, "Showcase Display"),
+                new Card("MTG-OTJ-055", "Mana Drain", "Outlaws of Thunder Junction",
+                         "Blue", "Instant", 2024, 2600.00, 1, 98, false, "Showcase Display"),
+                new Card("MTG-FDN-101", "Llanowar Elves", "Foundations",
+                         "Green", "Creature", 2024, 25.00, 48, 45, false, "Bulk Box C")));
+        }
+        System.out.println("\n[0] Dataset: loaded " + cards.size() + " cards.");
 
-        catalogTable.put(c1.getSku(), c1);
-        catalogTable.put(c2.getSku(), c2);
-        catalogTable.put(c3.getSku(), c3);
-
-        priorityHeap.offer(c1);
-        priorityHeap.offer(c2);
-        priorityHeap.offer(c3);
+        for (Card c : cards) {
+            catalogTable.put(c.getSku(), c);
+            priorityHeap.offer(c);
+        }
 
         System.out.println("\n[1] Immediate Web Listing Priority (PriorityQueue Top):");
         Card urgentCard = priorityHeap.poll();
@@ -69,8 +74,11 @@ public class Main {
                           urgentCard.getName(), urgentCard.calculatePriority());
 
         System.out.println("\n[2] Instant SKU Search (HashMap O(1)):");
-        Card found = catalogTable.get("MTG-OTJ-055");
+        String hitSku = cards.get(0).getSku();
+        Card found = catalogTable.get(hitSku);
         System.out.println("Located: " + (found != null ? found.getName() + " | Price: PHP " + found.getPrice() : "Not Found"));
+        Card missing = catalogTable.get("NOPE-000");
+        System.out.println("Missing SKU lookup: " + (missing == null ? "Not found (handled gracefully)" : missing.getName()));
 
         System.out.println("\n[3] Physical Retrieval Navigation (Graph BFS):");
         bfs(storeFloor, "Checkout Counter");
