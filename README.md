@@ -1,94 +1,140 @@
 # TutorEngine — MTG Singles & Storage Decision System
 
-Java (Maven) app for a local game store: intake barcode scans, catalog singles,
-prioritize web listings, correct mistyped SKUs, and benchmark sort/search choices.
-Course: CCDATRCL – Data Structures and Algorithms.
+A Java (Maven) desktop system designed for a local game store to scan barcodes, catalog card singles, manage online listing priority, auto-correct mistyped SKUs, and benchmark search and sorting algorithms.
 
-Spec: `PROJECT_SPECS.md` (repo parent) + `TutorEngine/TutorEngine.md` (design + §7 assignments + §8 GUI roadmap).
-Dataset: `Dataset/cards.csv` — 60 real singles from Scryfall Default Cards 2026-10-04
-(converted 2026-10-05 by Bondoc, Karl B.; quantity/box assigned locally, demand from `edhrec_rank`).
+* **Course:** CCDATRCL – Data Structures and Algorithms
+* **Documentation & Specs:** See `PROJECT_SPECS.md` and `TutorEngine/TutorEngine.md`
+* **Dataset:** `Dataset/cards.csv` (60 real Magic: The Gathering singles from Scryfall)
 
-## Quick start (NetBeans — everyone uses this)
+---
 
-1. **Open:** File → Open Project → select this folder (it shows a Maven `M` badge) → Open Project.
-2. **Build:** right-click project → Build (hammer icon). Must say BUILD SUCCESS.
-3. **Run UI:** right-click project → Run / green ▶ (runs `tutorengine.TutorEngineUI`).
-   Switch target: right-click project → Properties → Run → Main Class → Browse…
-   (`tutorengine.Main` for the CLI demo, `tutorengine.util.CSVLoader` etc. for your own demo).
-4. **Run one file:** right-click the file → Run File (Shift+F6). Debug: Ctrl+F5.
+## Quick Start (NetBeans)
 
-Terminal fallback: `mvn compile`, UI: `mvn exec:java`, CLI: `mvn exec:java -Dexec.mainClass=tutorengine.Main`.
+Most team members will run and test the project directly in NetBeans:
 
-## NetBeans Git workflow (buttons, no terminal)
+1. **Open Project:** Go to **File → Open Project**, choose this repository's folder (marked with an `M` Maven icon), and click **Open Project**.
+2. **Build:** Right-click the project name in the left sidebar and click **Build**. Ensure the console prints `BUILD SUCCESS`.
+3. **Run the App:** Click the green **Run (▶)** button or right-click the project and select **Run** to launch the GUI (`tutorengine.TutorEngineUI`).
+   * *To run a specific class (like CLI demos):* Right-click the Java file directly and choose **Run File** (or press `Shift + F6`).
+   * *To debug:* Press `Ctrl + F5`.
 
-1. **First time — Clone:** Team → Git → Clone… → paste `https://github.com/ARareUsername/TutorEngine-CCDATRCL.git` → Next → Finish. Then File → Open Project on the cloned folder.
-2. **New task — Branch:** Team → Branch → Create Branch… → name `<lastname>/my-task` (e.g. `david/csv-loader`) → Create & Checkout.
-3. **Work:** edit ONLY your files (see task list above). Right-click project → Build after every change.
-4. **Commit:** Team → Commit… → write message `feat(scope): what you did` (never `update`) → tick ONLY your files → Commit.
-5. **Push:** Team → Push… → Next → Finish.
-6. **Pull Request:** NetBeans has no PR button — open the repo in a browser, click the yellow **Compare & pull request** banner → **Create pull request**, paste your `TutorEngine.md §7` checklist.
-7. **Update this README:** tick your `[ ]` → `[x]` in the same PR that finishes the task.
+### Terminal Alternative
+If you prefer using the command line:
+* Build: `mvn compile`
+* Run GUI: `mvn exec:java`
+* Run CLI demo: `mvn exec:java -Dexec.mainClass=tutorengine.Main`
 
-## Tasks by member (update your boxes in the same PR that finishes the work)
+---
 
-### Bondoc, Karl B. — Search / UI / Dataset
-- [x] SKU search (`HashMap`) + List Catalog (`TutorEngineUI.java`)
-- [x] Scryfall bulk → 60-row `Dataset/cards.csv`
-- [x] Maven `pom.xml` (build verified)
-- [ ] Hash **collision demo** in `Main.java` (init `new HashMap<>(7)`, 2 colliding SKUs, print chain)
-- [ ] Blank-SKU / invalid-input guard in search
-- [ ] `tutorengine/ui/CardImageCache.java` + responsive GUI w/ image double-check (see `TutorEngine.md §8`)
-- [ ] Final integration of all members' classes into UI + `Main`
+## Member Task Assignments
 
-### David, Abraham John D. — Data & Loader (`util/CSVLoader.java`, `Dataset/cards.csv`)
-- [ ] `load()` parses CSV, skips bad rows with `SKIP line N` message, never crashes
-- [ ] `main()` demo prints count >= 50 + 3 samples
-- [ ] 1-page list trace for `TracePacket/` + Template C field table (report S2)
+> **Rule:** Only work on files assigned to you. Check off `[x]` your tasks here in the same Pull Request where you deliver your code.
 
-### De Jesus, Aeon Miles J. — History & Intake (`model/TransactionLog.java`, `intake/IntakeBuffer.java`)
-- [ ] `printAll()` numbered traversal + empty-log safe
-- [ ] `main()` demos: 3-entry log + undo; FIFO stage/process + LIFO undo with real cards
-- [ ] 1-page traces (list + queue/stack) + tests T01–T03
+### Bondoc, Karl B. — Search, UI & Dataset
+* [x] SKU search (`HashMap`) + List Catalog view (`TutorEngineUI.java`)
+* [x] Convert Scryfall bulk data into 60-row `Dataset/cards.csv`
+* [x] Set up and verify Maven `pom.xml` build configuration
+* [ ] Create hash collision demo in `Main.java` (using `new HashMap<>(7)`, two colliding SKUs, and printed bucket chain)
+* [ ] Add input guards for empty or invalid SKUs in search
+* [ ] Implement `tutorengine/ui/CardImageCache.java` with responsive GUI preview (see `TutorEngine.md §8`)
+* [ ] Complete final system integration of all member modules into GUI and `Main`
 
-### Dimazana, Amiel Benedict R. — Catalog / Priority / Sort (`catalog/CatalogIndex.java`, `priority/PriorityDesk.java`, `algorithms/CardSorter.java`)
-- [ ] 5-card catalog demo: put/get-hit/get-miss/inorder + leaf & root delete
-- [ ] 5-card heap demo: poll order + new-top jump; practice comparator reweight
-- [ ] Manual Insertion + Selection sorts with comparison/movement counts, verified vs `List.sort`
-- [ ] Traces (BST, heap, one sort pass) + tests T04/T09/T10; add-record validation (price/qty/demand guards)
+### David, Abraham John D. — Data & Loader
+*Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*
+* [ ] Implement `load()` to read CSV data cleanly and skip corrupt rows with a `SKIP line N` console warning without crashing
+* [ ] Add a `main()` demo showing at least 50 loaded cards and printing 3 sample entries
+* [ ] Provide a 1-page list trace diagram for `TracePacket/` and complete the Template C field mapping table
 
-### Huypungco, Matthew James M. — Graph & Benchmark (`model/StorageLocation.java`, `algorithms/StoreNavigator.java`, `algorithms/SkuCorrector.java`, `util/BenchmarkSuite.java`)
-- [ ] 10-node/15-edge store map; `bfsPath()` min-hop + `dfs()` audit; missing-node safe
-- [ ] `SkuCorrector`: 1-char-diff graph + `bfsSuggest()` depth≤2 demo on mistyped SKU
-- [ ] `BenchmarkSuite`: `nanoTime` sort-vs-sort + search-vs-search at 100/500/1000/5000 → `BenchmarkResults/bench.txt`
-- [ ] Traces (BFS, DFS) + tests T07/T08; benchmark interpretation (why small-n diverges)
+### De Jesus, Aeon Miles J. — Transaction History & Intake
+*Target Files: `model/TransactionLog.java`, `intake/IntakeBuffer.java`*
+* [ ] Implement `printAll()` with numbered log traversal and empty-log safety checks
+* [ ] Create `main()` runnable demos:
+  * 3-entry transaction history log with undo capability
+  * FIFO staging buffer and LIFO undo operations using sample cards
+* [ ] Prepare 1-page trace packet (linked list, queue, and stack) and pass test cases T01–T03
 
-## How to contribute — terminal
+### Dimazana, Amiel Benedict R. — Catalog, Priority & Sorting
+*Target Files: `catalog/CatalogIndex.java`, `priority/PriorityDesk.java`, `algorithms/CardSorter.java`*
+* [ ] 5-card binary search tree demo: `put`, search hits/misses, in-order traversal, and deletion of leaf and root nodes
+* [ ] 5-card priority heap demo: polling order, new-top priority promotion, and custom comparator reweighting
+* [ ] Implement manual Insertion Sort and Selection Sort tracking comparison and swap counts; verify correctness against `List.sort`
+* [ ] Prepare traces (BST, Min/Max Heap, single sort pass), complete validation guards (price, quantity, demand), and pass tests T04, T09, and T10
+
+### Huypungco, Matthew James M. — Graph Navigation & Benchmarks
+*Target Files: `model/StorageLocation.java`, `algorithms/StoreNavigator.java`, `algorithms/SkuCorrector.java`, `util/BenchmarkSuite.java`*
+* [ ] Model a 10-node / 15-edge store map; implement shortest-path BFS traversal and full DFS audit with missing-node handling
+* [ ] Implement `SkuCorrector`: build a 1-character difference graph and run `bfsSuggest()` (depth $\le$ 2) to correct mistyped SKU inputs
+* [ ] Build `BenchmarkSuite` with `System.nanoTime()` comparing sorting algorithms and search algorithms across sizes 100, 500, 1000, and 5000; output data to `BenchmarkResults/bench.txt`
+* [ ] Prepare BFS/DFS trace diagrams, provide analysis on small-sample timing divergence, and pass tests T07 and T08
+
+---
+
+## How to Contribute
+
+Follow one of the two workflows below. Always keep each branch dedicated to your own task.
+
+### Option A: Using NetBeans (Recommended)
+
+1. **Clone the Repo:**
+   * In NetBeans, click **Team → Git → Clone…**
+   * Paste Repository URL: `https://github.com/ARareUsername/TutorEngine-CCDATRCL.git`
+   * Click **Next**, complete the wizard, and open the project.
+2. **Create Your Feature Branch:**
+   * Go to **Team → Branch → Create Branch…**
+   * Name your branch using the format `<lastname>/<feature-name>` (e.g., `david/csv-loader`).
+   * Select **Create & Checkout**.
+3. **Make Changes & Test:**
+   * Edit only your assigned files.
+   * Verify your work by right-clicking the project and selecting **Build** to make sure there are no errors.
+4. **Commit:**
+   * Go to **Team → Commit…**
+   * Check the boxes *only* for the files you modified.
+   * Write a clear commit message using conventional format: `feat(scope): short description of work` (avoid vague messages like `update` or `fix`).
+   * Click **Commit**.
+5. **Push:**
+   * Go to **Team → Push…**, click **Next**, and click **Finish**.
+6. **Open a Pull Request:**
+   * Open the repository on GitHub in your browser.
+   * Click the yellow **Compare & pull request** button.
+   * Fill out the PR template checklist (from `TutorEngine.md §7`) and submit.
+
+---
+
+### Option B: Using Git via Terminal
 
 ```bash
+# 1. Clone the project and enter the folder
 git clone https://github.com/ARareUsername/TutorEngine-CCDATRCL.git
 cd TutorEngine-CCDATRCL
-git checkout -b <lastname>/my-task      # e.g. david/csv-loader
-# edit ONLY your files (see table above)
-mvn compile                              # must pass
-git add <your files>
-git commit -m "feat(scope): what you did"  # never "update"/"fix"
-git push -u origin <lastname>/my-task
+
+# 2. Create and switch to your feature branch
+git checkout -b <lastname>/<feature-name>
+
+# 3. Work on your files, then verify compilation
+mvn compile
+
+# 4. Stage and commit your assigned files
+git add <your-changed-files>
+git commit -m "feat(scope): concise description of changes"
+
+# 5. Push your branch to GitHub
+git push -u origin <lastname>/<feature-name>
 ```
-Then open a Pull Request (see GUI steps 4–5 below) and fill the PR checklist from `TutorEngine.md §7`.
 
-## How to contribute — GitHub website buttons
+*After pushing, go to GitHub in your browser and click **Compare & pull request**.*
 
-1. Open https://github.com/ARareUsername/TutorEngine-CCDATRCL → click the file you own.
-2. Pencil icon (Edit) → make changes → green **Commit changes…** button.
-3. Choose **Create a new branch** (name it `<lastname>/my-task`) → **Propose changes**.
-4. Yellow banner **Compare & pull request** → **Create pull request**.
-5. In the description paste your PR checklist (`TutorEngine.md §7`: demo passes, tests, trace page, Template I row).
-6. Small edits only in the browser — for new files use **Add file → Create new file**; for real work prefer the terminal steps above.
+---
 
-## Documentation rules (graded — read before pushing)
+## Contribution & Grading Guidelines
 
-1. **One owner per file.** File headers name the owner; never edit another member's file (comment on their PR instead).
-2. **Every class runs standalone** via its `main()` demo: `mvn exec:java -Dexec.mainClass=<your.Class>`.
-3. **Commits are evidence** (need ≥15 total, all members, across days): `feat(catalog): TreeMap delete-root + inorder demo`, not `update`.
-4. **Each task ships 4 things:** code + test IDs + 1-page trace in `TracePacket/` + your Template I row (files, commit links, defense Qs).
-5. **Report ties to code:** every Big-O row and benchmark number must name the real class/method it measures.
+To ensure full credit during project defense and grading, adhere strictly to these rules:
+
+* **Strict File Ownership:** Do not edit another member's assigned file. If you notice an issue, review or leave a comment on their pull request.
+* **Independent Executability:** Every class must contain a functional `public static void main(String[] args)` method demonstrating its data structure or algorithm in isolation.
+* **Meaningful Git History:** We need at least 15 verified, well-spaced commits across the team. Use clear semantic prefixes (e.g., `feat:`, `test:`, `docs:`).
+* **Deliverable Checklist:** Every completed task must include:
+  1. Working source code.
+  2. Passing test cases.
+  3. A 1-page visual memory/execution trace saved under `TracePacket/`.
+  4. Your filled-in row in **Template I** (documenting modified files, commit links, and defense questions).
+* **Code-Backed Documentation:** All Big-O complexity tables and benchmark values cited in your final report must link directly to the specific class and method implementing them.
