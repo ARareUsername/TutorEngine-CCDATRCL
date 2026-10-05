@@ -295,3 +295,14 @@ public class Main {
 
 ### Future assignments
 Add new work as a NEW file with an OWNER header (never split one file across members). Register it in the table above + `## 3 Directory Layout` in the same PR.
+
+## 8. GUI Roadmap — responsive + card-image double-check (OWNER: Bondoc, Karl B.)
+
+> New file: `tutorengine/ui/CardImageCache.java` (Karl only). UI stays in `tutorengine/TutorEngineUI.java` (Karl only).
+
+- **Goal:** functional, responsive Swing GUI. Search result shows the card + its picture so the associate can verify the physical card on the fly.
+- **Online:** fetch `image_uris.small` (146x204 JPG, ~15-40 KB) for result thumbnails; `image_uris.normal` (488x680) only for the double-check popup. Lazy-load per search (never bulk-download images).
+- **Offline:** disk cache in `ImageCache/<SKU>.jpg` (git-ignored). Hit = show instantly; miss with no connection = placeholder panel ("image unavailable offline") — app keeps working.
+- **Storage math:** 60 cards x small ≈ 1-3 MB total. Even full `normal` for all 60 ≈ 5-9 MB. Cap cache at ~50 MB with delete-oldest eviction and it never grows unbounded.
+- **Rules:** respect Scryfall rate limits (cache first, ~100 ms between fetches); store only the `image_uris` URL per card (add `imageUrl` to the CSV/card, not the bytes).
+- **Acceptance:** search existing SKU with internet → image in <2 s; airplane mode → cached image or placeholder, no crash; resize window → layout reflows, image scales.
