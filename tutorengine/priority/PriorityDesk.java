@@ -28,7 +28,14 @@ import tutorengine.model.Card;
 // ACCEPTANCE: poll order is always descending priority; new top jumps queue.
 // DEFENSE Qs: offer/poll O(log n), peek O(1); walk one sift-up on paper.
 // SPEC: S7 Heap, S8 priority calc, S11 heap add/remove, Template H heap trace, T10.
-public class PriorityDesk {
+// HOW TO TEST (OWNER: Dimazana):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.priority.PriorityDesk
+//   PASS WHEN DONE (offer 5 cards incl. Mana Drain as the hottest):
+//     - peek() shows Mana Drain with its priority number, without removing it.
+//     - poll() removes Mana Drain; the next peek() is the runner-up.
+//     - Offering an even hotter card LAST makes peek() switch to it immediately.
+//     - Every printed priority equals Card.calculatePriority() by hand-check.
+// public class PriorityDesk {
     private final PriorityQueue<Card> heap = new PriorityQueue<>(
             Comparator.comparingDouble(Card::calculatePriority).reversed());
 

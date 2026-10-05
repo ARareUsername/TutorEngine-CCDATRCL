@@ -25,7 +25,14 @@ import java.util.List;
 // ACCEPTANCE: 3 logs print in order; undo removes last; empty undo is safe.
 // DEFENSE Qs: why LinkedList not ArrayList (O(1) head/tail, no shifting)?
 // SPEC: S7 Linked List, S11 list traversal, Template H list trace, T01-T03.
-public class TransactionLog {
+// HOW TO TEST (OWNER: De Jesus):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.model.TransactionLog
+//   PASS WHEN DONE:
+//     - 3 logged entries print in the order they were added, numbered 1, 2, 3.
+//     - undoLast() removes and returns entry 3; printing again shows only 1, 2.
+//     - Calling undoLast() on an empty log prints a friendly message and
+//       returns null instead of throwing.
+// public class TransactionLog {
     private final LinkedList<String> entries = new LinkedList<>();
 
     public void log(String entry) { entries.addLast(entry); }

@@ -19,7 +19,14 @@ import java.util.Objects;
 //
 // ACCEPTANCE: 10 ids compile in both files; equals() true for same id.
 // SPEC: S7 Graph representation.
-public class StorageLocation {
+// HOW TO TEST (OWNER: Huypungco):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.model.StorageLocation
+//   PASS WHEN DONE:
+//     - Prints all 10 locations as "id -> label [zone]", one per line.
+//     - Every id printed here also appears as some Card's boxLocationId and as
+//       a node in StoreNavigator.sampleMap() (all three lists agree).
+//     - Two StorageLocations with the same id compare equal (== via equals()).
+// public class StorageLocation {
     private final String id;
     private final String label;
     // TODO Huypungco: add zone field + getter (step 1).

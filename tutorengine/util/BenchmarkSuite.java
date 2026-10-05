@@ -30,7 +30,16 @@ import tutorengine.model.Card;
 // ACCEPTANCE: table prints for all 4 sizes x (2 sorts + 2 searches); bench.txt saved.
 // DEFENSE Qs: nanoTime vs currentTimeMillis; why same dataset for both sides.
 // SPEC: S9 benchmarking, S11 benchmark display, Template F + E explanation.
-public class BenchmarkSuite {
+// HOW TO TEST (OWNER: Huypungco):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.util.BenchmarkSuite
+//   PASS WHEN DONE:
+//     - One table row per size 100 / 500 / 1000 / 5000 for EACH of: Insertion,
+//       Selection, HashMap search, linear search (16 rows total).
+//     - Every row shows size | operation | algorithm | nanoseconds | comparisons.
+//     - Times grow with size (5000 slower than 100); if a small size looks odd,
+//       that becomes your "diverges from theory" sentence in the report.
+//     - The same table is saved to BenchmarkResults/bench.txt.
+// public class BenchmarkSuite {
     static List<Card> makeCards(int n) {
         // TODO Huypungco: implement generator (step 1).
         return new ArrayList<>();

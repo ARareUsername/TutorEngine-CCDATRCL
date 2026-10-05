@@ -35,7 +35,14 @@ import tutorengine.model.Card;
 // ACCEPTANCE: mistype depth<=2 returns the right SKU; exact SKU needs no suggest.
 // DEFENSE Qs: build cost vs BFS O(V+E); what maxDepth=2 guarantees.
 // SPEC: S8 BFS application, Template G T05/T07, Template H BFS trace.
-public class SkuCorrector {
+// HOW TO TEST (OWNER: Huypungco):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.algorithms.SkuCorrector
+//   PASS WHEN DONE (6 SKUs that differ by 1 character, e.g. ...-055 / ...-056):
+//     - Querying a mistyped SKU like "MTG-OTJ-05O" (letter O) suggests the real
+//       "MTG-OTJ-055" / "MTG-OTJ-056" within depth 2.
+//     - Querying an exact, correct SKU needs no suggestions (already found).
+//     - Querying gibberish ("ZZZ") returns an empty list + message, no crash.
+// public class SkuCorrector {
     static boolean isOneCharDiff(String a, String b) {
         // TODO Huypungco: implement (step 1).
         return false;

@@ -32,7 +32,15 @@ import tutorengine.model.Card;
 // ACCEPTANCE: load("Dataset/cards.csv").size() >= 50; 1 bad row does not crash.
 // DEFENSE Qs: why ArrayList staging (O(1) index for sort/benchmark)?
 // SPEC: PROJECT_SPECS.md S6 dataset, S11 load/generate.
-public class CSVLoader {
+// HOW TO TEST (OWNER: David):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.util.CSVLoader
+//   RIGHT NOW EXPECT (stub, not done): "TODO David: parse ..." and "Loaded 0 cards".
+//   PASS WHEN DONE:
+//     - "Loaded 60 cards (need >= 50)."
+//     - 3 sample card lines printed below the count.
+//     - A deliberately broken row in the CSV prints "SKIP line N: <reason>"
+//       and the count still prints (bad rows never crash the load).
+// public class CSVLoader {
     public static List<Card> load(String path) {
         // TODO David: replace stub below with steps 3a-3e.
         System.out.println("TODO David: parse " + path + " -> List<Card>");

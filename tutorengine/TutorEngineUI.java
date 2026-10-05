@@ -14,7 +14,13 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import tutorengine.model.Card;
 
-public class TutorEngineUI {
+// HOW TO TEST (needs a screen — won't render over plain SSH. OWNER: Bondoc, Karl B.):
+//   RUN:  mvn exec:java   (window titled "TutorEngine" opens)
+//   PASS IF:
+//     - Typing MTG-OTJ-055 + Search SKU shows: Found: Mana Drain [MTG-OTJ-055] | ...
+//     - Typing BOGUS-1 + Search SKU shows: Not found: BOGUS-1 (graceful, no crash)
+//     - List Catalog prints one line per card (3 lines with seed data)
+// public class TutorEngineUI {
     private final Map<String, Card> catalog = new HashMap<>(101);
     private final JTextArea log = new JTextArea(20, 60);
 

@@ -12,7 +12,15 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import tutorengine.model.Card;
 
-public class Main {
+// HOW TO TEST (CLI demo, OWNER: Bondoc, Karl B.):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.Main
+//   PASS IF all three sections print:
+//     [1] Highest Action Priority: Mana Drain (Priority Score: 1331.30)
+//     [2] Located: Mana Drain | Price: PHP 2600.0
+//     [3] BFS Traversal Route from Checkout Counter: ... -> END
+//   If [1] names a different card, the PriorityQueue comparator is wrong.
+//   If [2] says Not Found, the HashMap key (SKU) mismatches Card.getSku().
+// public class Main {
     public static void main(String[] args) {
         System.out.println("=============================================");
         System.out.println("   TUTORENGINE: TCG SINGLES INVENTORY ADT    ");

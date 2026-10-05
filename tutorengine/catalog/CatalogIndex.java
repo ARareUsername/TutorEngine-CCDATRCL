@@ -27,7 +27,15 @@ import tutorengine.model.Card;
 // DEFENSE Qs: O(log n) search/delete avg, O(n) worst; inorder/preorder/postorder?
 //   (TreeMap gives inorder free; be ready to explain preorder/postorder order.)
 // SPEC: S7 BST/Tree, S11 BST ops, Template H BST trace, T09.
-public class CatalogIndex {
+// HOW TO TEST (OWNER: Dimazana):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.catalog.CatalogIndex
+//   PASS WHEN DONE (put 5 real cards):
+//     - get() of an existing name returns its card; get() of a missing name
+//       prints "Not found: <name>" and returns null (no crash).
+//     - inorder() prints all 5 names A-Z (case-insensitive).
+//     - After removing one leaf AND the root (first key), inorder() still
+//       prints the rest A-Z with nothing missing or duplicated.
+// public class CatalogIndex {
     private final TreeMap<String, Card> index = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     public void put(Card c) { index.put(c.getName(), c); }

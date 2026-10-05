@@ -33,7 +33,16 @@ import java.util.Set;
 // ACCEPTANCE: 10 nodes/15 edges; BFS returns min-hop path; DFS visits all.
 // DEFENSE Qs: BFS/DFS both O(V+E); queue vs stack; why BFS = shortest hops.
 // SPEC: S7 Graph, S8 BFS/DFS, S11 BFS+DFS, Template H traces, T07/T08.
-public class StoreNavigator {
+// HOW TO TEST (OWNER: Huypungco):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.algorithms.StoreNavigator
+//   PASS WHEN DONE (sample map: 10 locations, 15 paths):
+//     - bfsPath("Checkout Counter", "Bulk Box C (Green/Colorless)") prints the
+//       walk as "Checkout Counter -> Intake Sorting Desk -> ... -> Bulk Box C",
+//       the shortest possible hop count (count the arrows).
+//     - dfs() from Checkout prints every location exactly once (10 names).
+//     - Asking for a location that doesn't exist prints a message and returns
+//       an empty path instead of crashing.
+// public class StoreNavigator {
     public static Map<String, List<String>> sampleMap() {
         // TODO Huypungco: build and return the 10-node/15-edge map. Keep helper
         // separate so bfsPath/dfs stay clean. Undirected: add both directions.

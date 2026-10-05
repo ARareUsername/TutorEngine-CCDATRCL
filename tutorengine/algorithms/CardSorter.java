@@ -27,7 +27,14 @@ import tutorengine.model.Card;
 // DEFENSE Qs: best/avg/worst of each (Insertion: O(n)/O(n^2)/O(n^2);
 //   Selection: O(n^2) always); why n=100 timings can contradict theory.
 // SPEC: S8 sorting, S9 sort-vs-sort, Template F.
-public class CardSorter {
+// HOW TO TEST (OWNER: Dimazana):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.algorithms.CardSorter
+//   PASS WHEN DONE (start from the same 5-card shuffled list):
+//     - Insertion and Selection both print names in identical A-Z order.
+//     - That order matches plain List.sort (the demo verifies it for you).
+//     - Both print their comparisons= and movements= counters (numbers > 0).
+//     - Counters reset on every call (run twice — second run prints fresh counts).
+// public class CardSorter {
     public static long comparisons, movements;
     private static final Comparator<Card> BY_NAME =
             (a, b) -> a.getName().compareToIgnoreCase(b.getName());

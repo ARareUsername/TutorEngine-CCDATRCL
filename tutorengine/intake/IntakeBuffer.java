@@ -27,7 +27,14 @@ import tutorengine.model.Card;
 // ACCEPTANCE: FIFO order A,B,C; undo returns last processed; empty returns null.
 // DEFENSE Qs: Queue vs Stack in one demo; why ArrayDeque O(1) both ends?
 // SPEC: S7 Stack/Queue, S11 stack-or-queue op, Template H stack/queue trace.
-public class IntakeBuffer {
+// HOW TO TEST (OWNER: De Jesus):
+//   RUN:  mvn -q exec:java -Dexec.mainClass=tutorengine.intake.IntakeBuffer
+//   PASS WHEN DONE (stage A, B, C in that order):
+//     - First processNext() returns A (FIFO — first staged, first out).
+//     - undo() right after returns A again (LIFO — last processed comes back).
+//     - Next processNext() returns B. Queue never skips or duplicates a card.
+//     - processNext()/undo() on an empty buffer print a message and return null.
+// public class IntakeBuffer {
     private final Deque<Card> queue = new ArrayDeque<>();
     private final Deque<Card> undo = new ArrayDeque<>();
 
