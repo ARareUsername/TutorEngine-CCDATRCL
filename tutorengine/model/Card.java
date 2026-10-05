@@ -1,16 +1,18 @@
 package tutorengine.model;
 
-// Hi! This is the heart of the app — one Card object is one Magic single on
-// the shelf (its code, name, set, price, stock, demand, foil finish, and which
-// box it lives in). Everybody's code touches Cards, so think twice before
-// changing these fields: renames ripple into the CSV, the search, and sorting.
-// There is no main() here on purpose — Cards get exercised through the demos.
-// To check this file, run: mvn -q exec:java -Dexec.mainClass=tutorengine.Main
-// and look for a line like:
-//   Mana Drain [MTG-OTJ-055] | Outlaws of Thunder Junction | PHP 2600.00 x1 | ...
-// The bracketed code is the SKU, PHP is the price, and the trailing number is
-// calculatePriority(). If a priority looks wrong anywhere, this formula is the
-// first suspect.
+// SHARED RECORD — Card. Every member's code touches this class: do not rename
+// fields without checking the CSV, the search, the sorts, and the report first.
+//
+// PURPOSE: One object per Magic single on the shelf: SKU code, name, set, color,
+// type, year, price, stock count, demand 1-100, foil flag, and storage-box id.
+// calculatePriority() scores listing urgency from price, demand, stock, and foil.
+//
+// HOW TO TEST: no main() here by design; Cards are exercised through the demos.
+//   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.Main
+//   Expected: a line like
+//     Mana Drain [MTG-OTJ-055] | Outlaws of Thunder Junction | PHP 2600.00 x1 | ...
+//   Bracketed code = SKU, PHP = price, trailing number = the priority score.
+//   A wrong-looking priority anywhere implicates the formula below first.
 public class Card implements Comparable<Card> {
     private String sku;
     private String name;

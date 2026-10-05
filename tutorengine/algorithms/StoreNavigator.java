@@ -9,44 +9,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-// Hi Huypungco! This file is yours. Nobody else should edit it, and please
-// don't edit anyone else's — comments on pull requests for anything cross-file.
+// OWNER: Huypungco — Graph & Benchmark. Do not edit files owned by others; use PR comments instead.
 //
-// What this does: it turns the physical store into a map the program can
-// reason about. Every spot (checkout, intake desk, showcase, bulk boxes) is a
-// dot, every walkable aisle is a line between dots. Two questions get answered:
-// "what's the shortest walk from checkout to this card's box?" (BFS — it checks
-// all one-step-away spots, then all two-step ones, so the first route found is
-// the shortest) and "which zones can we even reach?" (DFS — it strides deep
-// down each aisle before backtracking).
+// PURPOSE: Turns the physical store into a map the program can reason about.
+// Every spot (checkout, intake desk, showcase, bulk boxes) is a node; every
+// walkable aisle is an edge. BFS answers "shortest walk from checkout to this
+// card's box" (it checks all 1-step spots, then all 2-step spots, so the first
+// route found is the shortest). DFS answers "which zones are reachable at all"
+// (it strides deep down each aisle before backtracking).
 //
-// Your steps:
-//  1. Finish bfsPath() using the parent-map trick: search outward from the
-//     start, remember which spot you came from for each new spot, stop at the
-//     goal, then follow the trail backwards to build the route. Unknown spot
-//     or no route: print a message and return an empty list, never crash.
-//  2. dfs() already works (it uses a stack to go deep first) — keep it.
-//  3. In sampleMap(), build the real map: 10 spots and 15 aisle links (the spec
-//     minimum). Suggestions: Checkout, Intake Desk, Showcase, Bulk A/B/C,
-//     Supplies, Back Room, Exit, Grading Table. Aisles run both ways.
-//  4. In main(), print the walk from Checkout to Bulk Box C and the full DFS
-//     visit order. Later, Karl's search will call this with the found card's
-//     box and print "Walk: A -> B -> C".
-//  5. For the traces, draw two pages: the BFS waiting line and visited set
-//     level by level, plus the DFS walk.
-//  6. Rehearse this: the instructor may delete one aisle and ask you to rerun
-//     the search live. Practice it until it's boring.
+// HOW TO IMPLEMENT:
+//   1. bfsPath(): breadth-first search with a parent map. Queue the start; when
+//      a new spot is first reached, record parent.put(next, current). Stop when
+//      the goal is dequeued, then rebuild the route by walking parent links from
+//      goal back to start and reversing. Unknown start/goal or disconnected goal:
+//      print a message and return an empty list, never null, never throw.
+//   2. Keep dfs() as written (explicit ArrayDeque stack = iterative deep-first).
+//   3. sampleMap(): build 10 spots and 15 aisle links (the spec minimum).
+//      Suggested spots: Checkout Counter, Intake Sorting Desk, Showcase Display,
+//      Bulk Box A/B/C, Supplies, Back Room, Exit, Grading Table. Aisles run both
+//      directions — write one addEdge helper that appends each side, and count
+//      the calls until 15.
+//   4. main(): print bfsPath from "Checkout Counter" to "Bulk Box C
+//      (Green/Colorless)" joined as "A -> B -> C", then print the full dfs()
+//      order from Checkout. Later, Karl's search result feeds
+//      Card.getBoxLocationId() into bfsPath() here.
+//   5. Trace packet (2 pages): BFS waiting line + visited set after each level;
+//      DFS visit order with the stack contents at each pop.
+//   6. Rehearse deleting one aisle and rerunning bfsPath() — the instructor may
+//      request exactly that live.
 //
-// How to check your work:
+// HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.algorithms.StoreNavigator
-//   When you're done: the printed walk really is the shortest (count the
-//   arrows — no shorter route exists on your map), DFS names all 10 spots
-//   exactly once, and a made-up location gets a message, not a crash.
+//   Expected: the printed walk is the shortest possible (count the arrows — no
+//   shorter route exists on the map); dfs() names all 10 spots exactly once; a
+//   made-up location prints a message and yields an empty path.
 //
-// For the defense, be ready to say both searches visit each spot and aisle
-// once (that's the O(V+E) line in the report), and why the queue version finds
-// shortest walks while the stack version doesn't promise that. (Spec: S7 graph,
-// S8 BFS/DFS, S11 both traversals, Template H traces, tests T07/T08.)
+// DEFENSE: both searches visit each node and edge once — that is the O(V+E)
+// line in the report; the queue version guarantees shortest hops, the stack
+// version does not.
+// SPEC: S7 graph, S8 BFS/DFS, S11 both traversals, Template H traces, tests T07/T08.
 public class StoreNavigator {
     public static Map<String, List<String>> sampleMap() {
         // TODO Huypungco: build and return the 10-node/15-edge map. Keep helper

@@ -4,40 +4,39 @@ import java.util.Collection;
 import java.util.TreeMap;
 import tutorengine.model.Card;
 
-// Hi Dimazana! This file is yours. Nobody else should edit it, and please
-// don't edit anyone else's — comments on pull requests for anything cross-file.
+// OWNER: Dimazana — Catalog & Priority. Do not edit files owned by others; use PR comments instead.
 //
-// What this does: it's the store's A-Z card catalog. Cards are filed by name
-// (ignoring capital letters), so asking for everything in order prints a neat
-// alphabetical sheet for the counter or the website. Lookups and removals stay
-// fast even as the catalog grows, because names are kept in a balanced tree
-// instead of a flat list.
+// PURPOSE: Alphabetical card catalog. Cards are filed by name ignoring capital
+// letters, so inorder() prints a neat A-Z sheet for the counter or website.
+// Names are kept in a balanced tree, so lookup and removal stay fast as the
+// catalog grows instead of slowing down like a flat list scan.
 //
-// Your steps:
-//  1. put(), get(), and remove() already work. For a name that isn't there,
-//     get() returns null — in the demo, print "Not found: <name>" for that
-//     case, the same kindness Karl shows for missing SKUs.
-//  2. Extend main() with 5 real cards: file all 5, look up one that exists and
-//     one that doesn't, print everything (must come out A-Z), then remove one
-//     ordinary entry AND the very first entry (the root), and print again.
-//  3. Both deletions must work — the tree handles the rearranging, you just
-//     have to show both cases happening.
-//  4. For the trace packet, draw one page: the tree growing as you file the 5
-//     names, then the hit, the miss, and the root deletion. Real card names.
-//  5. Rehearse this: the instructor may point at you and say "delete the root"
-//     live. Practice doing index.remove(index.firstKey()) without hesitating.
+// HOW TO IMPLEMENT:
+//   1. Keep put(), get(), and remove() as written. get() returns null for a name
+//      that is not filed — in main(), print "Not found: <name>" for that case,
+//      the same courtesy Karl's SKU search shows for missing codes.
+//   2. Extend main() with 5 real cards. Script, printing every step:
+//        put 5 -> get 1 existing name -> get 1 missing name ->
+//        inorder() print (must come out A-Z) ->
+//        remove 1 ordinary entry -> remove the FIRST entry (the root) ->
+//        inorder() print again.
+//      Removal is a single remove(name) call in both cases; the tree rearranges
+//      itself. Showing both proves leaf and root deletion work.
+//   3. Trace packet (1 page): tree shape after each of the 5 filings, then the
+//      hit, the miss, and the root deletion. Use real card names.
+//   4. Rehearse this line until it is reflex: index.remove(index.firstKey())
+//      deletes the root live — the instructor may ask for exactly that.
 //
-// How to check your work:
+// HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.catalog.CatalogIndex
-//   When you're done: the full listing is A-Z, the missing name prints its
-//   friendly message without crashing, and after both deletions the remaining
-//   names still print A-Z with nothing lost or doubled.
+//   Expected: full listing A-Z; missing name prints its message without crashing;
+//   after both deletions the rest still print A-Z with nothing lost or doubled.
 //
-// For the defense, be ready to explain that lookups stay quick (they halve the
-// search space each step on average), and to describe the three listing orders:
-// alphabetical, top-down, and bottom-up. The tree gives you alphabetical for
-// free; know the other two by heart. (Spec: S7 tree, S11 catalog operations,
-// Template H trace, test T09.)
+// DEFENSE: lookups halve the search space each step on average (logarithmic),
+// degrading only when input arrives pre-sorted; name the three listing orders
+// (alphabetical, top-down, bottom-up) — the tree yields alphabetical directly,
+// know the other two cold.
+// SPEC: S7 tree, S11 catalog operations, Template H trace, test T09.
 public class CatalogIndex {
     private final TreeMap<String, Card> index = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 

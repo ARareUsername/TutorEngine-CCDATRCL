@@ -3,37 +3,38 @@ package tutorengine.model;
 import java.util.LinkedList;
 import java.util.List;
 
-// Hi De Jesus! This file is yours. Please don't let anyone else edit it, and
-// please don't edit anyone else's — if you need a change somewhere else,
-// leave a comment on that person's pull request instead.
+// OWNER: De Jesus — History & Intake. Do not edit files owned by others; use PR comments instead.
 //
-// What this does: it's the store's diary. Every scan, addition, and deletion
-// appends one line here, newest at the end. If anyone asks "what happened to
-// that card?", this log is the answer. Under the hood it's a LinkedList, which
-// is perfect for a diary: adding to the end (or front) is instant, no matter
-// how long the diary gets.
+// PURPOSE: Append-only diary of everything the app does (scans, additions,
+// deletions), newest entry at the end. Answers "what happened to that card?".
+// Backed by a LinkedList: appending or removing at either end costs the same no
+// matter how long the diary grows, because no elements are ever shifted.
 //
-// Your steps:
-//  1. The log itself (a LinkedList of text lines) plus log() and undoLast()
-//     already work — keep them. Write entries like "INTAKE MTG-OTJ-055 x1"
-//     or "DELETE MTG-FDN-101" so every line names a real card.
-//  2. Add a printAll() method that walks the log front to back and numbers
-//     each line ("1. ...", "2. ...").
-//  3. Extend the main() demo: log 3 real SKUs, print everything, undo the last
-//     one, print again. Also show the empty case — calling undo on an empty
-//     log should print a friendly message, never crash.
-//  4. For the trace packet, draw one page: 3 inserts step by step (show where
-//     the head and tail point), then one delete. Use real SKUs.
+// HOW TO IMPLEMENT:
+//   1. Keep the LinkedList<String> field plus log() (addLast) and undoLast()
+//     (removeLast) as implemented. One entry per event, referencing a real SKU:
+//       "INTAKE MTG-OTJ-055 x1", "DELETE MTG-FDN-101", "UNDO INTAKE MTG-OTJ-055 x1"
+//   2. undoLast() on an empty log returns null. Add the user-facing message in
+//      the demo ("log is empty, nothing to undo"), not inside undoLast(), so the
+//      method stays usable by other classes without printing.
+//   3. Add printAll(): iterate entries front to back with an index counter and
+//      print "1. ...", "2. ...". An enhanced for-loop over the LinkedList is the
+//      traversal this spec item requires — do not copy into an array first.
+//   4. Extend main(): log 3 real SKUs, call printAll(), call undoLast() and print
+//      the returned entry, call printAll() again (entry 3 must be gone), then call
+//      undoLast() on the emptied log to show the safe empty case.
+//   5. Trace packet (1 page): 3 insertions showing head/tail after each, then 1
+//      deletion. Use real SKUs.
 //
-// How to check your work:
+// HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.model.TransactionLog
-//   When you're done you should see 3 numbered entries in the order you added
-//   them, then after the undo only entries 1 and 2, then a polite message for
-//   the empty-log undo.
+//   Expected: entries 1, 2, 3 in insertion order; undo returns entry 3 and the
+//   second printout shows only 1 and 2; empty undo prints the friendly message
+//   and returns null instead of throwing.
 //
-// For the defense, be ready to explain why a LinkedList beats an ArrayList
-// here: appending is always instant, while an array has to shift things around.
-// (Spec: S7 Linked List, S11 list traversal, Template H trace, tests T01-T03.)
+// DEFENSE: why LinkedList outperforms ArrayList here (no element shifting on
+// either-end insert/remove).
+// SPEC: S7 Linked List, S11 list traversal, Template H trace, tests T01-T03.
 public class TransactionLog {
     private final LinkedList<String> entries = new LinkedList<>();
 

@@ -6,41 +6,45 @@ import java.util.ArrayList;
 import java.util.List;
 import tutorengine.model.Card;
 
-// Hi David! This file is yours. Please don't let anyone else edit it, and
-// please don't edit anyone else's — if you need a change somewhere else,
-// leave a comment on that person's pull request instead.
+// OWNER: David — Data & Loader. Do not edit files owned by others; use PR comments instead.
 //
-// What this does: our card list lives in Dataset/cards.csv (also yours), and
-// this class reads that file and turns every row into a Card object. Almost
-// everything else in the app — search, sorting, benchmarks — eats the list this
-// produces, so if this breaks, everything breaks. Handle it with care.
+// PURPOSE: Read Dataset/cards.csv and convert each row into a Card object.
+// Every other feature (search, sorting, benchmarks) consumes the list built here,
+// so a crash in this file breaks the whole app. The CSV header must stay exactly:
+//   sku,name,setName,color,cardType,releaseYear,price,quantity,demandScore,isFoil,boxLocationId
 //
-// Your steps:
-//   1. Open Dataset/cards.csv. Keep the header row exactly as it is:
-//      sku,name,setName,color,cardType,releaseYear,price,quantity,demandScore,isFoil,boxLocationId
-//   2. Make sure it holds at least 50 real Magic singles (we have 60 from
-//      Scryfall already — verify, don't rebuild). Example row:
-//      MTG-OTJ-056,Lightning Helix,Outlaws of Thunder Junction,Multi,Instant,2024,120.00,6,70,false,Bulk Box B
-//   3. Fill in load() below: read every line, skip the header and blank lines,
-//      split on commas (names containing commas are wrapped in quotes), convert
-//      the numbers, and reject nonsense (negative price or quantity, demand
-//      outside 1-100). A broken row should print "SKIP line N: <why>" and be
-//      skipped — one bad row must never crash the whole load.
-//   4. Fill in main() so the demo loads the file and prints the count plus
-//      3 sample cards.
-//   5. For the report, describe every CSV column (Template C) and where the
-//      data came from (spec section S2).
+// HOW TO IMPLEMENT:
+//   1. In load(path): read all lines with Files.readAllLines(Path.of(path)).
+//      Line 0 is the header — start the loop at line 1 and skip blank lines.
+//   2. Split each line on commas with split(",", -1) so trailing empty fields survive.
+//      Card names containing commas are wrapped in double quotes in the file, so
+//      strip one surrounding pair of quotes from the name field when present.
+//   3. Convert and validate every field before building the Card:
+//        double price = Double.parseDouble(p[6].trim());
+//        int qty = Integer.parseInt(p[7].trim());
+//        int demand = Integer.parseInt(p[8].trim());
+//        boolean foil = Boolean.parseBoolean(p[9].trim());
+//      Reject the row when price < 0, quantity < 0, or demand is outside 1-100.
+//   4. A rejected or unparsable row prints "SKIP line N: <reason>" where N is the
+//      real file line number (loop index + 1), then the loop continues. Wrap the
+//      per-row parsing in try/catch (NumberFormatException) so one malformed
+//      number is skipped, never thrown — a single bad row must never abort the load.
+//   5. A good row becomes new Card(sku, name, setName, color, cardType, releaseYear,
+//      price, qty, demand, foil, boxId) and is appended to the result list.
+//   6. In main(): call load("Dataset/cards.csv"), print the list size, then print
+//      the first 3 cards via toString(). Keep one deliberately broken row in the
+//      CSV (or a copy) to demonstrate the SKIP path in the demo.
+//   7. Report: describe every CSV column (Template C) and the data origin
+//      (Scryfall Default Cards 2026-10-04, converted 2026-10-05) in section S2.
 //
-// How to check your work:
+// HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.util.CSVLoader
-//   Right now you'll see a TODO line and "Loaded 0 cards" — that's normal, the
-//   loader is still a stub. When you're done you should see "Loaded 60 cards",
-//   3 sample card lines, and (if you plant a broken row to test) a SKIP message
-//   with the count still printing fine.
+//   Expected: "Loaded 60 cards (need >= 50).", 3 sample card lines, and one
+//   "SKIP line N: ..." line for the planted bad row. Until load() is implemented
+//   the stub prints a TODO line and "Loaded 0 cards".
 //
-// For the defense, be ready to explain why the cards are staged in an ArrayList:
-// instant lookup by position, which is exactly what the sorting and benchmark
-// code relies on. (Spec: S6 dataset, S11 load/generate.)
+// DEFENSE: why an ArrayList stages the data (positional access the sorts rely on).
+// SPEC: S6 dataset, S11 load/generate.
 public class CSVLoader {
     public static List<Card> load(String path) {
         // TODO David: replace stub below with steps 3a-3e.

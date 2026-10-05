@@ -12,17 +12,20 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import tutorengine.model.Card;
 
-// Hi! This is the command-line demo (OWNER: Bondoc, Karl B.). It stitches the
-// pieces together on 3 sample cards so the group can see the whole story in one
-// run: which card gets listed first, instant lookup by code, and the store walk.
-// To check it, run: mvn -q exec:java -Dexec.mainClass=tutorengine.Main
-// You should see all three sections:
-//   [1] Highest Action Priority: Mana Drain (Priority Score: 1331.30)
-//   [2] Located: Mana Drain | Price: PHP 2600.0
-//   [3] BFS Traversal Route from Checkout Counter: ... -> END
-// If [1] names a different card, the priority comparison is wrong. If [2] says
-// Not Found, the lookup key doesn't match Card.getSku(). As members finish
-// their classes, this demo grows to call them — that's the final integration.
+// OWNER: Bondoc, Karl B. — command-line demo and final integration point.
+//
+// PURPOSE: Stitches the pieces together on sample cards so the whole story is
+// visible in one run: which card gets listed first, instant lookup by code, and
+// the store walk. As members finish their classes, this demo grows to call them.
+//
+// HOW TO TEST:
+//   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.Main
+//   Expected sections:
+//     [1] Highest Action Priority: Mana Drain (Priority Score: 1331.30)
+//     [2] Located: Mana Drain | Price: PHP 2600.0
+//     [3] BFS Traversal Route from Checkout Counter: ... -> END
+//   A different card in [1] implicates the priority comparison; "Not Found" in
+//   [2] means the lookup key does not match Card.getSku().
 public class Main {
     public static void main(String[] args) {
         System.out.println("=============================================");

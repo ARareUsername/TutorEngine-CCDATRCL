@@ -5,36 +5,38 @@ import java.util.Comparator;
 import java.util.List;
 import tutorengine.model.Card;
 
-// Hi Dimazana! Yours as well — same ownership rules as your other files.
+// OWNER: Dimazana — Catalog & Priority. Do not edit files owned by others; use PR comments instead.
 //
-// What this does: the project must sort real cards with two hand-written
-// sorting methods (not the built-in sort). This file holds both — Insertion
-// Sort and Selection Sort, ordering by card name — plus counters that record
-// how many comparisons and moves each one needed. Those numbers feed the speed
-// comparison table in the report, so count honestly.
+// PURPOSE: The two required hand-written sorts over real cards, ordered by name
+// ignoring capitals. Both count their own comparisons and moves; those counters
+// feed the speed-comparison table in the report, so count honestly.
 //
-// Your steps:
-//  1. Write insertionSort(): walk the list, sliding each card left until it
-//     sits among the already-sorted ones. Bump comparisons on every name
-//     comparison and movements on every shift. Reset both counters at the start.
-//  2. Write selectionSort(): repeatedly find the smallest remaining name and
-//     swap it into place, counting the same way.
-//  3. In main(), build the same 5 shuffled cards twice, sort one copy each way,
-//     print both orders plus both counters, and confirm both match plain
-//     List.sort (the demo should verify this itself and say so).
-//  4. For the trace packet, draw one page: a full Insertion Sort run on 5 cards,
-//     showing the row after every insertion.
+// HOW TO IMPLEMENT:
+//  1. insertionSort(a): for each position i from 1 to end, hold card i aside and
+//     shift every larger earlier card one slot right until the held card's slot
+//     opens, then place it. Increment comparisons on each name comparison
+//     (use c1.compareTo(c2)) and movements on each shift and placement. Reset
+//     both counters to 0 on entry.
+//  2. selectionSort(a): for each position i, scan positions i..end for the
+//     smallest name, then swap it into i (skip the swap when it is already i,
+//     but still count the comparisons). Same counter discipline as above.
+//  3. In main(): build one 5-card list in shuffled order, copy it twice with
+//     new ArrayList<>(shuffled), sort one copy each way, print both name orders
+//     plus both counters, then print whether both equal a plain List.sort of the
+//     original (the demo verifies itself and reports the verdict).
+//  4. Trace packet (1 page): one full Insertion Sort run on 5 cards, showing the
+//     row contents after every insertion.
 //
-// How to check your work:
+// HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.algorithms.CardSorter
-//   When you're done: both methods print identical A-Z orders that agree with
-//   List.sort, both print counters greater than zero, and running twice gives
-//   fresh counts each time (no leftovers from the previous run).
+//   Expected: both methods print identical A-Z orders that agree with List.sort;
+//   both print counters greater than zero; running twice prints fresh counts
+//   each time (no leftovers from the previous run).
 //
-// For the defense, know each method's best/worst behavior by heart (Insertion
-// loves nearly-sorted input; Selection does the same work no matter what) and
-// be ready to explain why tiny test sizes can make the "slower" method look
-// faster. (Spec: S8 sorting, S9 sort-vs-sort, Template F.)
+// DEFENSE: Insertion Sort's behavior on nearly-sorted input vs worst case;
+// Selection Sort doing the same work regardless; why tiny test sizes can make
+// the theoretically slower method look faster.
+// SPEC: S8 sorting, S9 sort-vs-sort, Template F.
 public class CardSorter {
     public static long comparisons, movements;
     private static final Comparator<Card> BY_NAME =
