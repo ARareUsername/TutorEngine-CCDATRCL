@@ -139,5 +139,20 @@ public class CatalogIndex {
 
         System.out.println();
 
+        // 3. GET 1 MISSING CARD
+
+        System.out.println("=== GET MISSING CARD ===");
+
+        String missingName = "Black Lotus";
+        Card missing = index.get(missingName);
+
+        if (missing != null) {
+            System.out.println("Found: " + missing.getName());
+        } else {
+            System.out.println("Not found: " + missingName);
+        }
+
+        System.out.println();
+
     }
 }
