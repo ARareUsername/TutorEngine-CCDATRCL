@@ -180,5 +180,23 @@ public class CatalogIndex {
 
         System.out.println();
 
+        // 6. REMOVE FIRST ENTRY
+
+        System.out.println("=== REMOVE FIRST ENTRY ===");
+
+        String firstKey = index.index.firstKey();
+
+        System.out.println("First key: " + firstKey);
+
+        Card firstRemoved = index.remove(firstKey);
+
+        if (firstRemoved != null) {
+            System.out.println("Removed: " + firstRemoved.getName());
+        } else {
+            System.out.println("Not found: " + firstKey);
+        }
+
+        System.out.println();
+
     }
 }
