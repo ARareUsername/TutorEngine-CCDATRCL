@@ -198,5 +198,15 @@ public class CatalogIndex {
 
         System.out.println();
 
+        // 7. INORDER PRINT AGAIN
+
+        System.out.println("=== FINAL INORDER / A-Z ===");
+
+        for (Card card : index.inorder()) {
+            System.out.println(card.getName());
+        }
+
+        System.out.println();
+        System.out.println("Remaining cards: " + index.size());
     }
 }
