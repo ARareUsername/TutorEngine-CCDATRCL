@@ -32,6 +32,7 @@ public class CatalogIndex {
         CatalogIndex index = new CatalogIndex();
 
         System.out.println("CatalogIndex. OWNER: Dimazana. (implement 5-card demo)");
+        System.out.println("=== CATALOG INDEX DEMO ===");
         System.out.println();
 
         // 1. PUT 5 REAL CARDS
@@ -121,6 +122,20 @@ public class CatalogIndex {
 
         index.put(card5);
         System.out.println("put -> " + card5.getName());
+
+        System.out.println();
+
+        // 2. GET 1 EXISTING CARD
+
+        System.out.println("=== GET EXISTING CARD ===");
+
+        Card found = index.get("Kor Outfitter");
+
+        if (found != null) {
+            System.out.println("Found: " + found.getName());
+        } else {
+            System.out.println("Not found: Kor Outfitter");
+        }
 
         System.out.println();
 
