@@ -49,7 +49,28 @@ public class CatalogIndex {
                 true,
                 "Bulk Box C (Green/Colorless)"
         );
-        
+
+            index.put(card1);
+        System.out.println("put -> " + card1.getName());
+
+
+        Card card2 = new Card(
+                "MTG-TSP-157",
+                "Fury Sliver",
+                "Time Spiral",
+                "Red",
+                "Creature",
+                2006,
+                0.48,
+                16,
+                75,
+                true,
+                "Bulk Box B (Black/Red)"
+        );
+
+        index.put(card2);
+        System.out.println("put -> " + card2.getName());
+
 
         System.out.println("CatalogIndex. OWNER: Dimazana. (implement 5-card demo)");
     }
