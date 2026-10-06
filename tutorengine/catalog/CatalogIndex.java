@@ -31,7 +31,7 @@ public class CatalogIndex {
     public static void main(String[] args) {
         CatalogIndex index = new CatalogIndex();
 
-        System.out.println("=== CATALOG INDEX DEMO ===");
+        System.out.println("CatalogIndex. OWNER: Dimazana. (implement 5-card demo)");
         System.out.println();
 
         // 1. PUT 5 REAL CARDS
@@ -71,7 +71,22 @@ public class CatalogIndex {
         index.put(card2);
         System.out.println("put -> " + card2.getName());
 
+        Card card3 = new Card(
+                "MTG-ZEN-21",
+                "Kor Outfitter",
+                "Zendikar",
+                "White",
+                "Creature",
+                2009,
+                0.17,
+                23,
+                48,
+                true,
+                "Bulk Box A (White/Blue)"
+        );
 
-        System.out.println("CatalogIndex. OWNER: Dimazana. (implement 5-card demo)");
+        index.put(card3);
+        System.out.println("put -> " + card3.getName());
+
     }
 }
