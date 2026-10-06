@@ -105,5 +105,24 @@ public class CatalogIndex {
         index.put(card4);
         System.out.println("put -> " + card4.getName());
 
+        Card card5 = new Card(
+                "MTG-3ED-229",
+                "Web",
+                "Revised Edition",
+                "Green",
+                "Enchantment",
+                1994,
+                1.02,
+                2,
+                31,
+                false,
+                "Bulk Box C (Green/Colorless)"
+        );
+
+        index.put(card5);
+        System.out.println("put -> " + card5.getName());
+
+        System.out.println();
+
     }
 }
