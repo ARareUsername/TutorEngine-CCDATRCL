@@ -165,5 +165,20 @@ public class CatalogIndex {
 
         System.out.println();
 
+        // 5. REMOVE 1 ORDINARY ENTRY
+
+        System.out.println("=== REMOVE ORDINARY ENTRY ===");
+
+        String removeName = "Kor Outfitter";
+        Card removed = index.remove(removeName);
+
+        if (removed != null) {
+            System.out.println("Removed: " + removed.getName());
+        } else {
+            System.out.println("Not found: " + removeName);
+        }
+
+        System.out.println();
+
     }
 }
