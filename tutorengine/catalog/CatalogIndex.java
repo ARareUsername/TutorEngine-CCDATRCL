@@ -34,6 +34,23 @@ public class CatalogIndex {
         System.out.println("=== CATALOG INDEX DEMO ===");
         System.out.println();
 
+        // 1. PUT 5 REAL CARDS
+
+        Card card1 = new Card(
+                "MTG-BLB-280",
+                "Forest",
+                "Bloomburrow",
+                "Colorless",
+                "Land",
+                2024,
+                0.38,
+                18,
+                50,
+                true,
+                "Bulk Box C (Green/Colorless)"
+        );
+        
+
         System.out.println("CatalogIndex. OWNER: Dimazana. (implement 5-card demo)");
     }
 }
