@@ -154,5 +154,16 @@ public class CatalogIndex {
 
         System.out.println();
 
+        // 4. INORDER PRINT
+        // TreeMap automatically keeps the names in alphabetical order.
+
+        System.out.println("=== INORDER / A-Z ===");
+
+        for (Card card : index.inorder()) {
+            System.out.println(card.getName());
+        }
+
+        System.out.println();
+
     }
 }
