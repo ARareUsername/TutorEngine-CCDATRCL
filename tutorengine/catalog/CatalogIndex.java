@@ -88,5 +88,22 @@ public class CatalogIndex {
         index.put(card3);
         System.out.println("put -> " + card3.getName());
 
+        Card card4 = new Card(
+                "MTG-TMM2-5",
+                "Spirit",
+                "Modern Masters 2015 Tokens",
+                "White",
+                "Creature",
+                2015,
+                0.26,
+                39,
+                50,
+                false,
+                "Bulk Box A (White/Blue)"
+        );
+
+        index.put(card4);
+        System.out.println("put -> " + card4.getName());
+
     }
 }
