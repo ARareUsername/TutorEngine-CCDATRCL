@@ -3,6 +3,7 @@ package tutorengine.intake;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import tutorengine.model.Card;
+import tutorengine.model.TransactionLog;
 
 // OWNER: De Jesus — History & Intake. Do not edit files owned by others; use PR comments instead.
 //
@@ -37,13 +38,14 @@ import tutorengine.model.Card;
 // constant time at both ends.
 // SPEC: S7 Stack/Queue, S11 stack-or-queue op, Template H trace.
 public class IntakeBuffer {
+    private final TransactionLog log = new TransactionLog();
     private final Deque<Card> queue = new ArrayDeque<>();
     private final Deque<Card> undo = new ArrayDeque<>();
 
     public void stage(Card c) { queue.offer(c); }
     public Card processNext() {
         Card c = queue.poll();
-        if (c != null) undo.push(c);
+        if (c != null) undo.push(c); log.log("INTAKE " + c.getSku()); 
         return c;
     }
     public Card undo() { return undo.isEmpty() ? null : undo.pop(); }
@@ -53,6 +55,23 @@ public class IntakeBuffer {
         // TODO De Jesus: build 3 real Cards here and run the FIFO+LIFO script above.
         // Example: new Card("MTG-OTJ-055","Mana Drain","Outlaws of Thunder Junction",
         //   "Blue","Instant",2024,2600.00,1,98,false,"Showcase Display")
+        IntakeBuffer b = new IntakeBuffer();
+        
+        Card a = new Card("MTG-OTJ-055", "Mana Drain", "Outlaws of Thunder Junction",
+            "Blue", "Instant", 2024, 2600.00, 1, 92, false, "Showcase Display");
+        Card bq = new Card("MTG-FDN-101", "Lightning Bolt", "Foundations",
+            "Red", "Instant", 2024, 450.00, 3, 88, false, "Bulk Box B");
+        Card cc = new Card("MTG-PIP-133", "Sol Ring", "Fallout",
+            "Colorless", "Artifact", 2024, 180.00, 2, 80, true, "Bulk Box C");
+        
+        b.stage(a); b.stage(bq); b.stage(cc);
+        System.out.println("pending = " + b.pending());
+        Card first = b.processNext();
+        System.out.println("processNext -> " + first.getName()); // Mana Drain (A, FIFO)
+        System.out.println("undo -> " + b.undo().getName());     // Mana Drain (A, LIFO)
+        System.out.println("processNext -> " + b.processNext().getName()); // Lightning Bolt (B)
+        System.out.println("buffer empty -> " + b.undo());     // after draining, or test separately
+
         System.out.println("IntakeBuffer. OWNER: De Jesus. pending=0 (implement demo).");
     }
 }
