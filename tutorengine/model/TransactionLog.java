@@ -43,12 +43,36 @@ public class TransactionLog {
     public List<String> all() { return entries; }
 
     // TODO De Jesus: implement printAll() here (numbered traversal).
+    public void printAll(){
+        int n = 1;
+        for(String e:entries){
+            System.out.println(n++ +". "+e);
+        }
+    }
 
     public static void main(String[] args) {
         // TODO De Jesus: extend this demo to 3 entries + undo + empty-case.
         TransactionLog t = new TransactionLog();
         t.log("INTAKE MTG-OTJ-055 x1");
-        System.out.println(t.all());
+        t.log("DELETE MTG-FDN-101");
+        t.log("INTAKE MTG-PIP-133 x2");
+
+        System.out.println("All entries:"); t.printAll();
+        System.out.println();
+        
+        //undo demo
+        String undo = t.undoLast();
+        System.out.println("Undo: "+undo);
+        System.out.println("After undone: "); t.printAll();
+        
+        System.out.println();
+        //safe empty case demo
+        t.all().clear();
+        String empty = t.undoLast();
+        System.out.println(empty == null ? "log is empty, nothing to undo" : "Undo: " + empty);
+        System.out.println();
+        
         System.out.println("TransactionLog. OWNER: De Jesus.");
+        
     }
 }
