@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import tutorengine.algorithms.StoreNavigator;
 import tutorengine.model.Card;
 import tutorengine.util.CSVLoader;
 
@@ -25,7 +26,7 @@ import tutorengine.util.CSVLoader;
 //     [0] "Loaded N cards" with N >= 50 (or a WARNING + 3 fallback cards)
 //     [1] Highest Action Priority: <top card> (Priority Score: <number>)
 //     [2] Located: <first card> + a graceful "Not found" line for NOPE-000
-//     [3] BFS Traversal Route from Checkout Counter: ... -> END
+//     [3] BFS Traversal Route from Checkout Counter over the 18-node cabinet map.
 //   "Loaded 0" plus fallback means Dataset/cards.csv was not found from the
 //   working directory — run from the project root.
 public class Main {
@@ -37,18 +38,8 @@ public class Main {
         Map<String, Card> catalogTable = new HashMap<>(101);
         PriorityQueue<Card> priorityHeap = new PriorityQueue<>(
                 Comparator.comparingDouble(Card::calculatePriority).reversed());
-        Map<String, List<String>> storeFloor = new HashMap<>();
-
-        for (String node : List.of("Checkout Counter", "Intake Sorting Desk",
-                "Showcase Display (High Value)", "Bulk Box A (White/Blue)",
-                "Bulk Box B (Black/Red)", "Bulk Box C (Green/Colorless)")) {
-            storeFloor.put(node, new ArrayList<>());
-        }
-        addEdge(storeFloor, "Checkout Counter", "Intake Sorting Desk");
-        addEdge(storeFloor, "Checkout Counter", "Showcase Display (High Value)");
-        addEdge(storeFloor, "Intake Sorting Desk", "Bulk Box A (White/Blue)");
-        addEdge(storeFloor, "Intake Sorting Desk", "Bulk Box B (Black/Red)");
-        addEdge(storeFloor, "Intake Sorting Desk", "Bulk Box C (Green/Colorless)");
+        // Canonical cabinet map: front nodes + 1x5 cabinets + 10 shelf slots.
+        Map<String, List<String>> storeFloor = StoreNavigator.sampleMap();
 
         List<Card> cards = CSVLoader.load("Dataset/cards.csv");
         if (cards.isEmpty()) {
@@ -80,13 +71,10 @@ public class Main {
         Card missing = catalogTable.get("NOPE-000");
         System.out.println("Missing SKU lookup: " + (missing == null ? "Not found (handled gracefully)" : missing.getName()));
 
-        System.out.println("\n[3] Physical Retrieval Navigation (Graph BFS):");
+        System.out.println("\n[3] Physical Retrieval Navigation (Graph BFS, "
+                + StoreNavigator.nodeCount(storeFloor) + " nodes / "
+                + StoreNavigator.edgeCount(storeFloor) + " edges):");
         bfs(storeFloor, "Checkout Counter");
-    }
-
-    private static void addEdge(Map<String, List<String>> graph, String a, String b) {
-        graph.get(a).add(b);
-        graph.get(b).add(a);
     }
 
     private static void bfs(Map<String, List<String>> graph, String start) {
