@@ -4,7 +4,7 @@ A Java (Maven) desktop system designed for a local game store to scan barcodes, 
 
 * **Course:** CCDATRCL – Data Structures and Algorithms
 * **Documentation & Specs:** See `PROJECT_SPECS.md` and `TutorEngine/TutorEngine.md`
-* **Dataset:** `Dataset/cards.csv` (60 real Magic: The Gathering singles from Scryfall)
+* **Dataset:** `Dataset/cards.csv` (60 real Magic: The Gathering singles from Scryfall, 15 columns incl. manaCost/power/toughness/setCode; boxes filed in expansion order via `Card.BY_EXPANSION`)
 
 ---
 
