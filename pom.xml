@@ -14,7 +14,22 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <exec.mainClass>tutorengine.TutorEngineUI</exec.mainClass>
+    <javafx.version>21.0.4</javafx.version>
+    <atlantafx.version>2.1.0</atlantafx.version>
   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-controls</artifactId>
+      <version>${javafx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.mkpaz</groupId>
+      <artifactId>atlantafx-base</artifactId>
+      <version>${atlantafx.version}</version>
+    </dependency>
+  </dependencies>
 
   <build>
     <sourceDirectory>${project.basedir}</sourceDirectory>
@@ -30,6 +45,14 @@
         <version>3.4.1</version>
         <configuration>
           <mainClass>${exec.mainClass}</mainClass>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.8</version>
+        <configuration>
+          <mainClass>tutorengine.ui.FxApp</mainClass>
         </configuration>
       </plugin>
     </plugins>
