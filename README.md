@@ -23,6 +23,8 @@ If you prefer using the command line:
 * Build: `mvn compile`
 * Run GUI: `mvn exec:java`
 * Run CLI demo: `mvn exec:java -Dexec.mainClass=tutorengine.Main`
+* Run JavaFX UI (needs a display): `mvn javafx:run`
+* Headless view checks (no display needed): `mvn -q exec:java -Dexec.mainClass=tutorengine.ui.CatalogView` (also `Theme`, `PriorityView`, `GraphView`, `BenchmarkView`)
 
 ---
 
@@ -39,6 +41,9 @@ If you prefer using the command line:
 * [ ] Add input guards for empty or invalid SKUs in search
 * [ ] Implement `tutorengine/ui/CardImageCache.java` with responsive GUI preview (see `TutorEngine.md §8`)
 * [ ] Complete final system integration of all member modules into GUI and `Main`
+* [x] JavaFX + AtlantaFX UI shell (`javafx-atlantafx-ui`: FxApp, Theme, 4 views — implemented 2026-10-08)
+* [ ] Fuzzy card search (`fuzzy-card-search`: field matchers + fan-out + UI fallback in `SkuCorrector`)
+* [ ] Cabinet store map (`cabinet-store-map`: hierarchy model + canonical 18-node graph + fill display)
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*
