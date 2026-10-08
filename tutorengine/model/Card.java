@@ -66,6 +66,12 @@ public class Card implements Comparable<Card> {
         return this.name.compareToIgnoreCase(other.name);
     }
 
+    // Physical filing order: boxes are sorted by expansion (year, then set code).
+    public static final java.util.Comparator<Card> BY_EXPANSION =
+            java.util.Comparator.comparingInt(Card::getReleaseYear)
+                    .thenComparing(Card::getSetCode)
+                    .thenComparing(Card::getName, String::compareToIgnoreCase);
+
     public String getSku() { return sku; }
     public String getName() { return name; }
     public String getSetName() { return setName; }

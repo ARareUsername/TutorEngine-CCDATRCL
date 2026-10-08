@@ -68,7 +68,8 @@ public class StorageLocation {
         return out;
     }
 
-    // Current box name -> slot id. Color-grouped left to right; showcase stays front.
+    // Current box name -> slot id. Boxes are filed in expansion order inside
+    // (see Card.BY_EXPANSION); slots run left to right here for the map.
     // Empty shelves are expansion space (honest: the 60-card sample fills ~6%/box).
     public static Map<String, String> aliasTable() {
         Map<String, String> m = new LinkedHashMap<>();
@@ -96,6 +97,20 @@ public class StorageLocation {
         }
         System.out.println(bad == 0 ? "All box names resolve. StorageLocation OK."
                 : bad + " UNMAPPED box names!");
+        // Expansion order check: each occupied slot's cards in filing order.
+        java.util.Map<String, java.util.List<Card>> per = new java.util.LinkedHashMap<>();
+        for (Card c : CSVLoader.load("Dataset/cards.csv")) {
+            String slot = resolve(c.getBoxLocationId());
+            if (slot != null && slot.startsWith("CAB-"))
+                per.computeIfAbsent(slot, k -> new java.util.ArrayList<>()).add(c);
+        }
+        for (var e : per.entrySet()) {
+            e.getValue().sort(Card.BY_EXPANSION);
+            Card f = e.getValue().get(0), l = e.getValue().get(e.getValue().size() - 1);
+            System.out.println(e.getKey() + ": " + e.getValue().size() + " cards, "
+                    + f.getSetCode() + " " + f.getReleaseYear() + " -> "
+                    + l.getSetCode() + " " + l.getReleaseYear() + " (expansion order)");
+        }
         System.out.println("equal ids equal: "
                 + new StorageLocation("CAB-1-UPPER", "x").equals(new StorageLocation("CAB-1-UPPER", "y")));
     }
