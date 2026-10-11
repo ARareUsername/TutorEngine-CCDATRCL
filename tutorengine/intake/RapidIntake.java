@@ -506,7 +506,7 @@ public final class RapidIntake {
                 r.quantity(),
                 50,
                 r.foil(),
-                r.slot() == null || r.slot().isBlank() ? "Intake Sorting Desk" : r.slot(),
+                r.slot() == null || r.slot().isBlank() ? null : r.slot(),
                 r.manaCost() == null ? "" : r.manaCost(),
                 r.power() == null ? "" : r.power(),
                 r.toughness() == null ? "" : r.toughness(),
@@ -528,7 +528,7 @@ public final class RapidIntake {
                 d.quantity(),
                 50,
                 foil,
-                "Intake Sorting Desk",
+                null,
                 "", "", "",
                 d.setCode()
         );
