@@ -79,9 +79,12 @@ public class Card implements Comparable<Card> {
         this.versionLabel = versionLabel != null ? versionLabel : "";
     }
 
+    public double calculatePriorityWithWeights(double priceWeight, double demandWeight, double qtyPenalty, double foilBonus) {
+        return (price * priceWeight) + (demandScore * demandWeight) - (quantity * qtyPenalty) + (isFoil ? foilBonus : 0.0);
+    }
+
     public double calculatePriority() {
-        double foilBonus = isFoil ? 10.0 : 0.0;
-        return (price * 0.50) + (demandScore * 0.35) - (quantity * 3.0) + foilBonus;
+        return calculatePriorityWithWeights(0.50, 0.35, 3.0, 10.0);
     }
 
     @Override
