@@ -268,7 +268,9 @@ public final class CatalogView {
 
         // Detail dock under the table: the table never shifts when selecting.
         HBox formRow = new HBox(8, nameField, priceField, qtyField, slotField);
-        HBox btnRow = new HBox(8, addBtn, removeBtn, undoBtn);
+        Button newCardBtn = new Button("New card");
+        newCardBtn.setOnAction(e -> IntakeDialog.prompt(catalog, table, result));
+        HBox btnRow = new HBox(8, addBtn, removeBtn, undoBtn, newCardBtn);
         VBox detail = new VBox(8, stats, formRow, btnRow);
         HBox bottom = new HBox(12, preview, detail);
 

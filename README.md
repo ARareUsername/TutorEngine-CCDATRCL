@@ -48,6 +48,7 @@ If you prefer using the command line:
 * [x] Benchmark + complexity display (ui-demo-coverage: `BenchmarkView` reads `bench.txt` with placeholder fallback + Template E table)
 * [x] Clerk workflows (clerk-workflow-fixes: card picture on hits incl. `//` double-face fix, Locate-to-shelf + clickable suggestions, qty/slot add form, remove confirm + undo, card dock under the table, Demos behind `-Dtutorengine.dev`)
 * [x] Display accessibility tiers (display-settings: Settings dialog with text 13/15/17px + card S/M/L tiers, `normal`-variant previews, Preferences persistence)
+* [x] Live intake of uncataloged cards (scryfall-card-intake: New-card dialog with Scryfall autocomplete, verify image, PHP price prefill, `LIVE-<SET>-<seq>` SKUs; manual form stays as offline fallback)
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*
