@@ -91,14 +91,14 @@ public final class StorageView {
         // In-hand forward-pass directive banner
         Label directiveBanner = new Label("📋 IN-HAND PRE-SORT DIRECTIVE: Arrange cards in hand (Name ASC) before walking to shelf.");
         directiveBanner.setWrapText(true);
-        directiveBanner.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; -fx-padding: 8px;"
-                + "-fx-border-color: #f59e0b; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-font-weight: bold;");
+        directiveBanner.setStyle("-fx-background-color: -color-warning-subtle; -fx-text-fill: -color-warning-fg; -fx-padding: 8px;"
+                + "-fx-border-color: -color-warning-emphasis; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-font-weight: bold;");
         directiveBanner.setVisible(false);
 
         // 2D Shelf Visual Map container
         VBox shelfMapPane = new VBox(6);
         shelfMapPane.setPadding(new Insets(6));
-        shelfMapPane.setStyle("-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-width: 1px; -fx-border-radius: 6px;");
+        shelfMapPane.setStyle("-fx-background-color: -color-bg-subtle; -fx-border-color: -color-border-subtle; -fx-border-width: 1px; -fx-border-radius: 6px;");
 
         Label shelfMapHeader = new Label("Physical Shelf Coordinates (2D Store Map)");
         shelfMapHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
@@ -114,8 +114,8 @@ public final class StorageView {
 
         Label newBoxAlert = new Label();
         newBoxAlert.setWrapText(true);
-        newBoxAlert.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #991b1b; -fx-padding: 6px;"
-                + "-fx-border-color: #ef4444; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-font-weight: bold;");
+        newBoxAlert.setStyle("-fx-background-color: -color-danger-subtle; -fx-text-fill: -color-danger-fg; -fx-padding: 6px;"
+                + "-fx-border-color: -color-danger-emphasis; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-font-weight: bold;");
         newBoxAlert.setVisible(false);
         shelfMapPane.getChildren().add(newBoxAlert);
 
@@ -131,13 +131,13 @@ public final class StorageView {
         // Virtual In-Box Stack Scaffolding & Neighbor Breadcrumb Readout
         VBox breadcrumbPane = new VBox(6);
         breadcrumbPane.setPadding(new Insets(8));
-        breadcrumbPane.setStyle("-fx-background-color: #f1f5f9; -fx-border-color: #94a3b8; -fx-border-width: 1px; -fx-border-radius: 6px;");
+        breadcrumbPane.setStyle("-fx-background-color: -color-bg-subtle; -fx-border-color: -color-border-muted; -fx-border-width: 1px; -fx-border-radius: 6px;");
 
         Label breadcrumbTitle = new Label("Virtual In-Box Stack Insertion Breadcrumb:");
         breadcrumbTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
 
         Label breadcrumbNeighbors = new Label("Select a card in the batch to view its insertion neighbors");
-        breadcrumbNeighbors.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0369a1;");
+        breadcrumbNeighbors.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -color-link-fg;");
 
         ProgressBar stackProgress = new ProgressBar(0.5);
         stackProgress.setMaxWidth(Double.MAX_VALUE);
@@ -150,7 +150,8 @@ public final class StorageView {
 
         // Batch confirmation bar
         Button confirmBatchBtn = new Button("✓ Confirm Batch Stored (All Cards Filed)");
-        confirmBatchBtn.setStyle("-fx-font-weight: bold; -fx-base: #059669; -fx-font-size: 13px; -fx-padding: 8px 16px;");
+        confirmBatchBtn.getStyleClass().add("success");
+        confirmBatchBtn.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 8px 16px;");
         confirmBatchBtn.setDisable(true);
 
         Label confirmResultLabel = new Label();
@@ -212,11 +213,11 @@ public final class StorageView {
                 wb.stageAll();
                 wb.commitStaged("SampleClerk");
                 confirmResultLabel.setText("✓ Ingested sample cards into Unstored Queue");
-                confirmResultLabel.setStyle("-fx-text-fill: #059669;");
+                confirmResultLabel.setStyle("-fx-text-fill: -color-success-fg;");
                 reloadBatches.run();
             } catch (Exception ex) {
                 confirmResultLabel.setText("Error seeding: " + ex.getMessage());
-                confirmResultLabel.setStyle("-fx-text-fill: #dc2626;");
+                confirmResultLabel.setStyle("-fx-text-fill: -color-danger-fg;");
             }
         });
 
@@ -268,7 +269,7 @@ public final class StorageView {
             for (CardInstance ci : b.getCards()) ids.add(ci.getId());
             int stored = confirmBatch(b.getBoxId(), ids);
             confirmResultLabel.setText("✓ Successfully confirmed " + stored + " cards stored into " + b.getBoxId() + "!");
-            confirmResultLabel.setStyle("-fx-text-fill: #059669; -fx-font-weight: bold;");
+            confirmResultLabel.setStyle("-fx-text-fill: -color-success-fg; -fx-font-weight: bold;");
             reloadBatches.run();
         });
 
@@ -286,7 +287,7 @@ public final class StorageView {
     private static VBox buildShelfUnitVisual(String unitName, List<String> slots) {
         VBox box = new VBox(4);
         box.setPadding(new Insets(6));
-        box.setStyle("-fx-border-color: #94a3b8; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-color: #ffffff;");
+        box.setStyle("-fx-border-color: -color-border-muted; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-color: -color-bg-default;");
         Label header = new Label(unitName);
         header.setStyle("-fx-font-weight: bold; -fx-font-size: 11px;");
         box.getChildren().add(header);
@@ -302,7 +303,7 @@ public final class StorageView {
             slotLabel.setId("slot-" + slot);
             slotLabel.setAlignment(Pos.CENTER);
             slotLabel.setPrefSize(110, 24);
-            slotLabel.setStyle("-fx-border-color: #cbd5e1; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-color: #f8fafc; -fx-font-size: 10px;");
+            slotLabel.setStyle("-fx-border-color: -color-border-subtle; -fx-border-width: 1px; -fx-border-radius: 3px; -fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; -fx-font-size: 10px;");
             grid.add(slotLabel, col, row);
             col++;
             if (col >= 2) {
@@ -323,11 +324,11 @@ public final class StorageView {
                             if (slotNode instanceof Label slotLabel) {
                                 boolean isTarget = targetBoxId != null && slotLabel.getId().equals("slot-" + targetBoxId);
                                 if (isTarget) {
-                                    slotLabel.setStyle("-fx-background-color: #059669; -fx-text-fill: white; -fx-font-weight: bold;"
-                                            + "-fx-border-color: #10b981; -fx-border-width: 2px; -fx-border-radius: 3px; -fx-font-size: 10px;");
+                                    slotLabel.setStyle("-fx-background-color: -color-accent-emphasis; -fx-text-fill: white; -fx-font-weight: bold;"
+                                            + "-fx-border-color: -color-accent-emphasis; -fx-border-width: 2px; -fx-border-radius: 3px; -fx-font-size: 10px;");
                                 } else {
-                                    slotLabel.setStyle("-fx-border-color: #cbd5e1; -fx-border-width: 1px; -fx-border-radius: 3px;"
-                                            + "-fx-background-color: #f8fafc; -fx-text-fill: -color-fg-default; -fx-font-size: 10px;");
+                                    slotLabel.setStyle("-fx-border-color: -color-border-subtle; -fx-border-width: 1px; -fx-border-radius: 3px;"
+                                            + "-fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; -fx-font-size: 10px;");
                                 }
                             }
                         }

@@ -121,7 +121,8 @@ public final class TripView {
         if (!boxChoice.getItems().isEmpty()) boxChoice.setValue(boxChoice.getItems().get(0));
 
         Button newTripBtn = new Button("+ Build Trip for Box");
-        newTripBtn.setStyle("-fx-font-weight: bold; -fx-base: #0284c7;");
+        newTripBtn.getStyleClass().add("accent");
+        newTripBtn.setStyle("-fx-font-weight: bold;");
 
         HBox builderRow = new HBox(8, new Label("Box:"), boxChoice, newTripBtn);
         builderRow.setAlignment(Pos.CENTER_LEFT);
@@ -144,18 +145,18 @@ public final class TripView {
 
         Button copyUrlBtn = new Button("Copy URL");
         Button printSlipBtn = new Button("🖨 Print 80mm Slip");
-        printSlipBtn.setStyle("-fx-font-weight: bold; -fx-base: #475569;");
+        printSlipBtn.setStyle("-fx-font-weight: bold;");
 
         HBox urlBar = new HBox(8, new Label("Mobile LAN URL:"), urlField, copyUrlBtn, printSlipBtn);
         urlBar.setAlignment(Pos.CENTER_LEFT);
         urlBar.setPadding(new Insets(6, 8, 6, 8));
-        urlBar.setStyle("-fx-background-color: #f1f5f9; -fx-border-color: #cbd5e1; -fx-border-width: 1px; -fx-border-radius: 4px;");
+        urlBar.setStyle("-fx-background-color: -color-bg-subtle; -fx-border-color: -color-border-subtle; -fx-border-width: 1px; -fx-border-radius: 4px;");
 
         // Directive Banner
         Label directiveBanner = new Label("📋 IN-HAND FORWARD-PASS DIRECTIVE: Arrange cards strictly 1..N (Name ASC) before walking to shelf.");
         directiveBanner.setWrapText(true);
-        directiveBanner.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; -fx-padding: 8px;"
-                + "-fx-border-color: #f59e0b; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-font-weight: bold;");
+        directiveBanner.setStyle("-fx-background-color: -color-warning-subtle; -fx-text-fill: -color-warning-fg; -fx-padding: 8px;"
+                + "-fx-border-color: -color-warning-emphasis; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-font-weight: bold;");
 
         // Cards Table
         TableView<TripCard> cardTable = new TableView<>(cardRows);
@@ -166,7 +167,8 @@ public final class TripView {
         Button checkCardBtn = new Button("✓ Toggle Check");
         Button excludeCardBtn = new Button("⚠️ Exclude Card...");
         Button confirmTripBtn = new Button("Complete Trip Batch (Save to Inventory)");
-        confirmTripBtn.setStyle("-fx-font-weight: bold; -fx-base: #059669; -fx-padding: 8px 16px;");
+        confirmTripBtn.getStyleClass().add("success");
+        confirmTripBtn.setStyle("-fx-font-weight: bold; -fx-padding: 8px 16px;");
 
         Label actionResult = new Label();
         actionResult.setStyle("-fx-font-weight: bold;");
@@ -237,18 +239,18 @@ public final class TripView {
 
                 if (unstored.isEmpty()) {
                     actionResult.setText("⚠️ No UNSTORED cards queued for box " + targetBox + ".");
-                    actionResult.setStyle("-fx-text-fill: #b91c1c;");
+                    actionResult.setStyle("-fx-text-fill: -color-danger-fg;");
                     return;
                 }
 
                 TripSession newSession = TripSession.create(targetBox, clerk, unstored);
                 actionResult.setText("✓ Generated trip session for " + targetBox + " (" + newSession.getCards().size() + " cards)");
-                actionResult.setStyle("-fx-text-fill: #059669;");
+                actionResult.setStyle("-fx-text-fill: -color-success-fg;");
                 reloadSessions.run();
                 sessionTable.getSelectionModel().select(0);
             } catch (Exception ex) {
                 actionResult.setText("Failed to build trip: " + ex.getMessage());
-                actionResult.setStyle("-fx-text-fill: #dc2626;");
+                actionResult.setStyle("-fx-text-fill: -color-danger-fg;");
             }
         });
 
@@ -259,7 +261,7 @@ public final class TripView {
                 content.putString(u);
                 Clipboard.getSystemClipboard().setContent(content);
                 actionResult.setText("✓ Copied URL to clipboard!");
-                actionResult.setStyle("-fx-text-fill: #059669;");
+                actionResult.setStyle("-fx-text-fill: -color-success-fg;");
             }
         });
 
@@ -337,7 +339,7 @@ public final class TripView {
                         currentSession[0] = refreshed;
                         cardRows.setAll(refreshed.getCards());
                         actionResult.setText("⚠️ Card excluded: " + tc.getCardName() + " (" + reasonBox.getValue() + ")");
-                        actionResult.setStyle("-fx-text-fill: #b91c1c;");
+                        actionResult.setStyle("-fx-text-fill: -color-danger-fg;");
                     } catch (Exception ex) {
                         actionResult.setText("Exclude error: " + ex.getMessage());
                     }
@@ -355,11 +357,11 @@ public final class TripView {
                 rightTitle.setText("Trip Session: " + refreshed.getBoxLabel() + " - Status: " + refreshed.getStatus());
                 confirmTripBtn.setDisable(true);
                 actionResult.setText("✓ Finished trip! Confirmed " + stored + " stored into " + refreshed.getBoxId() + " (Status: " + refreshed.getStatus() + ")");
-                actionResult.setStyle("-fx-text-fill: #059669;");
+                actionResult.setStyle("-fx-text-fill: -color-success-fg;");
                 reloadSessions.run();
             } catch (Exception ex) {
                 actionResult.setText("Completion error: " + ex.getMessage());
-                actionResult.setStyle("-fx-text-fill: #dc2626;");
+                actionResult.setStyle("-fx-text-fill: -color-danger-fg;");
             }
         });
 

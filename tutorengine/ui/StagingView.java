@@ -90,7 +90,8 @@ public final class StagingView {
         Button groupDupBtn = new Button("Group Duplicates");
         Button stageSelectedBtn = new Button("Stage Selected →");
         Button stageAllBtn = new Button("Stage All →");
-        stageAllBtn.setStyle("-fx-font-weight: bold; -fx-base: #10b981;");
+        stageAllBtn.getStyleClass().add("success");
+        stageAllBtn.setStyle("-fx-font-weight: bold;");
 
         HBox bulkBar = new HBox(8,
                 new Label("Bulk:"), condBox, applyCondBtn,
@@ -122,7 +123,8 @@ public final class StagingView {
         empInput.setPrefWidth(150);
 
         Button commitBtn = new Button("Commit Additions (Push to Unstored Queue)");
-        commitBtn.setStyle("-fx-font-weight: bold; -fx-base: #059669; -fx-font-size: 13px;");
+        commitBtn.getStyleClass().add("success");
+        commitBtn.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
 
         Button unstageBtn = new Button("Unstage All ←");
 
@@ -230,7 +232,7 @@ public final class StagingView {
         commitBtn.setOnAction(e -> {
             if (engine.getStaging().isEmpty()) {
                 commitResult.setText("⚠️ Cannot commit: Staging Review Area is empty. Stage cards first.");
-                commitResult.setStyle("-fx-text-fill: #b91c1c; -fx-font-weight: bold;");
+                commitResult.setStyle("-fx-text-fill: -color-danger-fg; -fx-font-weight: bold;");
                 return;
             }
             String clerk = empInput.getText().isBlank() ? "Clerk" : empInput.getText().trim();
@@ -238,10 +240,10 @@ public final class StagingView {
                 String tag = engine.commitStaged(clerk);
                 refreshViews.run();
                 commitResult.setText("✓ Successfully committed to Unstored Queue: " + tag);
-                commitResult.setStyle("-fx-text-fill: #059669; -fx-font-weight: bold;");
+                commitResult.setStyle("-fx-text-fill: -color-success-fg; -fx-font-weight: bold;");
             } catch (Exception ex) {
                 commitResult.setText("❌ Commit failed: " + ex.getMessage());
-                commitResult.setStyle("-fx-text-fill: #dc2626; -fx-font-weight: bold;");
+                commitResult.setStyle("-fx-text-fill: -color-danger-fg; -fx-font-weight: bold;");
             }
         });
 

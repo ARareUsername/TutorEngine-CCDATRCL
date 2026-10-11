@@ -110,7 +110,8 @@ public class FxApp extends Application {
             cancelBtn.setOnAction(e -> finalRoot.getChildren().remove(backdrop));
 
             Button saveBtn = new Button("Save");
-            saveBtn.setStyle("-fx-font-weight: bold; -fx-base: #0284c7; -fx-text-fill: white;");
+            saveBtn.getStyleClass().add("accent");
+            saveBtn.setStyle("-fx-font-weight: bold;");
             saveBtn.setOnAction(e -> {
                 finalRoot.getChildren().remove(backdrop);
                 DisplaySettings.setText(textBox.getValue());
