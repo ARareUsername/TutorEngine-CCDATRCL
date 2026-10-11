@@ -50,6 +50,12 @@ If you prefer using the command line:
 * [x] Display accessibility tiers (display-settings: Settings dialog with text 13/15/17px + card S/M/L tiers, `normal`-variant previews, Preferences persistence)
 * [x] Live intake of uncataloged cards (scryfall-card-intake: New-card dialog with Scryfall autocomplete, verify image, PHP price prefill, `LIVE-<SET>-<seq>` SKUs; manual form stays as offline fallback)
 * [x] Employee auth + sessions (employee-auth-session: SQLite employees/sessions, PIN + badge login, lock overlay, switch/lock widget, idle lock, first-launch setup, session-gated catalog edits, role guardrails, metrics export)
+* [x] Card version priority (card-version-priority: printing groups by name+set, collector number sort, version labels, route overload, catalog columns)
+* [x] Rapid intake improvements (rapid-intake-improvements: name fallback, dedup on stage, remove/undo, inline qty edit)
+* [x] Audit trail + exception reconciliation (audit-reconciliation: SQLite audit_commits/inventory_exceptions, tamper-evident hash chain, 5-minute rollback, throughput metrics, box check-off parity tool in AuditView)
+* [x] Box capacity guard & divider navigation (box-capacity-dividers: BoxCapacity states NOMINAL/NEAR/FULL, overflow rerouting to CAB-RARE-LOW, provisioning prompt, DividerGuide A–Z section guidance appended to Locate flow in Store Map)
+* [x] Shelf trip slips & mobile viewer (shelf-trip-slips: TripSession presort model, TripServer LAN HttpServer at /t/<id>, 80mm printable plain-text routing slips, TripView UI, and partial-batch exclusion with UNSTORED_FLAGGED safeguards)
+* [x] Rapid shortcut intake & crash-safe drafts (rapid-intake-drafts: RapidIntake parser for <SET> <NUM> [foil] [x<QTY>], Scryfall collector lookup, Alt+1..9 variant ribbon, RapidIntakeView UI with autofocus loop, and crash-safe SQLite intake_drafts autosave with restore/discard recovery)
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*
