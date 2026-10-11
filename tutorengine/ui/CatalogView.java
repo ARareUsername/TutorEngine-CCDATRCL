@@ -76,14 +76,13 @@ public final class CatalogView {
         table.getColumns().addAll(
             col("Name", c -> c.getName()),
             col("SKU", c -> c.getSku()),
-            col("Price", c -> String.format("%.2f", c.getPrice())),
-            col("Qty", c -> String.valueOf(c.getQuantity())),
-            col("Demand", c -> String.valueOf(c.getDemandScore())),
+            numCol("Price", c -> String.format("%.2f", c.getPrice())),
+            numCol("Qty", c -> String.valueOf(c.getQuantity())),
+            numCol("Demand", c -> String.valueOf(c.getDemandScore())),
             col("Flag", c -> c.isFoil() ? "FOIL" : (c.getQuantity() <= 3 ? "LOW" : "OK")),
             col("Location", c -> c.getBoxLocationId()),
-            col("Priority", c -> String.format("%.2f", c.calculatePriority())));
+            numCol("Priority", c -> String.format("%.2f", c.calculatePriority())));
         table.getItems().addAll(cards);
-
         // Session catalog editing (in-memory only, never written back to CSV).
         TextField nameField = new TextField();
         nameField.setPromptText("Name (for Add)");
@@ -136,6 +135,13 @@ public final class CatalogView {
     private static TableColumn<Card, String> col(String title, java.util.function.Function<Card, String> f) {
         TableColumn<Card, String> c = new TableColumn<>(title);
         c.setCellValueFactory(d -> new SimpleStringProperty(f.apply(d.getValue())));
+        return c;
+    }
+
+    // Right-aligned numeric column (tabular figures don't jitter on scroll).
+    private static TableColumn<Card, String> numCol(String title, java.util.function.Function<Card, String> f) {
+        TableColumn<Card, String> c = col(title, f);
+        c.getStyleClass().add("col-num");
         return c;
     }
 

@@ -69,6 +69,7 @@ public final class BenchmarkView {
                 final int k = i;
                 TableColumn<String[], String> c = new TableColumn<>(titles[k]);
                 c.setCellValueFactory(d -> new SimpleStringProperty(d.getValue()[k]));
+                if (k == 0 || k == 3 || k == 4) c.getStyleClass().add("col-num");
                 table.getColumns().add(c);
             }
             table.getItems().addAll(data);

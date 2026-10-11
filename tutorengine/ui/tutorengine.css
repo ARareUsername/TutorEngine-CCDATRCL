@@ -1,0 +1,40 @@
+/* TutorEngine design tokens (ui-ux-pro-max: Data-Dense Dashboard, density 8).
+ * Stock-green accent over AtlantaFX Primer Light/Dark; system font stack with
+ * retail pair (Rubik/Nunito Sans) resolving where installed, graceful elsewhere.
+ * Loaded by FxApp from the project root; missing file = Primer defaults. */
+.root {
+    -color-accent-fg: #059669;
+    -color-accent-emphasis: #059669;
+    -fx-font-family: "Rubik", "Nunito Sans", "Segoe UI", "Inter", sans-serif;
+    -fx-font-size: 13px;
+}
+
+/* Dense tables: 8px rhythm, compact rows, hover tracking per row. */
+.table-view .table-cell {
+    -fx-padding: 4px 8px;
+}
+.table-view .column-header .label {
+    -fx-font-weight: bold;
+}
+.table-row-cell:hover {
+    -fx-background-color: -color-accent-subtle;
+}
+.table-view .col-num {
+    -fx-alignment: CENTER-RIGHT;
+}
+
+/* Section titles and KPI figures. */
+.view-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+.kpi {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+/* Clerk-sized nav rows (44px touch/click target guideline). */
+.main-nav .list-cell {
+    -fx-padding: 10px 12px;
+    -fx-font-size: 14px;
+}

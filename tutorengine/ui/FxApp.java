@@ -48,6 +48,8 @@ public class FxApp extends Application {
 
         ListView<String> nav = new ListView<>();
         nav.getItems().addAll("Catalog", "Priority", "Store Map", "Benchmarks", "Demos");
+        nav.getStyleClass().add("main-nav");
+        nav.setFixedCellSize(44);
         StackPane content = new StackPane();
         BorderPane root = new BorderPane();
 
@@ -70,6 +72,12 @@ public class FxApp extends Application {
                 case "Demos" -> content.getChildren().setAll(DemoView.build(cards));
                 default -> content.getChildren().setAll(CatalogView.build(cards));
             }
+            // Subtle 200ms crossfade on view switch (clerk-speed motion).
+            javafx.animation.FadeTransition ft =
+                    new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), content);
+            ft.setFromValue(0.35);
+            ft.setToValue(1.0);
+            ft.play();
         });
         nav.getSelectionModel().select("Catalog");
 
@@ -78,7 +86,13 @@ public class FxApp extends Application {
         root.setCenter(split);
 
         stage.setTitle("TutorEngine");
-        stage.setScene(new Scene(root, 1000, 640));
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 1000, 640);
+        try {
+            // Project-root relative; missing file degrades to Primer defaults.
+            var css = java.nio.file.Paths.get("tutorengine/ui/tutorengine.css").toUri().toURL();
+            scene.getStylesheets().add(css.toExternalForm());
+        } catch (Exception ignored) { }
+        stage.setScene(scene);
         stage.show();
     }
 }
