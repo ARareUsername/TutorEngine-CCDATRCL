@@ -1,0 +1,19 @@
+size | operation | algorithm | nanoseconds | comparisons | observation
+100 | sort | InsertionSort | 7171100 | 2805 | moves=2811; O(n^2) shifts on shuffled input
+100 | sort | SelectionSort | 1307100 | 4950 | moves=282; same comparisons regardless of order
+100 | search | HashMap.get | 13100 | 1 | O(1) avg; hit=MTG-GEN-0050
+100 | search | LinearScan | 48600 | 57 | O(n) scan; steps=57
+500 | sort | InsertionSort | 16735200 | 63444 | moves=63453; O(n^2) shifts on shuffled input
+500 | sort | SelectionSort | 17350000 | 124750 | moves=1494; same comparisons regardless of order
+500 | search | HashMap.get | 5100 | 1 | O(1) avg; hit=MTG-GEN-0250
+500 | search | LinearScan | 107100 | 454 | O(n) scan; steps=454
+1000 | sort | InsertionSort | 14485600 | 250858 | moves=250860; O(n^2) shifts on shuffled input
+1000 | sort | SelectionSort | 12166200 | 499500 | moves=2973; same comparisons regardless of order
+1000 | search | HashMap.get | 5300 | 1 | O(1) avg; hit=MTG-GEN-0500
+1000 | search | LinearScan | 149400 | 714 | O(n) scan; steps=714
+5000 | sort | InsertionSort | 252710000 | 6146798 | moves=6146804; O(n^2) shifts on shuffled input
+5000 | sort | SelectionSort | 445069600 | 12497500 | moves=14973; same comparisons regardless of order
+5000 | search | HashMap.get | 8700 | 1 | O(1) avg; hit=MTG-GEN-2500
+5000 | search | LinearScan | 618100 | 1417 | O(n) scan; steps=1417
+NOTE sort: Selection wins tiny n on fewer moves; Insertion closes gap as n grows, but both O(n^2) lose to List.sort — startup jitters/CPU caches/clock granularity muddy n=100, which diverges from theory without invalidating it.
+NOTE search: HashMap.get wins at every size (ns-flat); linear grows with n; at n=100 the gap looks small in absolute ns due to clock granularity, yet the O(1)-vs-O(n) trend is already visible by n=5000.

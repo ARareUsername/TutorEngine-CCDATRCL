@@ -1,0 +1,18 @@
+TracePacket — Huypungco / BenchmarkSuite (nanoTime 100/500/1000/5000)
+Real data from: java tutorengine.util.BenchmarkSuite -> BenchmarkResults/bench.txt
+SPEC S9, Templates F/E. Clock: System.nanoTime() (ns granularity; ms would hide n=100 gaps).
+
+METHOD: makeCards(n) MTG-GEN-0001..n, seed-42 shuffle (reproducible);
+each race copies identical input (new ArrayList<>(base)); same target SKU.
+Sorts count comparisons+movements; search counts steps.
+
+TABLE (see bench.txt, 16 race rows):
+  n=100:  Ins 2.8k cmp / Sel 4.9k cmp; map ~13us vs linear ~48us
+  n=5000: Ins 6.1M cmp / Sel 12.5M cmp; map ~8us flat vs linear ~618us
+Times grow with n (O(n^2) sorts, O(n) scan, O(1) map).
+
+DIVERGENCE (required): at n=100 Selection looks faster in ns despite more
+comparisons (fewer moves + JIT/cache/clock granularity); by n=5000 Insertion
+wins back on shuffled input — small-sample jitter diverges from theory without
+refuting it. Search gap looks tiny at n=100 in absolute ns but trend is clear
+by n=5000. Both sides shared identical input or comparison is meaningless.
