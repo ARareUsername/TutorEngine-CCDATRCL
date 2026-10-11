@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
-    <exec.mainClass>tutorengine.TutorEngineUI</exec.mainClass>
+    <exec.mainClass>tutorengine.Main</exec.mainClass>
     <javafx.version>21.0.4</javafx.version>
     <atlantafx.version>2.1.0</atlantafx.version>
   </properties>

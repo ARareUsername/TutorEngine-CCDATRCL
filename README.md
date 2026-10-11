@@ -14,16 +14,15 @@ Most team members will run and test the project directly in NetBeans:
 
 1. **Open Project:** Go to **File → Open Project**, choose this repository's folder (marked with an `M` Maven icon), and click **Open Project**.
 2. **Build:** Right-click the project name in the left sidebar and click **Build**. Ensure the console prints `BUILD SUCCESS`.
-3. **Run the App:** Click the green **Run (▶)** button or right-click the project and select **Run** to launch the GUI (`tutorengine.TutorEngineUI`).
+3. **Run the App:** Click the green **Run (▶)** button or right-click the project and select **Run** to launch the JavaFX UI (`tutorengine.ui.FxApp`, needs a display).
    * *To run a specific class (like CLI demos):* Right-click the Java file directly and choose **Run File** (or press `Shift + F6`).
    * *To debug:* Press `Ctrl + F5`.
 
 ### Terminal Alternative
 If you prefer using the command line:
 * Build: `mvn compile`
-* Run GUI: `mvn exec:java`
-* Run CLI demo: `mvn exec:java -Dexec.mainClass=tutorengine.Main`
 * Run JavaFX UI (needs a display): `mvn javafx:run`
+* Run CLI demo: `mvn exec:java -Dexec.mainClass=tutorengine.Main`
 * Headless view checks (no display needed): `mvn -q exec:java -Dexec.mainClass=tutorengine.ui.CatalogView` (also `Theme`, `PriorityView`, `GraphView`, `BenchmarkView`)
 
 ---
@@ -32,20 +31,20 @@ If you prefer using the command line:
 
 > **Rule:** Only work on files assigned to you. Check off `[x]` your tasks here in the same Pull Request where you deliver your code.
 
-### Bondoc, Karl B. — Search, UI & Dataset
-* [x] SKU search (`HashMap`) + List Catalog view (`TutorEngineUI.java`)
+### Bondoc, Karl B. — Search, UI & Dataset (JavaFX-only UI; Swing `TutorEngineUI.java` retired)
+* [x] SKU search (`HashMap`) + List Catalog view (JavaFX `CatalogView`; Swing predecessor retired)
 * [x] Convert Scryfall bulk data into 60-row `Dataset/cards.csv`
 * [x] Set up and verify Maven `pom.xml` build configuration
 * [x] Implement `CSVLoader.load()` with SKIP handling + wire 60-row dataset into `Main` and UI (fallback-safe; David keeps trace + report rows)
 * [x] Create hash collision demo in `Main.java` (using `new HashMap<>(7)`, two colliding SKUs, and printed bucket chain) (PR #12: MTG-OTJ-001/009 share bucket 1, chain printed, both `get()` fine)
-* [x] Add input guards for empty or invalid SKUs in search (PR #12: `checkSku` in `Main` + `TutorEngineUI`, demo prints both guards)
-* [x] Implement `tutorengine/ui/CardImageCache.java` with responsive GUI preview (see `TutorEngine.md §8) (PR #12: cache-first, 100 ms gap, 50 MB eviction, worker-thread preview; verified HIT 12829 B + offline placeholder)
-* [x] Complete final system integration of all member modules into GUI and `Main` (PR #12: `Main` [5] smoke lines for catalog/heap/sorts/log/intake/typo; UI gains Top Priority + Store Map + fill buttons)
-* [x] JavaFX + AtlantaFX UI shell (`javafx-atlantafx-ui`: FxApp, Theme, 4 views — implemented 2026-10-08)
-* [x] Fuzzy card search (`fuzzy-card-search`: field matchers + fan-out + UI fallback in `SkuCorrector`) (PR #12: new `tutorengine/search/SkuFuzzy.java`, calls `bfsSuggest` without editing it; UI shows Did-you-mean)
-* [x] Cabinet store map (`cabinet-store-map`: hierarchy model + canonical 18-node graph + fill display) (model + graph on master; PR #12 adds fill display to Swing UI + `Main` via `GraphView.fillCounts`)
-* [x] Session add/delete records in both UIs with guards (ui-demo-coverage: duplicate/unknown messages, in-memory only)
-* [x] §11 demo surfaces in both UIs — list traversal, stack/queue, BST, heap, both sorts, collision (ui-demo-coverage: `DemoTexts` builders + Demos panels)
+* [x] Add input guards for empty or invalid SKUs in search (PR #12: `checkSku` in `Main` + JavaFX search boxes)
+* [x] Implement `tutorengine/ui/CardImageCache.java` with responsive GUI preview (see `TutorEngine.md §8) (PR #12: cache-first, 100 ms gap, 50 MB eviction; verified HIT 12829 B + offline placeholder)
+* [x] Complete final system integration of all member modules into GUI and `Main` (PR #12: `Main` [5] smoke lines; JavaFX views per module + Store Map + fill)
+* [x] JavaFX + AtlantaFX UI shell (`javafx-atlantafx-ui`: FxApp, Theme, views — implemented 2026-10-08, now the only UI)
+* [x] Fuzzy card search (`fuzzy-card-search`: field matchers + fan-out + UI fallback in `SkuCorrector`) (PR #12: new `tutorengine/search/SkuFuzzy.java`, calls `bfsSuggest` without editing it; JavaFX shows closest + field)
+* [x] Cabinet store map (`cabinet-store-map`: hierarchy model + canonical 18-node graph + fill display) (model + graph on master; PR #12 adds fill display to `Main` + `GraphView`)
+* [x] Session add/delete records in the JavaFX UI with guards (ui-demo-coverage: duplicate/unknown messages, in-memory only)
+* [x] §11 demo surfaces in the JavaFX UI — list traversal, stack/queue, BST, heap, both sorts, collision (ui-demo-coverage: `DemoTexts` builders + Demos tab)
 * [x] Benchmark + complexity display (ui-demo-coverage: `BenchmarkView` reads `bench.txt` with placeholder fallback + Template E table)
 
 ### David, Abraham John D. — Data & Loader

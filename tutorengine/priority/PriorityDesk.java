@@ -116,7 +116,8 @@ public class PriorityDesk {
         System.out.println("        PRIORITY DESK DEMONSTRATION");
         System.out.println("========================================");
 
-        // Define 5 real cards
+        // Define 5 real cards (all prices PHP; Scryfall USD x62.80 Oct 2026 —
+        // CUSTOM/created cards were already PHP-scale and stay as written).
         Card manaDrain = new Card(
                 "CUSTOM-001", "Mana Drain", "Commander Masters", "Blue", "Instant",
                 2023, 2600.00, 1, 98, false, "High Value Box"
@@ -129,17 +130,17 @@ public class PriorityDesk {
 
         Card mysticalTutor = new Card(
                 "MTG-DMR-421", "Mystical Tutor", "Dominaria Remastered", "Blue", "Instant",
-                2023, 16.56, 42, 100, true, "Bulk Box A (White/Blue)"
+                2023, 1039.97, 42, 100, true, "Bulk Box A (White/Blue)"
         );
 
         Card birdsOfParadise = new Card(
                 "MTG-SLD-176", "Birds of Paradise", "Secret Lair Drop", "Green", "Creature",
-                2021, 13.69, 17, 100, true, "Bulk Box C (Green/Colorless)"
+                2021, 859.73, 17, 100, true, "Bulk Box C (Green/Colorless)"
         );
 
         Card narset = new Card(
                 "MTG-SLD-1141", "Narset, Parter of Veils", "Secret Lair Drop", "Blue", "Planeswalker",
-                2022, 19.03, 9, 98, true, "Bulk Box A (White/Blue)"
+                2022, 1195.08, 9, 98, true, "Bulk Box A (White/Blue)"
         );
 
         // Late hotter card

@@ -30,7 +30,7 @@ To rank which cards require immediate web listing, grading, or secure display ca
 Priority Score = (Market Price x 0.50) + (Demand Index x 0.35) - (Stock Quantity x 3.0) + (Foil Multiplier x 10.0)
 ```
 
-- **Market Price (0.00 – 1000.00+):** Prioritizes high-value cards requiring immediate safe keeping or insurance tracking.
+- **Market Price (0.00 – 30000.00+ PHP):** Prioritizes high-value cards requiring immediate safe keeping or insurance tracking. (Scryfall USD × 62.80 at load, Oct 2026.)
 - **Demand Index (1 – 100):** Sourced from meta-game velocity (e.g., tournament playability).
 - **Stock Quantity:** Penalizes overstocked bulk singles to prioritize scarce inventory.
 - **Foil Multiplier (0 or 1):** Flat bonus for premium versions needing specialized storage to prevent curling.
@@ -286,7 +286,7 @@ public class Main {
 
 | Member | Owns (do not touch others') | Must deliver | Presents |
 |---|---|---|---|
-| Bondoc, Karl B. (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java`, `Dataset/cards.csv` (Scryfall bulk), `tutorengine/search/SkuFuzzy.java`, `tutorengine/ui/CardImageCache.java` | SKU search (`HashMap`), List Catalog, seed data, Scryfall Default Cards acquisition 2026-10-04 → 60-record `cards.csv` (converted 2026-10-05), collision demo, SKU guards, fuzzy ranking, image cache, full GUI+CLI integration (2026-10-11) | Search hit/miss + collision note |
+| Bondoc, Karl B. (done) | `tutorengine/ui/FxApp.java` + `tutorengine/ui/` views, `tutorengine/Main.java`, `tutorengine/model/Card.java`, `Dataset/cards.csv` (Scryfall bulk), `tutorengine/search/SkuFuzzy.java`, `tutorengine/ui/CardImageCache.java` (Swing `TutorEngineUI.java` retired) | SKU search (`HashMap`), List Catalog, seed data, Scryfall Default Cards acquisition 2026-10-04 → 60-record `cards.csv` (converted 2026-10-05), collision demo, SKU guards, fuzzy ranking, image cache, full GUI+CLI integration (2026-10-11) | Search hit/miss + collision note |
 | David, Abraham John D. — Data & Loader | `tutorengine/util/CSVLoader.java`, `Dataset/cards.csv` | 50+ rows, bad-row handling, generation rules | Dataset + Template C |
 | De Jesus, Aeon Miles J. — History & Intake | `tutorengine/model/TransactionLog.java`, `tutorengine/intake/IntakeBuffer.java` | `LinkedList` log, `ArrayDeque` FIFO+LIFO, empty-safe | List + queue/stack traces |
 | Dimazana, Amiel Benedict R. — Catalog/Priority/Sort | `tutorengine/catalog/CatalogIndex.java`, `tutorengine/priority/PriorityDesk.java`, `tutorengine/algorithms/CardSorter.java` | `TreeMap` ops, heap + formula, Insertion vs Selection + counts | BST / heap / sort traces |
@@ -304,18 +304,18 @@ Add new work as a NEW file with an OWNER header (never split one file across mem
 
 ## 8. GUI Roadmap — responsive + card-image double-check (OWNER: Bondoc, Karl B.)
 
-> New file: `tutorengine/ui/CardImageCache.java` (Karl only). UI stays in `tutorengine/TutorEngineUI.java` (Karl only).
+> New file: `tutorengine/ui/CardImageCache.java` (Karl only). UI is JavaFX-only (`tutorengine/ui/FxApp.java`, Karl only); Swing `tutorengine/TutorEngineUI.java` retired.
 
-- **Goal:** functional, responsive Swing GUI. Search result shows the card + its picture so the associate can verify the physical card on the fly.
+- **Goal:** functional, responsive JavaFX GUI. Search result shows the card + its picture so the associate can verify the physical card on the fly.
 - **Online:** fetch `image_uris.small` (146x204 JPG, ~15-40 KB) for result thumbnails; `image_uris.normal` (488x680) only for the double-check popup. Lazy-load per search (never bulk-download images).
 - **Offline:** disk cache in `ImageCache/<SKU>.jpg` (git-ignored). Hit = show instantly; miss with no connection = placeholder panel ("image unavailable offline") — app keeps working.
 - **Storage math:** 60 cards x small ≈ 1-3 MB total. Even full `normal` for all 60 ≈ 5-9 MB. Cap cache at ~50 MB with delete-oldest eviction and it never grows unbounded.
 - **Rules:** respect Scryfall rate limits (cache first, ~100 ms between fetches); store only the `image_uris` URL per card (add `imageUrl` to the CSV/card, not the bytes).
 - **Acceptance:** search existing SKU with internet → image in <2 s; airplane mode → cached image or placeholder, no crash; resize window → layout reflows, image scales.
-- **Status:** implemented 2026-10-11 (`tutorengine/ui/CardImageCache.java`, branch `bondoc/member-integration`): cache-first + 100 ms fetch gap + 50 MB delete-oldest eviction + `User-Agent`/`Accept` headers for the Scryfall API; Swing preview loads off the UI thread (`TutorEngineUI.showPreview`). Verified: `HIT ImageCache/MTG-BLB-280.jpg (12829 B)`; unknown card → null → placeholder, exit 0.
+- **Status:** implemented 2026-10-11 (`tutorengine/ui/CardImageCache.java`, branch `bondoc/member-integration`): cache-first + 100 ms fetch gap + 50 MB delete-oldest eviction + `User-Agent`/`Accept` headers for the Scryfall API. Verified: `HIT ImageCache/MTG-BLB-280.jpg (12829 B)`; unknown card → null → placeholder, exit 0.
 
 ## 9. JavaFX UI stack (OpenSpec change `javafx-atlantafx-ui`)
 
 - Versions (pinned 2026-10-08, all JDK 17-compatible): `org.openjfx:javafx-controls:21.0.4`, `io.github.mkpaz:atlantafx-base:2.1.0`, `org.openjfx:javafx-maven-plugin:0.0.8`.
-- Run: `mvn javafx:run` (FxApp). Default `mvn exec:java` still opens the Swing UI.
+- Run: `mvn javafx:run` (FxApp, the only UI). Default `mvn exec:java` runs the `Main` CLI demo.
 - First build needs network (one-time dependency fetch); headless machines keep using `Main` CLI demos.

@@ -26,6 +26,7 @@ import tutorengine.model.Card;
 //        int demand = Integer.parseInt(p[8].trim());
 //        boolean foil = Boolean.parseBoolean(p[9].trim());
 //      Reject the row when price < 0, quantity < 0, or demand is outside 1-100.
+//      Accepted USD prices convert to PHP via toPhp() (USD_TO_PHP, Oct 2026).
 //   4. A rejected or unparsable row prints "SKIP line N: <reason>" where N is the
 //      real file line number (loop index + 1), then the loop continues. Wrap the
 //      per-row parsing in try/catch (NumberFormatException) so one malformed
@@ -47,6 +48,15 @@ import tutorengine.model.Card;
 // DEFENSE: why an ArrayList stages the data (positional access the sorts rely on).
 // SPEC: S6 dataset, S11 load/generate.
 public class CSVLoader {
+    // Scryfall prices are USD; the store sells in Philippine Peso. Mid-market
+    // rate 1 USD = 62.80 PHP (Oct 2026, documented for the report §2/S2).
+    public static final double USD_TO_PHP = 62.80;
+
+    // USD dollars -> PHP centavos, half-up.
+    static double toPhp(double usd) {
+        return Math.round(usd * USD_TO_PHP * 100.0) / 100.0;
+    }
+
     public static List<Card> load(String path) {
         // Implemented 2026-10-05 by Bondoc, Karl B. (David's file — unblocking).
         List<Card> out = new ArrayList<>();
@@ -92,8 +102,9 @@ public class CSVLoader {
                     System.out.println("SKIP line " + (i + 1) + ": price/qty/demand out of range");
                     continue;
                 }
+                double php = toPhp(price); // CSV holds USD; Cards carry PHP
                 out.add(new Card(sku, name, setName, color, cardType,
-                        year, price, qty, demand, foil, box, mana, pw, tw, code));
+                        year, php, qty, demand, foil, box, mana, pw, tw, code));
             } catch (NumberFormatException e) {
                 System.out.println("SKIP line " + (i + 1) + ": bad number");
             }
