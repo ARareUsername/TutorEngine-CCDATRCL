@@ -47,31 +47,31 @@ If you prefer using the command line:
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*
-* [ ] Implement `load()` to read CSV data cleanly and skip corrupt rows with a `SKIP line N` console warning without crashing
-* [ ] Add a `main()` demo showing at least 50 loaded cards and printing 3 sample entries
+* [x] Implement `load()` to read CSV data cleanly and skip corrupt rows with a `SKIP line N` console warning without crashing (merged PR #1; master verified 2026-10-11: loads 60 cards)
+* [x] Add a `main()` demo showing at least 50 loaded cards and printing 3 sample entries (master verified 2026-10-11: `Loaded 60 cards` + 3 samples)
 * [ ] Provide a 1-page list trace diagram for `TracePacket/` and complete the Template C field mapping table
 
 ### De Jesus, Aeon Miles J. — Transaction History & Intake
 *Target Files: `model/TransactionLog.java`, `intake/IntakeBuffer.java`*
-* [ ] Implement `printAll()` with numbered log traversal and empty-log safety checks
-* [ ] Create `main()` runnable demos:
-  * 3-entry transaction history log with undo capability
-  * FIFO staging buffer and LIFO undo operations using sample cards
-* [ ] Prepare 1-page trace packet (linked list, queue, and stack) and pass test cases T01–T03
+* [x] Implement `printAll()` with numbered log traversal and empty-log safety checks (merged PR #4; master verified)
+* [x] Create `main()` runnable demos (merged PR #6 + #10, both compile+run verified 2026-10-11):
+  * 3-entry transaction history log with undo capability (`TransactionLog`: real SKUs MTG-TSP-157 / MTG-UGIN-146 / MTG-WOC-129, PR #10)
+  * FIFO staging buffer and LIFO undo operations using sample cards (`IntakeBuffer`: Bird / Temporal Manipulation / Gorion, `processNext` + `TransactionLog` wiring, PR #6)
+* [ ] Prepare 1-page trace packet (linked list, queue, and stack) and pass test cases T01–T03 (trace exists as in-file comments in PR #6/#10; still needs `TracePacket/` files)
 
 ### Dimazana, Amiel Benedict R. — Catalog, Priority & Sorting
 *Target Files: `catalog/CatalogIndex.java`, `priority/PriorityDesk.java`, `algorithms/CardSorter.java`*
-* [ ] 5-card binary search tree demo: `put`, search hits/misses, in-order traversal, and deletion of leaf and root nodes
-* [ ] 5-card priority heap demo: polling order, new-top priority promotion, and custom comparator reweighting
-* [ ] Implement manual Insertion Sort and Selection Sort tracking comparison and swap counts; verify correctness against `List.sort`
+* [x] 5-card binary search tree demo: `put`, search hits/misses, in-order traversal, and deletion of leaf and root nodes (merged PR #7, compile+run verified 2026-10-11; adds `firstKey()` for min-key deletion)
+* [x] 5-card priority heap demo: polling order, new-top priority promotion, and custom comparator reweighting (merged PR #8, compile+run verified 2026-10-11: peek Mana Drain → poll → runner-up Narset → late Black Lotus jumps line → foil 10→20 reweight)
+* [x] Implement manual Insertion Sort and Selection Sort tracking comparison and swap counts; verify correctness against `List.sort` (merged PR #9, compile+run verified 2026-10-11: both match `List.sort`, counters print)
 * [ ] Prepare traces (BST, Min/Max Heap, single sort pass), complete validation guards (price, quantity, demand), and pass tests T04, T09, and T10
 
 ### Huypungco, Matthew James M. — Graph Navigation & Benchmarks
 *Target Files: `model/StorageLocation.java`, `algorithms/StoreNavigator.java`, `algorithms/SkuCorrector.java`, `util/BenchmarkSuite.java`*
-* [ ] Model a 10-node / 15-edge store map; implement shortest-path BFS traversal and full DFS audit with missing-node handling
-* [ ] Implement `SkuCorrector`: build a 1-character difference graph and run `bfsSuggest()` (depth $\le$ 2) to correct mistyped SKU inputs
-* [ ] Build `BenchmarkSuite` with `System.nanoTime()` comparing sorting algorithms and search algorithms across sizes 100, 500, 1000, and 5000; output data to `BenchmarkResults/bench.txt`
-* [ ] Prepare BFS/DFS trace diagrams, provide analysis on small-sample timing divergence, and pass tests T07 and T08
+* [x] Model a 10-node / 15-edge store map; implement shortest-path BFS traversal and full DFS audit with missing-node handling (on master via `6313d11`: 18-node / 21-edge map, BFS 3-hop + 18/18 DFS + `[]` missing-node case all run-verified 2026-10-11; PR #11 adds only a date comment here)
+* [x] Implement `SkuCorrector`: build a 1-character difference graph and run `bfsSuggest()` (depth $\le$ 2) to correct mistyped SKU inputs (merged PR #11, compile+run verified 2026-10-11: O-for-0 typo → 6 suggestions, exact → `[]`, `ZZZ` → `[]`)
+* [x] Build `BenchmarkSuite` with `System.nanoTime()` comparing sorting algorithms and search algorithms across sizes 100, 500, 1000, and 5000; output data to `BenchmarkResults/bench.txt` (merged PR #11, run-verified 2026-10-11: 16 race rows + 2 NOTE lines, file written)
+* [x] Prepare BFS/DFS trace diagrams, provide analysis on small-sample timing divergence, and pass tests T07 and T08 (merged PR #11 ships `TracePacket/StoreNavigator-BFS-DFS.txt`, `SkuCorrector-BFS.txt`, `BenchmarkSuite.txt` with divergence notes)
 
 ---
 
@@ -137,7 +137,7 @@ To ensure full credit during project defense and grading, adhere strictly to the
 
 * **Strict File Ownership:** Do not edit another member's assigned file. If you notice an issue, review or leave a comment on their pull request.
 * **Independent Executability:** Every class must contain a functional `public static void main(String[] args)` method demonstrating its data structure or algorithm in isolation.
-* **Meaningful Git History:** We need at least 15 verified, well-spaced commits across the team. Use clear semantic prefixes (e.g., `feat:`, `test:`, `docs:`).
+* **Meaningful Git History:** We need at least 15 verified, well-spaced commits across the team. Use clear semantic prefixes (e.g., `feat:`, `test:`, `docs:`). Evidence: [`GitHistory.md`](GitHistory.md) (regenerate after each merge).
 * **Deliverable Checklist:** Every completed task must include:
   1. Working source code.
   2. Passing test cases.
