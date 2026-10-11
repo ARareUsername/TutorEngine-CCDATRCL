@@ -49,6 +49,10 @@ tutorengine/
 ├── util/
 │   ├── CSVLoader.java                 // Parser for scanner CSV exports
 │   └── BenchmarkSuite.java            // System.nanoTime() comparative timing harness
+├── search/
+│   └── SkuFuzzy.java                  // (Bondoc) typo-tolerant ranking: field matchers + SKU-graph fan-out
+├── ui/
+│   └── CardImageCache.java            // (Bondoc) Scryfall thumbnails with ImageCache/ disk cache + offline placeholder
 └── Main.java                          // CLI driver with interactive workflows
 ```
 
@@ -280,7 +284,7 @@ public class Main {
 
 | Member | Owns (do not touch others') | Must deliver | Presents |
 |---|---|---|---|
-| Bondoc, Karl B. (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java`, `Dataset/cards.csv` (Scryfall bulk) | SKU search (`HashMap`), List Catalog, seed data, Scryfall Default Cards acquisition 2026-10-04 → 60-record `cards.csv` (converted 2026-10-05) | Search hit/miss + collision note |
+| Bondoc, Karl B. (done) | `tutorengine/TutorEngineUI.java`, `tutorengine/Main.java`, `tutorengine/model/Card.java`, `Dataset/cards.csv` (Scryfall bulk), `tutorengine/search/SkuFuzzy.java`, `tutorengine/ui/CardImageCache.java` | SKU search (`HashMap`), List Catalog, seed data, Scryfall Default Cards acquisition 2026-10-04 → 60-record `cards.csv` (converted 2026-10-05), collision demo, SKU guards, fuzzy ranking, image cache, full GUI+CLI integration (2026-10-11) | Search hit/miss + collision note |
 | David, Abraham John D. — Data & Loader | `tutorengine/util/CSVLoader.java`, `Dataset/cards.csv` | 50+ rows, bad-row handling, generation rules | Dataset + Template C |
 | De Jesus, Aeon Miles J. — History & Intake | `tutorengine/model/TransactionLog.java`, `tutorengine/intake/IntakeBuffer.java` | `LinkedList` log, `ArrayDeque` FIFO+LIFO, empty-safe | List + queue/stack traces |
 | Dimazana, Amiel Benedict R. — Catalog/Priority/Sort | `tutorengine/catalog/CatalogIndex.java`, `tutorengine/priority/PriorityDesk.java`, `tutorengine/algorithms/CardSorter.java` | `TreeMap` ops, heap + formula, Insertion vs Selection + counts | BST / heap / sort traces |
@@ -306,6 +310,7 @@ Add new work as a NEW file with an OWNER header (never split one file across mem
 - **Storage math:** 60 cards x small ≈ 1-3 MB total. Even full `normal` for all 60 ≈ 5-9 MB. Cap cache at ~50 MB with delete-oldest eviction and it never grows unbounded.
 - **Rules:** respect Scryfall rate limits (cache first, ~100 ms between fetches); store only the `image_uris` URL per card (add `imageUrl` to the CSV/card, not the bytes).
 - **Acceptance:** search existing SKU with internet → image in <2 s; airplane mode → cached image or placeholder, no crash; resize window → layout reflows, image scales.
+- **Status:** implemented 2026-10-11 (`tutorengine/ui/CardImageCache.java`, branch `bondoc/member-integration`): cache-first + 100 ms fetch gap + 50 MB delete-oldest eviction + `User-Agent`/`Accept` headers for the Scryfall API; Swing preview loads off the UI thread (`TutorEngineUI.showPreview`). Verified: `HIT ImageCache/MTG-BLB-280.jpg (12829 B)`; unknown card → null → placeholder, exit 0.
 
 ## 9. JavaFX UI stack (OpenSpec change `javafx-atlantafx-ui`)
 

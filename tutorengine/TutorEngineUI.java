@@ -5,14 +5,24 @@ import java.awt.FlowLayout;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import tutorengine.algorithms.SkuCorrector;
+import tutorengine.algorithms.StoreNavigator;
 import tutorengine.model.Card;
+import tutorengine.model.StorageLocation;
+import tutorengine.priority.PriorityDesk;
+import tutorengine.search.SkuFuzzy;
+import tutorengine.ui.CardImageCache;
+import tutorengine.ui.GraphView;
 import tutorengine.util.CSVLoader;
 
 // OWNER: Bondoc, Karl B. — the window the store clerk sees. Finished member
@@ -25,12 +35,17 @@ import tutorengine.util.CSVLoader;
 //   Run: mvn exec:java (window titled "TutorEngine" opens, dataset-driven)
 //   Expected:
 //     - Status line reads "Loaded 60 cards. Try SKU <real-code> ...".
-//     - Searching the suggested SKU prints its "Found: ..." line.
-//     - BOGUS-1 prints "Not found: BOGUS-1" and the app keeps running.
+//     - Searching the suggested SKU prints its "Found: ..." line + card picture.
+//     - Empty search prints the empty-guard; "MTG ##" prints the invalid-guard.
+//     - BOGUS-1 prints "Not found: BOGUS-1" + fuzzy "Did you mean" (if any).
 //     - List Catalog scrolls one line per card (60 lines with the dataset).
+//     - Top Priority names the priciest in-demand card; Store Map prints the
+//       retrieval route + box fill.
 public class TutorEngineUI {
     private final Map<String, Card> catalog = new HashMap<>(101);
+    private final Map<String, List<String>> skuGraph;
     private final JTextArea log = new JTextArea(20, 60);
+    private final JLabel preview = new JLabel();
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new TutorEngineUI().show());
@@ -38,6 +53,16 @@ public class TutorEngineUI {
 
     private TutorEngineUI() {
         seed();
+        skuGraph = SkuCorrector.build(new java.util.ArrayList<>(catalog.values()));
+    }
+
+    // Null = searchable; otherwise the message to show. Same rule as Main.
+    static String checkSku(String raw) {
+        if (raw == null || raw.trim().isEmpty())
+            return "Type a SKU first (e.g. MTG-BLB-280).";
+        if (!raw.trim().matches("[A-Za-z0-9-]+"))
+            return "Invalid SKU: letters, digits, hyphens only.";
+        return null;
     }
 
     private void show() {
@@ -47,10 +72,8 @@ public class TutorEngineUI {
 
         JTextField skuField = new JTextField(14);
         JButton searchBtn = new JButton("Search SKU");
-        searchBtn.addActionListener(e -> {
-            Card c = catalog.get(skuField.getText().trim());
-            log(c == null ? "Not found: " + skuField.getText().trim() : "Found: " + c);
-        });
+        searchBtn.addActionListener(e -> search(skuField.getText()));
+        skuField.addActionListener(e -> search(skuField.getText()));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
         top.add(skuField);
@@ -62,16 +85,79 @@ public class TutorEngineUI {
             if (catalog.isEmpty()) log("Catalog empty.");
             else catalog.values().forEach(c -> log(c.toString()));
         });
+        JButton topBtn = new JButton("Top Priority");
+        topBtn.addActionListener(e -> {
+            PriorityDesk desk = new PriorityDesk();
+            catalog.values().forEach(desk::offer);
+            Card star = desk.peek();
+            log(star == null ? "No cards to prioritize." : "Top priority: " + star);
+        });
+        JButton mapBtn = new JButton("Store Map");
+        mapBtn.addActionListener(e -> {
+            Map<String, List<String>> g = StoreNavigator.sampleMap();
+            log("Map: " + StoreNavigator.nodeCount(g) + " nodes / "
+                    + StoreNavigator.edgeCount(g) + " edges; e.g. Checkout -> CAB-5-UPPER: "
+                    + String.join(" -> ", StoreNavigator.bfsPath(g, StoreNavigator.CHECKOUT, "CAB-5-UPPER")));
+            GraphView.fillCounts(new java.util.ArrayList<>(catalog.values())).forEach((slot, n) -> {
+                if (n > 0) log("  " + slot + ": " + n + "/" + StorageLocation.BOX_CAPACITY + " cards");
+            });
+        });
         bottom.add(listBtn);
+        bottom.add(topBtn);
+        bottom.add(mapBtn);
+
+        preview.setText("[card image appears here]");
+        JPanel east = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        east.add(preview);
 
         f.add(top, BorderLayout.NORTH);
         f.add(new JScrollPane(log), BorderLayout.CENTER);
+        f.add(east, BorderLayout.EAST);
         f.add(bottom, BorderLayout.SOUTH);
         f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
         String example = catalog.isEmpty() ? "MTG-XXXX-000" : catalog.keySet().iterator().next();
         log("Loaded " + catalog.size() + " cards. Try SKU " + example + " and press Search.");
+    }
+
+    private void search(String raw) {
+        String guard = checkSku(raw);
+        if (guard != null) { log(guard); return; }
+        String sku = raw.trim();
+        Card c = catalog.get(sku);
+        if (c != null) {
+            log("Found: " + c);
+            showPreview(c);
+            return;
+        }
+        log("Not found: " + sku);
+        List<Card> near = SkuFuzzy.suggest(catalog, skuGraph, sku, 3);
+        if (!near.isEmpty()) {
+            log("Did you mean:");
+            near.forEach(n -> log("  " + n.getName() + " [" + n.getSku() + "]"));
+        }
+    }
+
+    // Thumbnail loads off the UI thread so typing never freezes; offline or
+    // unknown cards keep the placeholder instead of throwing.
+    private void showPreview(Card c) {
+        preview.setIcon(null);
+        preview.setText("[loading image...]");
+        new SwingWorker<ImageIcon, Void>() {
+            @Override protected ImageIcon doInBackground() {
+                return CardImageCache.get(c.getSku(), c.getName(), 180);
+            }
+            @Override protected void done() {
+                try {
+                    ImageIcon icon = get();
+                    if (icon != null) { preview.setIcon(icon); preview.setText(""); }
+                    else preview.setText("[image unavailable offline]");
+                } catch (Exception ex) {
+                    preview.setText("[image unavailable]");
+                }
+            }
+        }.execute();
     }
 
     private void seed() {
