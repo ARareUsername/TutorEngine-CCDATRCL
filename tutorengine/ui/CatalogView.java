@@ -24,6 +24,43 @@ public final class CatalogView {
     private CatalogView() {}
 
     public static java.util.function.Consumer<String> locateHandler;
+    public static Card lastLocatedCard;
+    public static Map<String, Card> activeCatalog;
+    public static TableView<Card> activeTable;
+    public static List<Card> activeCards;
+    private static final List<Card> pendingCards = new java.util.ArrayList<>();
+
+    public static void addCard(Card c) {
+        if (c == null) return;
+        if (activeCards != null && !activeCards.contains(c)) {
+            activeCards.add(c);
+        }
+        if (activeCatalog != null) {
+            activeCatalog.put(c.getSku(), c);
+        }
+        Runnable r = () -> {
+            if (activeTable != null) {
+                if (!activeTable.getItems().contains(c)) {
+                    activeTable.getItems().add(c);
+                    activeTable.scrollTo(c);
+                    activeTable.getSelectionModel().select(c);
+                }
+            } else {
+                if (!pendingCards.contains(c)) {
+                    pendingCards.add(c);
+                }
+            }
+        };
+        try {
+            if (javafx.application.Platform.isFxApplicationThread()) {
+                r.run();
+            } else {
+                javafx.application.Platform.runLater(r);
+            }
+        } catch (IllegalStateException ignored) {
+            r.run();
+        }
+    }
 
     public static List<Card> loadCards() {
         List<Card> loaded = CSVLoader.load("Dataset/cards.csv");
@@ -52,26 +89,41 @@ public final class CatalogView {
         return true;
     }
 
+    static String formatStats(Card c, String status) {
+        String base = c.getName() + " [" + c.getSku() + "]\n"
+                + c.getSetName() + " · " + c.getColor() + " " + c.getCardType() + " " + c.getReleaseYear() + "\n"
+                + String.format("PHP %.2f x%d | Demand %d%s\n", c.getPrice(), c.getQuantity(),
+                        c.getDemandScore(), c.isFoil() ? " | FOIL" : "")
+                + "Shelf: " + StorageLocation.route(c) + " (box: " + c.getBoxLocationId() + ")\n"
+                + String.format("Priority %.2f", c.calculatePriority());
+        if (status != null && !status.isEmpty()) {
+            return base + "\n[" + status + "]";
+        }
+        return base;
+    }
+
+    static void renderStats(Label stats, Card c, String status) {
+        stats.setText(formatStats(c, status));
+    }
+
     public static Node build(List<Card> cards) {
         Map<String, Card> catalog = indexOf(cards);
+        activeCatalog = catalog;
+        activeCards = cards;
         Map<String, List<String>> skuGraph = tutorengine.algorithms.SkuCorrector.build(cards);
         TextField skuField = new TextField();
         skuField.setPromptText("SKU e.g. MTG-OTJ-055");
         Label result = new Label("Type an SKU and press Search.");
         result.setWrapText(true);
-        javafx.scene.image.ImageView preview = new javafx.scene.image.ImageView();
-        preview.setFitWidth(DisplaySettings.cards().preview);
-        preview.setPreserveRatio(true);
-        Label stats = new Label("Select a card to see its details.");
-        stats.setWrapText(true);
+        CardDetailPanel detailPanel = new CardDetailPanel();
         Button searchBtn = new Button("Search SKU");
         searchBtn.setDefaultButton(true);
         Button locateBtn = new Button("Locate on shelf");
         locateBtn.setVisible(false);
         VBox linksBox = new VBox(4);
         Card[] found = new Card[1];
-        int[] searchGen = new int[1]; // latest search wins; stale workers stay silent
         locateBtn.setOnAction(e -> {
+            lastLocatedCard = found[0];
             if (locateHandler != null && found[0] != null)
                 locateHandler.accept(StorageLocation.route(found[0]));
         });
@@ -82,6 +134,7 @@ public final class CatalogView {
             locateBtn.setVisible(false);
             found[0] = c;
             if (c == null) {
+                detailPanel.clear();
                 String q = skuField.getText() == null ? "" : skuField.getText().trim();
                 List<Card> near = tutorengine.algorithms.SkuCorrector.multiSearch(catalog, skuGraph, q);
                 if (near.isEmpty()) {
@@ -104,41 +157,22 @@ public final class CatalogView {
             } else {
                 result.setText("Found: " + c.getName() + " [" + c.getSku() + "]");
                 result.getStyleClass().add(Theme.badgeFor(c.getQuantity(), c.isFoil()));
-                stats.setText(c.getName() + " [" + c.getSku() + "]\n"
-                        + c.getSetName() + " · " + c.getColor() + " " + c.getCardType() + " " + c.getReleaseYear() + "\n"
-                        + String.format("PHP %.2f x%d | Demand %d%s\n", c.getPrice(), c.getQuantity(),
-                                c.getDemandScore(), c.isFoil() ? " | FOIL" : "")
-                        + "Shelf: " + StorageLocation.route(c) + " (box: " + c.getBoxLocationId() + ")\n"
-                        + String.format("Priority %.2f", c.calculatePriority()));
-                // Thumbnail off the UI thread; offline/unknown keeps the placeholder.
-                // Source fits the tier: S renders small, M normal, L large.
-                preview.setFitWidth(DisplaySettings.cards().preview);
-                preview.setImage(null);
-                final CardImageCache.Variant pv = switch (DisplaySettings.cards()) {
-                    case L -> CardImageCache.Variant.LARGE;
-                    case M -> CardImageCache.Variant.NORMAL;
-                    default -> CardImageCache.Variant.SMALL;
-                };
-                final int w = DisplaySettings.cards().preview;
-                final int gen = ++searchGen[0];
-                javafx.concurrent.Task<javafx.scene.image.Image> load = new javafx.concurrent.Task<>() {
-                    @Override protected javafx.scene.image.Image call() {
-                        return CardImageCache.getFx(c.getSku(), c.getName(), w, pv, c.getSetCode());
-                    }
-                };
-                load.setOnSucceeded(done -> {
-                    if (gen == searchGen[0] && load.getValue() != null) preview.setImage(load.getValue());
-                });
-                new Thread(load, "card-image").start();
+                detailPanel.showCard(c);
                 locateBtn.setVisible(true);
             }
         });
 
         TableView<Card> table = new TableView<>();
+        activeTable = table;
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        VBox.setVgrow(table, javafx.scene.layout.Priority.ALWAYS);
+        table.setPrefHeight(260);
+        table.setMinHeight(180);
         table.getColumns().addAll(
             col("Name", c -> c.getName()),
             col("SKU", c -> c.getSku()),
+            col("Collector #", c -> c.getCollectorNumber().isEmpty() ? "—" : c.getCollectorNumber()),
+            col("Version", c -> c.getVersionLabel().isEmpty() ? "—" : c.getVersionLabel()),
             numCol("Price", c -> String.format("%.2f", c.getPrice())),
             numCol("Qty", c -> String.valueOf(c.getQuantity())),
             numCol("Demand", c -> String.valueOf(c.getDemandScore())),
@@ -146,11 +180,23 @@ public final class CatalogView {
             col("Location", c -> c.getBoxLocationId()),
             numCol("Priority", c -> String.format("%.2f", c.calculatePriority())));
         table.getItems().addAll(cards);
+        if (!pendingCards.isEmpty()) {
+            for (Card pc : pendingCards) {
+                catalog.put(pc.getSku(), pc);
+                if (!table.getItems().contains(pc)) table.getItems().add(pc);
+                if (!cards.contains(pc)) cards.add(pc);
+            }
+            pendingCards.clear();
+        }
         // Row click selects the card's SKU (reuses search: details + picture + Locate).
         table.getSelectionModel().selectedItemProperty().addListener((o, old, sel) -> {
-            if (sel != null && !sel.getSku().equals(skuField.getText().trim())) {
-                skuField.setText(sel.getSku());
-                searchBtn.fire();
+            if (sel != null) {
+                if (!sel.getSku().equals(skuField.getText().trim())) {
+                    skuField.setText(sel.getSku());
+                    searchBtn.fire();
+                } else {
+                    detailPanel.showCard(sel);
+                }
             }
         });
         // Hover a row 600ms -> card picture tooltip (worker thread, cached first).
@@ -163,8 +209,17 @@ public final class CatalogView {
             iv.setPreserveRatio(true);
             tip.setGraphic(iv);
             row.setTooltip(tip);
-            row.hoverProperty().addListener((ho, was, is) -> {
-                if (is && !row.isEmpty()) {
+
+            @SuppressWarnings("unchecked")
+            javafx.concurrent.Task<javafx.scene.image.Image>[] currentTask = new javafx.concurrent.Task[1];
+
+            Runnable startLoad = () -> {
+                if (currentTask[0] != null) {
+                    currentTask[0].cancel();
+                    currentTask[0] = null;
+                }
+                iv.setImage(null);
+                if (row.isHover() && !row.isEmpty()) {
                     Card c = row.getItem();
                     final int tw = DisplaySettings.cards().tooltip;
                     // Tooltips never upscale a smaller source: S uses small, else normal.
@@ -173,16 +228,43 @@ public final class CatalogView {
                     javafx.concurrent.Task<javafx.scene.image.Image> load =
                             new javafx.concurrent.Task<>() {
                         @Override protected javafx.scene.image.Image call() {
+                            if (isCancelled()) return null;
                             return CardImageCache.getFx(c.getSku(), c.getName(), tw, src, c.getSetCode());
                         }
                     };
                     load.setOnSucceeded(done -> {
-                        if (load.getValue() != null && row.isHover() && row.getItem() == c)
+                        if (!load.isCancelled() && load.getValue() != null && row.isHover() && row.getItem() == c)
                             iv.setImage(load.getValue());
                     });
+                    currentTask[0] = load;
                     new Thread(load, "card-hover").start();
                 }
+            };
+
+            row.hoverProperty().addListener((ho, was, is) -> {
+                if (is) {
+                    startLoad.run();
+                } else {
+                    if (currentTask[0] != null) {
+                        currentTask[0].cancel();
+                        currentTask[0] = null;
+                    }
+                    iv.setImage(null);
+                }
             });
+
+            row.itemProperty().addListener((io, oldCard, newCard) -> {
+                if (row.isHover()) {
+                    startLoad.run();
+                } else {
+                    if (currentTask[0] != null) {
+                        currentTask[0].cancel();
+                        currentTask[0] = null;
+                    }
+                    iv.setImage(null);
+                }
+            });
+
             return row;
         });
         // Session catalog editing (in-memory only, never written back to CSV).
@@ -237,6 +319,7 @@ public final class CatalogView {
                     2026, price, qty, 50, false, slot.isEmpty() ? "Intake Sorting Desk" : slot.toUpperCase());
             catalog.put(sku, c);
             table.getItems().add(c);
+            if (activeCards != null && !activeCards.contains(c)) activeCards.add(c);
             result.setText("Added (session-only): " + c + " -> " + StorageLocation.route(c));
         });
         Button removeBtn = new Button("Remove");
@@ -248,20 +331,20 @@ public final class CatalogView {
                 result.setText("Not in catalog: " + sku);
                 return;
             }
-            javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.CONFIRMATION,
+            DialogHelper.showConfirmation(
+                    "Confirm remove",
                     "Remove " + target.getName() + " [" + sku + "] from inventory?",
-                    javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
-            confirm.setHeaderText("Confirm remove");
-            if (confirm.showAndWait().orElse(javafx.scene.control.ButtonType.CANCEL)
-                    != javafx.scene.control.ButtonType.OK) {
-                result.setText("Remove cancelled.");
-                return;
-            }
-            catalog.remove(sku);
-            table.getItems().removeIf(k -> k.getSku().equals(sku));
-            lastRemoved[0] = target;
-            result.setText("Removed: " + target.getName() + " [" + sku + "] (Undo remove restores it)");
+                    () -> {
+                        catalog.remove(sku);
+                        table.getItems().removeIf(k -> k.getSku().equals(sku));
+                        if (activeCards != null) activeCards.removeIf(k -> k.getSku().equals(sku));
+                        lastRemoved[0] = target;
+                        result.setText("Removed: " + target.getName() + " [" + sku + "] (Undo remove restores it)");
+                    },
+                    () -> {
+                        result.setText("Remove cancelled.");
+                    }
+            );
         });
         Button undoBtn = new Button("Undo remove");
         undoBtn.setOnAction(e -> {
@@ -272,6 +355,7 @@ public final class CatalogView {
             }
             catalog.put(lastRemoved[0].getSku(), lastRemoved[0]);
             table.getItems().add(lastRemoved[0]);
+            if (activeCards != null && !activeCards.contains(lastRemoved[0])) activeCards.add(lastRemoved[0]);
             result.setText("Restored: " + lastRemoved[0].getName() + " [" + lastRemoved[0].getSku() + "]");
             lastRemoved[0] = null;
         });
@@ -281,11 +365,14 @@ public final class CatalogView {
         Button newCardBtn = new Button("New card");
         newCardBtn.setOnAction(e -> IntakeDialog.prompt(catalog, table, result));
         HBox btnRow = new HBox(8, addBtn, removeBtn, undoBtn, newCardBtn);
-        VBox detail = new VBox(8, stats, formRow, btnRow);
-        HBox bottom = new HBox(12, preview, detail);
+        VBox controls = new VBox(8, formRow, btnRow);
+        VBox bottom = new VBox(8, detailPanel.getNode(), controls);
+        bottom.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
 
-        return new VBox(8, new HBox(8, skuField, searchBtn, locateBtn),
+        VBox root = new VBox(10, new HBox(8, skuField, searchBtn, locateBtn),
                 result, linksBox, table, bottom);
+        root.getStyleClass().add("view-container");
+        return root;
     }
 
     private static TableColumn<Card, String> col(String title, java.util.function.Function<Card, String> f) {
@@ -307,6 +394,12 @@ public final class CatalogView {
         Map<String, Card> idx = indexOf(cards);
         System.out.println("hit: " + lookup(idx, cards.get(0).getSku()).getName());
         System.out.println("miss: " + lookup(idx, "NOPE-000") + " blank: " + lookup(idx, "  "));
+        System.out.println("stats loading=" + formatStats(cards.get(0), "loading…").contains("[loading…]"));
+        activeCatalog = idx;
+        activeCards = cards;
+        Card testCard = new Card("TEST-SKU-999", "Test Card", "Test Set", "Colorless", "Artifact", 2026, 100.0, 1, 50, false, "CAB-T-TOP");
+        addCard(testCard);
+        System.out.println("addCard test=" + (lookup(activeCatalog, "TEST-SKU-999") != null));
         System.out.println("CatalogView data OK.");
     }
 }

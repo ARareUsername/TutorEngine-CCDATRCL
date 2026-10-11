@@ -1,61 +1,61 @@
-sku,name,setName,color,cardType,releaseYear,price,quantity,demandScore,isFoil,boxLocationId,manaCost,power,toughness,setCode
-MTG-BLB-280,Forest,Bloomburrow,Colorless,Land,2024,0.38,18,50,true,Bulk Box C (Green/Colorless),,,,BLB
-MTG-TSP-157,Fury Sliver,Time Spiral,Red,Creature,2006,0.48,16,75,true,Bulk Box B (Black/Red),{5}{R},3,3,TSP
-MTG-ZEN-21,Kor Outfitter,Zendikar,White,Creature,2009,0.17,23,48,true,Bulk Box A (White/Blue),{W}{W},2,2,ZEN
-MTG-TMM2-5,Spirit,Modern Masters 2015 Tokens,White,Creature,2015,0.26,39,50,false,Bulk Box A (White/Blue),,1,1,TMM2
-MTG-XLN-78,Siren Lookout,Ixalan,Blue,Creature,2017,0.24,33,48,true,Bulk Box A (White/Blue),{2}{U},1,2,XLN
-MTG-3ED-229,Web,Revised Edition,Green,Enchantment,1994,1.02,2,31,false,Bulk Box C (Green/Colorless),{G},,,3ED
-MTG-PDFT-268P,Wastewood Verge,Aetherdrift Promos,Colorless,Land,2025,13.70,33,98,true,Bulk Box C (Green/Colorless),,,,PDFT
-MTG-WHO-57,Surge of Brilliance,Doctor Who,Blue,Instant,2023,0.35,8,83,true,Bulk Box A (White/Blue),{1}{U},,,WHO
-MTG-WOE-63,Obyra's Attendants // Desperate Parry,Wilds of Eldraine,Blue,Creature,2023,0.23,13,51,true,Bulk Box A (White/Blue),{4}{U} // {1}{U},3,4,WOE
-MTG-ELD-35,Venerable Knight,Throne of Eldraine,White,Creature,2019,0.27,27,51,true,Bulk Box A (White/Blue),{W},2,1,ELD
-MTG-UGIN-146,Wildcall,Ugin's Fate,Green,Sorcery,2015,1.00,37,49,false,Bulk Box C (Green/Colorless),{X}{G}{G},,,UGIN
-MTG-ALTC-18,Fell Beast's Shriek // Fell Beast's Shriek,Tales of Middle-earth Scene Box,Colorless,Card,2023,0.24,10,50,false,Bulk Box C (Green/Colorless),,,,ALTC
-MTG-M21-326,Mystic Skyfish,Core Set 2021,Blue,Creature,2020,0.31,38,38,false,Bulk Box A (White/Blue),{2}{U},3,1,M21
-MTG-JMP-59,Swamp,Jumpstart,Colorless,Land,2020,0.41,12,50,false,Bulk Box C (Green/Colorless),,,,JMP
-MTG-DMU-43,Battlewing Mystic,Dominaria United,Blue,Creature,2022,0.13,39,34,true,Bulk Box A (White/Blue),{1}{U},2,1,DMU
-MTG-SLD-176,Birds of Paradise,Secret Lair Drop,Green,Creature,2021,13.69,17,100,true,Bulk Box C (Green/Colorless),{G},0,1,SLD
-MTG-PCY-80,Wall of Vipers,Prophecy,Black,Creature,2000,0.18,25,28,true,Bulk Box B (Black/Red),{2}{B},2,4,PCY
-MTG-PLST-XLN217,Admiral Beckett Brass,The List,Multi,Creature,2022,0.40,36,85,false,Bulk Box C (Green/Colorless),{1}{U}{B}{R},3,3,XLN
-MTG-DSK-150,Ragged Playmate,Duskmourn: House of Horror,Red,Creature,2024,0.18,10,75,true,Bulk Box B (Black/Red),{1}{R},2,2,DSK
-MTG-C15-191,Mulch,Commander 2015,Green,Sorcery,2015,0.17,2,89,false,Bulk Box C (Green/Colorless),{1}{G},,,C15
-MTG-C18-36,Whiptongue Hydra,Commander 2018,Green,Creature,2018,1.18,23,83,false,Bulk Box C (Green/Colorless),{5}{G},4,4,C18
-MTG-PLCI-208P,Pugnacious Hammerskull,The Lost Caverns of Ixalan Promos,Green,Creature,2023,2.16,35,87,true,Bulk Box C (Green/Colorless),{2}{G},6,6,PLCI
-MTG-MOM-214,War Historian,March of the Machine,Green,Creature,2023,0.04,40,25,true,Bulk Box C (Green/Colorless),{2}{G},3,3,MOM
-MTG-PLST-WWK90,Searing Blaze,The List,Red,Instant,2024,0.57,42,57,false,Bulk Box B (Black/Red),{R}{R},,,WWK
-MTG-CED-78,Siren's Call,Collectors' Edition,Blue,Instant,1993,2.00,37,46,false,Bulk Box A (White/Blue),{U},,,CED
-MTG-DMR-421,Mystical Tutor,Dominaria Remastered,Blue,Instant,2023,16.56,42,100,true,Bulk Box A (White/Blue),{U},,,DMR
-MTG-GRN-63,Blood Operative,Guilds of Ravnica,Black,Creature,2018,0.19,15,54,true,Bulk Box B (Black/Red),{1}{B}{B},3,1,GRN
-MTG-CNS-40,Selvala's Enforcer,Conspiracy,Green,Creature,2014,0.15,5,38,true,Bulk Box C (Green/Colorless),{3}{G},2,2,CNS
-MTG-NPH-109,Fresh Meat,New Phyrexia,Green,Instant,2011,0.30,39,70,true,Bulk Box C (Green/Colorless),{3}{G},,,NPH
-MTG-GTC-244,Orzhov Guildgate,Gatecrash,Colorless,Land,2013,0.20,31,96,true,Bulk Box C (Green/Colorless),,,,GTC
-MTG-LTC-269,Mortify,Tales of Middle-earth Commander,Multi,Instant,2023,0.32,45,99,false,Bulk Box C (Green/Colorless),{1}{W}{B},,,LTC
-MTG-TOTJ-7,Bird,Outlaws of Thunder Junction Tokens,Blue,Creature,2024,0.24,4,50,true,Bulk Box A (White/Blue),,1,1,TOTJ
-MTG-SLD-1141,"Narset, Parter of Veils",Secret Lair Drop,Blue,Planeswalker,2022,19.03,9,98,true,Bulk Box A (White/Blue),{1}{U}{U},,,SLD
-MTG-WOC-129,Paradise Druid,Wilds of Eldraine Commander,Green,Creature,2023,0.34,6,95,false,Bulk Box C (Green/Colorless),{1}{G},2,1,WOC
-MTG-WOC-108,Run Away Together,Wilds of Eldraine Commander,Blue,Instant,2023,0.23,25,96,false,Bulk Box A (White/Blue),{1}{U},,,WOC
-MTG-TSR-44,Sinew Sliver,Time Spiral Remastered,White,Creature,2021,0.45,33,87,true,Bulk Box A (White/Blue),{1}{W},1,1,TSR
-MTG-DOM-10,Charge,Dominaria,White,Instant,2018,0.07,15,48,true,Bulk Box A (White/Blue),{W},,,DOM
-MTG-ELD-255,Island,Throne of Eldraine,Colorless,Land,2019,0.23,17,50,true,Bulk Box C (Green/Colorless),,,,ELD
-MTG-M19-30,Novice Knight,Core Set 2019,White,Creature,2018,0.10,32,41,true,Bulk Box A (White/Blue),{W},2,3,M19
-MTG-VIS-59,Fallen Askari,Visions,Black,Creature,1997,0.08,29,24,false,Bulk Box B (Black/Red),{1}{B},2,2,VIS
-MTG-PLST-DDR37,Altar's Reap,The List,Black,Instant,2019,0.16,11,89,false,Bulk Box B (Black/Red),{1}{B},,,DDR
-MTG-RVR-370,"Lavinia, Azorius Renegade",Ravnica Remastered,Multi,Creature,2024,0.42,43,92,true,Bulk Box C (Green/Colorless),{W}{U},2,2,RVR
-MTG-C20-96,"Odric, Master Tactician",Commander 2020,White,Creature,2020,0.40,37,94,false,Bulk Box A (White/Blue),{2}{W}{W},3,4,C20
-MTG-ODY-115,Afflict,Odyssey,Black,Instant,2001,0.12,44,51,true,Bulk Box B (Black/Red),{2}{B},,,ODY
-MTG-LTC-75,Crown of Gondor,Tales of Middle-earth Commander,Colorless,Artifact,2023,0.36,17,87,false,Bulk Box C (Green/Colorless),{3},,,LTC
-MTG-ISD-60,Invisible Stalker,Innistrad,Blue,Creature,2011,1.00,31,94,true,Bulk Box A (White/Blue),{1}{U},1,1,ISD
-MTG-MH2-192,"Dakkon, Shadow Slayer",Modern Horizons 2,Multi,Planeswalker,2021,0.50,19,73,true,Bulk Box C (Green/Colorless),{W}{U}{B},,,MH2
-MTG-ARN-10,Shahrazad,Arabian Nights,White,Sorcery,1993,475.00,3,50,false,Bulk Box A (White/Blue),{W}{W},,,ARN
-MTG-AER-78,Destructive Tampering,Aether Revolt,Red,Sorcery,2017,0.07,6,54,true,Bulk Box B (Black/Red),{2}{R},,,AER
-MTG-HOB-207,The Lonely Mountain,The Hobbit,Colorless,Land,2026,4.84,36,81,true,Bulk Box C (Green/Colorless),,,,HOB
-MTG-C20-173,Harmonize,Commander 2020,Green,Sorcery,2020,0.28,29,100,false,Bulk Box C (Green/Colorless),{2}{G}{G},,,C20
-MTG-MIR-132,Nocturnal Raid,Mirage,Black,Instant,1996,0.17,5,23,false,Bulk Box B (Black/Red),{2}{B}{B},,,MIR
-MTG-SLD-1169,Temporal Manipulation,Secret Lair Drop,Blue,Sorcery,2022,16.97,9,93,true,Bulk Box A (White/Blue),{3}{U}{U},,,SLD
-MTG-WOE-1,Archon of the Wild Rose,Wilds of Eldraine,White,Creature,2023,0.25,25,75,true,Bulk Box A (White/Blue),{2}{W}{W},4,4,WOE
-MTG-MBS-41,Flensermite,Mirrodin Besieged,Black,Creature,2011,0.31,36,69,true,Bulk Box B (Black/Red),{1}{B},1,1,MBS
-MTG-NCC-274,Rite of the Raging Storm,New Capenna Commander,Red,Enchantment,2022,1.88,11,92,false,Bulk Box B (Black/Red),{3}{R}{R},,,NCC
-MTG-SLD-2161,Lonely Sandbar,Secret Lair Drop,Colorless,Land,2025,0.36,34,98,false,Bulk Box C (Green/Colorless),,,,SLD
-MTG-CLB-276,"Gorion, Wise Mentor",Commander Legends: Battle for Baldur's Gate,Multi,Creature,2022,0.19,9,57,true,Bulk Box C (Green/Colorless),{G}{W}{U},3,4,CLB
-MTG-TVOW-11,Wolf,Innistrad: Crimson Vow Tokens,Red,Creature,2021,0.25,26,50,true,Bulk Box B (Black/Red),,3,2,TVOW
-MTG-FRA-358,Uldaros Theorix,Reality Fracture,Multi,Creature,2026,4.92,16,56,true,Bulk Box C (Green/Colorless),{3}{U}{B}{B},5,5,FRA
+sku,name,setName,color,cardType,releaseYear,price,quantity,demandScore,isFoil,boxLocationId,manaCost,power,toughness,setCode,imageUrl
+MTG-BLB-280,Forest,Bloomburrow,Colorless,Land,2024,0.38,18,50,true,Bulk Box C (Green/Colorless),,,,BLB,https://api.scryfall.com/cards/named?exact=Forest&format=image&version=small&set=blb
+MTG-TSP-157,Fury Sliver,Time Spiral,Red,Creature,2006,0.48,16,75,true,Bulk Box B (Black/Red),{5}{R},3,3,TSP,https://api.scryfall.com/cards/named?exact=Fury%20Sliver&format=image&version=small&set=tsp
+MTG-ZEN-21,Kor Outfitter,Zendikar,White,Creature,2009,0.17,23,48,true,Bulk Box A (White/Blue),{W}{W},2,2,ZEN,https://api.scryfall.com/cards/named?exact=Kor%20Outfitter&format=image&version=small&set=zen
+MTG-TMM2-5,Spirit,Modern Masters 2015 Tokens,White,Creature,2015,0.26,39,50,false,Bulk Box A (White/Blue),,1,1,TMM2,https://api.scryfall.com/cards/named?exact=Spirit&format=image&version=small&set=tmm2
+MTG-XLN-78,Siren Lookout,Ixalan,Blue,Creature,2017,0.24,33,48,true,Bulk Box A (White/Blue),{2}{U},1,2,XLN,https://api.scryfall.com/cards/named?exact=Siren%20Lookout&format=image&version=small&set=xln
+MTG-3ED-229,Web,Revised Edition,Green,Enchantment,1994,1.02,2,31,false,Bulk Box C (Green/Colorless),{G},,,3ED,https://api.scryfall.com/cards/named?exact=Web&format=image&version=small&set=3ed
+MTG-PDFT-268P,Wastewood Verge,Aetherdrift Promos,Colorless,Land,2025,13.70,33,98,true,Bulk Box C (Green/Colorless),,,,PDFT,https://api.scryfall.com/cards/named?exact=Wastewood%20Verge&format=image&version=small&set=pdft
+MTG-WHO-57,Surge of Brilliance,Doctor Who,Blue,Instant,2023,0.35,8,83,true,Bulk Box A (White/Blue),{1}{U},,,WHO,https://api.scryfall.com/cards/named?exact=Surge%20of%20Brilliance&format=image&version=small&set=who
+MTG-WOE-63,Obyra's Attendants // Desperate Parry,Wilds of Eldraine,Blue,Creature,2023,0.23,13,51,true,Bulk Box A (White/Blue),{4}{U} // {1}{U},3,4,WOE,https://api.scryfall.com/cards/named?exact=Obyra%27s%20Attendants%20//%20Desperate%20Parry&format=image&version=small&set=woe
+MTG-ELD-35,Venerable Knight,Throne of Eldraine,White,Creature,2019,0.27,27,51,true,Bulk Box A (White/Blue),{W},2,1,ELD,https://api.scryfall.com/cards/named?exact=Venerable%20Knight&format=image&version=small&set=eld
+MTG-UGIN-146,Wildcall,Ugin's Fate,Green,Sorcery,2015,1.00,37,49,false,Bulk Box C (Green/Colorless),{X}{G}{G},,,UGIN,https://api.scryfall.com/cards/named?exact=Wildcall&format=image&version=small&set=ugin
+MTG-ALTC-18,Fell Beast's Shriek // Fell Beast's Shriek,Tales of Middle-earth Scene Box,Colorless,Card,2023,0.24,10,50,false,Bulk Box C (Green/Colorless),,,,ALTC,https://api.scryfall.com/cards/named?exact=Fell%20Beast%27s%20Shriek%20//%20Fell%20Beast%27s%20Shriek&format=image&version=small&set=altc
+MTG-M21-326,Mystic Skyfish,Core Set 2021,Blue,Creature,2020,0.31,38,38,false,Bulk Box A (White/Blue),{2}{U},3,1,M21,https://api.scryfall.com/cards/named?exact=Mystic%20Skyfish&format=image&version=small&set=m21
+MTG-JMP-59,Swamp,Jumpstart,Colorless,Land,2020,0.41,12,50,false,Bulk Box C (Green/Colorless),,,,JMP,https://api.scryfall.com/cards/named?exact=Swamp&format=image&version=small&set=jmp
+MTG-DMU-43,Battlewing Mystic,Dominaria United,Blue,Creature,2022,0.13,39,34,true,Bulk Box A (White/Blue),{1}{U},2,1,DMU,https://api.scryfall.com/cards/named?exact=Battlewing%20Mystic&format=image&version=small&set=dmu
+MTG-SLD-176,Birds of Paradise,Secret Lair Drop,Green,Creature,2021,13.69,17,100,true,Bulk Box C (Green/Colorless),{G},0,1,SLD,https://api.scryfall.com/cards/named?exact=Birds%20of%20Paradise&format=image&version=small&set=sld
+MTG-PCY-80,Wall of Vipers,Prophecy,Black,Creature,2000,0.18,25,28,true,Bulk Box B (Black/Red),{2}{B},2,4,PCY,https://api.scryfall.com/cards/named?exact=Wall%20of%20Vipers&format=image&version=small&set=pcy
+MTG-PLST-XLN217,Admiral Beckett Brass,The List,Multi,Creature,2022,0.40,36,85,false,Bulk Box C (Green/Colorless),{1}{U}{B}{R},3,3,XLN,https://api.scryfall.com/cards/named?exact=Admiral%20Beckett%20Brass&format=image&version=small&set=xln
+MTG-DSK-150,Ragged Playmate,Duskmourn: House of Horror,Red,Creature,2024,0.18,10,75,true,Bulk Box B (Black/Red),{1}{R},2,2,DSK,https://api.scryfall.com/cards/named?exact=Ragged%20Playmate&format=image&version=small&set=dsk
+MTG-C15-191,Mulch,Commander 2015,Green,Sorcery,2015,0.17,2,89,false,Bulk Box C (Green/Colorless),{1}{G},,,C15,https://api.scryfall.com/cards/named?exact=Mulch&format=image&version=small&set=c15
+MTG-C18-36,Whiptongue Hydra,Commander 2018,Green,Creature,2018,1.18,23,83,false,Bulk Box C (Green/Colorless),{5}{G},4,4,C18,https://api.scryfall.com/cards/named?exact=Whiptongue%20Hydra&format=image&version=small&set=c18
+MTG-PLCI-208P,Pugnacious Hammerskull,The Lost Caverns of Ixalan Promos,Green,Creature,2023,2.16,35,87,true,Bulk Box C (Green/Colorless),{2}{G},6,6,PLCI,https://api.scryfall.com/cards/named?exact=Pugnacious%20Hammerskull&format=image&version=small&set=plci
+MTG-MOM-214,War Historian,March of the Machine,Green,Creature,2023,0.04,40,25,true,Bulk Box C (Green/Colorless),{2}{G},3,3,MOM,https://api.scryfall.com/cards/named?exact=War%20Historian&format=image&version=small&set=mom
+MTG-PLST-WWK90,Searing Blaze,The List,Red,Instant,2024,0.57,42,57,false,Bulk Box B (Black/Red),{R}{R},,,WWK,https://api.scryfall.com/cards/named?exact=Searing%20Blaze&format=image&version=small&set=wwk
+MTG-CED-78,Siren's Call,Collectors' Edition,Blue,Instant,1993,2.00,37,46,false,Bulk Box A (White/Blue),{U},,,CED,https://api.scryfall.com/cards/named?exact=Siren%27s%20Call&format=image&version=small&set=ced
+MTG-DMR-421,Mystical Tutor,Dominaria Remastered,Blue,Instant,2023,16.56,42,100,true,Bulk Box A (White/Blue),{U},,,DMR,https://api.scryfall.com/cards/named?exact=Mystical%20Tutor&format=image&version=small&set=dmr
+MTG-GRN-63,Blood Operative,Guilds of Ravnica,Black,Creature,2018,0.19,15,54,true,Bulk Box B (Black/Red),{1}{B}{B},3,1,GRN,https://api.scryfall.com/cards/named?exact=Blood%20Operative&format=image&version=small&set=grn
+MTG-CNS-40,Selvala's Enforcer,Conspiracy,Green,Creature,2014,0.15,5,38,true,Bulk Box C (Green/Colorless),{3}{G},2,2,CNS,https://api.scryfall.com/cards/named?exact=Selvala%27s%20Enforcer&format=image&version=small&set=cns
+MTG-NPH-109,Fresh Meat,New Phyrexia,Green,Instant,2011,0.30,39,70,true,Bulk Box C (Green/Colorless),{3}{G},,,NPH,https://api.scryfall.com/cards/named?exact=Fresh%20Meat&format=image&version=small&set=nph
+MTG-GTC-244,Orzhov Guildgate,Gatecrash,Colorless,Land,2013,0.20,31,96,true,Bulk Box C (Green/Colorless),,,,GTC,https://api.scryfall.com/cards/named?exact=Orzhov%20Guildgate&format=image&version=small&set=gtc
+MTG-LTC-269,Mortify,Tales of Middle-earth Commander,Multi,Instant,2023,0.32,45,99,false,Bulk Box C (Green/Colorless),{1}{W}{B},,,LTC,https://api.scryfall.com/cards/named?exact=Mortify&format=image&version=small&set=ltc
+MTG-TOTJ-7,Bird,Outlaws of Thunder Junction Tokens,Blue,Creature,2024,0.24,4,50,true,Bulk Box A (White/Blue),,1,1,TOTJ,https://api.scryfall.com/cards/named?exact=Bird&format=image&version=small&set=totj
+MTG-SLD-1141,"Narset, Parter of Veils",Secret Lair Drop,Blue,Planeswalker,2022,19.03,9,98,true,Bulk Box A (White/Blue),{1}{U}{U},,,SLD,https://api.scryfall.com/cards/named?exact=Narset&format=image&version=small
+MTG-WOC-129,Paradise Druid,Wilds of Eldraine Commander,Green,Creature,2023,0.34,6,95,false,Bulk Box C (Green/Colorless),{1}{G},2,1,WOC,https://api.scryfall.com/cards/named?exact=Paradise%20Druid&format=image&version=small&set=woc
+MTG-WOC-108,Run Away Together,Wilds of Eldraine Commander,Blue,Instant,2023,0.23,25,96,false,Bulk Box A (White/Blue),{1}{U},,,WOC,https://api.scryfall.com/cards/named?exact=Run%20Away%20Together&format=image&version=small&set=woc
+MTG-TSR-44,Sinew Sliver,Time Spiral Remastered,White,Creature,2021,0.45,33,87,true,Bulk Box A (White/Blue),{1}{W},1,1,TSR,https://api.scryfall.com/cards/named?exact=Sinew%20Sliver&format=image&version=small&set=tsr
+MTG-DOM-10,Charge,Dominaria,White,Instant,2018,0.07,15,48,true,Bulk Box A (White/Blue),{W},,,DOM,https://api.scryfall.com/cards/named?exact=Charge&format=image&version=small&set=dom
+MTG-ELD-255,Island,Throne of Eldraine,Colorless,Land,2019,0.23,17,50,true,Bulk Box C (Green/Colorless),,,,ELD,https://api.scryfall.com/cards/named?exact=Island&format=image&version=small&set=eld
+MTG-M19-30,Novice Knight,Core Set 2019,White,Creature,2018,0.10,32,41,true,Bulk Box A (White/Blue),{W},2,3,M19,https://api.scryfall.com/cards/named?exact=Novice%20Knight&format=image&version=small&set=m19
+MTG-VIS-59,Fallen Askari,Visions,Black,Creature,1997,0.08,29,24,false,Bulk Box B (Black/Red),{1}{B},2,2,VIS,https://api.scryfall.com/cards/named?exact=Fallen%20Askari&format=image&version=small&set=vis
+MTG-PLST-DDR37,Altar's Reap,The List,Black,Instant,2019,0.16,11,89,false,Bulk Box B (Black/Red),{1}{B},,,DDR,https://api.scryfall.com/cards/named?exact=Altar%27s%20Reap&format=image&version=small&set=ddr
+MTG-RVR-370,"Lavinia, Azorius Renegade",Ravnica Remastered,Multi,Creature,2024,0.42,43,92,true,Bulk Box C (Green/Colorless),{W}{U},2,2,RVR,https://api.scryfall.com/cards/named?exact=Lavinia&format=image&version=small&set=2
+MTG-C20-96,"Odric, Master Tactician",Commander 2020,White,Creature,2020,0.40,37,94,false,Bulk Box A (White/Blue),{2}{W}{W},3,4,C20,https://api.scryfall.com/cards/named?exact=Odric&format=image&version=small&set=4
+MTG-ODY-115,Afflict,Odyssey,Black,Instant,2001,0.12,44,51,true,Bulk Box B (Black/Red),{2}{B},,,ODY,https://api.scryfall.com/cards/named?exact=Afflict&format=image&version=small&set=ody
+MTG-LTC-75,Crown of Gondor,Tales of Middle-earth Commander,Colorless,Artifact,2023,0.36,17,87,false,Bulk Box C (Green/Colorless),{3},,,LTC,https://api.scryfall.com/cards/named?exact=Crown%20of%20Gondor&format=image&version=small&set=ltc
+MTG-ISD-60,Invisible Stalker,Innistrad,Blue,Creature,2011,1.00,31,94,true,Bulk Box A (White/Blue),{1}{U},1,1,ISD,https://api.scryfall.com/cards/named?exact=Invisible%20Stalker&format=image&version=small&set=isd
+MTG-MH2-192,"Dakkon, Shadow Slayer",Modern Horizons 2,Multi,Planeswalker,2021,0.50,19,73,true,Bulk Box C (Green/Colorless),{W}{U}{B},,,MH2,https://api.scryfall.com/cards/named?exact=Dakkon&format=image&version=small
+MTG-ARN-10,Shahrazad,Arabian Nights,White,Sorcery,1993,475.00,3,50,false,Bulk Box A (White/Blue),{W}{W},,,ARN,https://api.scryfall.com/cards/named?exact=Shahrazad&format=image&version=small&set=arn
+MTG-AER-78,Destructive Tampering,Aether Revolt,Red,Sorcery,2017,0.07,6,54,true,Bulk Box B (Black/Red),{2}{R},,,AER,https://api.scryfall.com/cards/named?exact=Destructive%20Tampering&format=image&version=small&set=aer
+MTG-HOB-207,The Lonely Mountain,The Hobbit,Colorless,Land,2026,4.84,36,81,true,Bulk Box C (Green/Colorless),,,,HOB,https://api.scryfall.com/cards/named?exact=The%20Lonely%20Mountain&format=image&version=small&set=hob
+MTG-C20-173,Harmonize,Commander 2020,Green,Sorcery,2020,0.28,29,100,false,Bulk Box C (Green/Colorless),{2}{G}{G},,,C20,https://api.scryfall.com/cards/named?exact=Harmonize&format=image&version=small&set=c20
+MTG-MIR-132,Nocturnal Raid,Mirage,Black,Instant,1996,0.17,5,23,false,Bulk Box B (Black/Red),{2}{B}{B},,,MIR,https://api.scryfall.com/cards/named?exact=Nocturnal%20Raid&format=image&version=small&set=mir
+MTG-SLD-1169,Temporal Manipulation,Secret Lair Drop,Blue,Sorcery,2022,16.97,9,93,true,Bulk Box A (White/Blue),{3}{U}{U},,,SLD,https://api.scryfall.com/cards/named?exact=Temporal%20Manipulation&format=image&version=small&set=sld
+MTG-WOE-1,Archon of the Wild Rose,Wilds of Eldraine,White,Creature,2023,0.25,25,75,true,Bulk Box A (White/Blue),{2}{W}{W},4,4,WOE,https://api.scryfall.com/cards/named?exact=Archon%20of%20the%20Wild%20Rose&format=image&version=small&set=woe
+MTG-MBS-41,Flensermite,Mirrodin Besieged,Black,Creature,2011,0.31,36,69,true,Bulk Box B (Black/Red),{1}{B},1,1,MBS,https://api.scryfall.com/cards/named?exact=Flensermite&format=image&version=small&set=mbs
+MTG-NCC-274,Rite of the Raging Storm,New Capenna Commander,Red,Enchantment,2022,1.88,11,92,false,Bulk Box B (Black/Red),{3}{R}{R},,,NCC,https://api.scryfall.com/cards/named?exact=Rite%20of%20the%20Raging%20Storm&format=image&version=small&set=ncc
+MTG-SLD-2161,Lonely Sandbar,Secret Lair Drop,Colorless,Land,2025,0.36,34,98,false,Bulk Box C (Green/Colorless),,,,SLD,https://api.scryfall.com/cards/named?exact=Lonely%20Sandbar&format=image&version=small&set=sld
+MTG-CLB-276,"Gorion, Wise Mentor",Commander Legends: Battle for Baldur's Gate,Multi,Creature,2022,0.19,9,57,true,Bulk Box C (Green/Colorless),{G}{W}{U},3,4,CLB,https://api.scryfall.com/cards/named?exact=Gorion&format=image&version=small&set=4
+MTG-TVOW-11,Wolf,Innistrad: Crimson Vow Tokens,Red,Creature,2021,0.25,26,50,true,Bulk Box B (Black/Red),,3,2,TVOW,https://api.scryfall.com/cards/named?exact=Wolf&format=image&version=small&set=tvow
+MTG-FRA-358,Uldaros Theorix,Reality Fracture,Multi,Creature,2026,4.92,16,56,true,Bulk Box C (Green/Colorless),{3}{U}{B}{B},5,5,FRA,https://api.scryfall.com/cards/named?exact=Uldaros%20Theorix&format=image&version=small&set=fra

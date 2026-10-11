@@ -29,16 +29,35 @@ public class Card implements Comparable<Card> {
     private String power;       // creatures only; "" otherwise
     private String toughness;   // creatures only; "" otherwise
     private String setCode;     // expansion code, e.g. "BLB" (maps to the set symbol)
+    private String imageUrl;    // Scryfall thumbnail image URL
+    private String collectorNumber; // e.g. "097", "373", "142a"; "" when unknown
+    private int versionSeq;         // 1, 2, 3… within a printing group (name+set)
+    private String versionLabel;    // "Standard", "Borderless", "Extended Art", "Promo"
 
     public Card(String sku, String name, String setName, String color, String cardType,
                 int releaseYear, double price, int quantity, int demandScore, boolean isFoil, String boxLocationId) {
         this(sku, name, setName, color, cardType, releaseYear, price, quantity,
-             demandScore, isFoil, boxLocationId, "", "", "", "");
+             demandScore, isFoil, boxLocationId, "", "", "", "", "");
     }
 
     public Card(String sku, String name, String setName, String color, String cardType,
                 int releaseYear, double price, int quantity, int demandScore, boolean isFoil, String boxLocationId,
                 String manaCost, String power, String toughness, String setCode) {
+        this(sku, name, setName, color, cardType, releaseYear, price, quantity,
+             demandScore, isFoil, boxLocationId, manaCost, power, toughness, setCode, "");
+    }
+
+    public Card(String sku, String name, String setName, String color, String cardType,
+                int releaseYear, double price, int quantity, int demandScore, boolean isFoil, String boxLocationId,
+                String manaCost, String power, String toughness, String setCode, String imageUrl) {
+        this(sku, name, setName, color, cardType, releaseYear, price, quantity,
+             demandScore, isFoil, boxLocationId, manaCost, power, toughness, setCode, imageUrl, "", 0, "");
+    }
+
+    public Card(String sku, String name, String setName, String color, String cardType,
+                int releaseYear, double price, int quantity, int demandScore, boolean isFoil, String boxLocationId,
+                String manaCost, String power, String toughness, String setCode, String imageUrl,
+                String collectorNumber, int versionSeq, String versionLabel) {
         this.sku = sku;
         this.name = name;
         this.setName = setName;
@@ -54,6 +73,10 @@ public class Card implements Comparable<Card> {
         this.power = power;
         this.toughness = toughness;
         this.setCode = setCode;
+        this.imageUrl = imageUrl != null ? imageUrl : "";
+        this.collectorNumber = collectorNumber != null ? collectorNumber : "";
+        this.versionSeq = versionSeq;
+        this.versionLabel = versionLabel != null ? versionLabel : "";
     }
 
     public double calculatePriority() {
@@ -66,11 +89,17 @@ public class Card implements Comparable<Card> {
         return this.name.compareToIgnoreCase(other.name);
     }
 
-    // Physical filing order: boxes are sorted by expansion (year, then set code).
+    // Physical filing order: boxes are sorted by expansion (year, then set code),
+    // then name, then collector number (version priority within a printing group).
     public static final java.util.Comparator<Card> BY_EXPANSION =
             java.util.Comparator.comparingInt(Card::getReleaseYear)
                     .thenComparing(Card::getSetCode)
-                    .thenComparing(Card::getName, String::compareToIgnoreCase);
+                    .thenComparing(Card::getName, String::compareToIgnoreCase)
+                    .thenComparing(Card::getCollectorNumber,
+                            java.util.Comparator.comparingInt(c -> {
+                                try { return Integer.parseInt(c.replaceAll("[^0-9].*$", "")); }
+                                catch (Exception e) { return Integer.MAX_VALUE; }
+                            }));
 
     public String getSku() { return sku; }
     public String getName() { return name; }
@@ -87,6 +116,16 @@ public class Card implements Comparable<Card> {
     public String getPower() { return power; }
     public String getToughness() { return toughness; }
     public String getSetCode() { return setCode; }
+    public String getCollectorNumber() { return collectorNumber; }
+    public int getVersionSeq() { return versionSeq; }
+    public String getVersionLabel() { return versionLabel; }
+    public String getImageUrl() {
+        if (imageUrl != null && !imageUrl.isEmpty()) return imageUrl;
+        return "https://api.scryfall.com/cards/named?exact="
+                + java.net.URLEncoder.encode(name, java.nio.charset.StandardCharsets.UTF_8)
+                + "&format=image&version=small"
+                + (setCode != null && !setCode.isEmpty() ? "&set=" + setCode.toLowerCase() : "");
+    }
 
     @Override
     public String toString() {

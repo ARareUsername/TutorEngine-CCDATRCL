@@ -65,3 +65,32 @@
     -fx-border-color: -color-accent-emphasis;
     -fx-border-width: 0 0 0 3px;
 }
+
+/* Top app bar: breathing room from window edges, subtle bottom divider line. */
+.top-bar {
+    -fx-padding: 8px 14px;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-width: 0 0 1px 0;
+    -fx-alignment: CENTER-LEFT;
+}
+
+/* Main content viewport: margins around dynamic module views away from split divider & edges. */
+.content-area {
+    -fx-padding: 12px 14px;
+}
+
+/* View root containers: consistent gap rhythm. */
+.view-container {
+    -fx-spacing: 10px;
+}
+
+/* Modal auth card: padded container with elevated border and background. */
+.auth-card {
+    -fx-padding: 24px;
+    -fx-background-color: -color-bg-default;
+    -fx-background-radius: 8px;
+    -fx-border-color: -color-border-subtle;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+}
+

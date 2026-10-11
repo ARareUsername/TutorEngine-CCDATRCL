@@ -183,7 +183,7 @@ public final class IntakeDialog {
                     ScryfallLookup.nextSku(draft[0].setCode()), qty,
                     slot.isEmpty() ? "" : slot.toUpperCase(), price);
         });
-        dlg.showAndWait().ifPresent(c -> {
+        DialogHelper.showAndWait(dlg).ifPresent(c -> {
             if (catalog.containsKey(c.getSku())) {
                 result.setText("Already in catalog: " + c.getSku());
                 return;
@@ -193,5 +193,10 @@ public final class IntakeDialog {
             result.setText("Added live card (session-only): " + c.getName()
                     + " [" + c.getSku() + "] -> " + StorageLocation.route(c));
         });
+    }
+
+    public static void main(String[] args) {
+        System.out.println("=== IntakeDialog Headless Demo ===");
+        System.out.println("IntakeDialog OK.");
     }
 }

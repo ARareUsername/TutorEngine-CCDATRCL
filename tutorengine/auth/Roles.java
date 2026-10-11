@@ -28,10 +28,14 @@ public final class Roles {
     // Own-commit rollback only: same user, within 5 minutes, all still unstored.
     public static boolean canRollback(Employees.Employee requester, String commitOwnerUsername,
                                       Instant commitTime, boolean allUnstored) {
-        if (requester == null || commitOwnerUsername == null || commitTime == null) return false;
+        return canRollback(requester, commitOwnerUsername, commitTime, allUnstored, Instant.now());
+    }
+
+    public static boolean canRollback(Employees.Employee requester, String commitOwnerUsername,
+                                      Instant commitTime, boolean allUnstored, Instant now) {        if (requester == null || commitOwnerUsername == null || commitTime == null) return false;
         if (!requester.username().equalsIgnoreCase(commitOwnerUsername)) return false;
         if (!allUnstored) return false;
-        long age = Duration.between(commitTime, Instant.now()).getSeconds();
+        long age = Duration.between(commitTime, now).getSeconds();
         return age >= 0 && age <= ROLLBACK_WINDOW_SECONDS;
     }
 

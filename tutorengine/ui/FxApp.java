@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -35,7 +36,7 @@ public class FxApp extends Application {
     // Nav items, toolkit-free for headless checks. Demos hides unless dev flag.
     public static java.util.List<String> navItems() {
         var items = new java.util.ArrayList<>(
-                java.util.List.of("Catalog", "Priority", "Store Map", "Benchmarks"));
+                java.util.List.of("Catalog", "Rapid Intake", "Staging", "Storage", "Trips", "Priority", "Store Map", "Benchmarks", "Audit"));
         if (Boolean.getBoolean("tutorengine.dev")) items.add("Demos");
         return items;
     }
@@ -65,28 +66,85 @@ public class FxApp extends Application {
 
     // Accessibility tiers dialog (text + card size), persisted per machine.
     private static void openSettings(Stage owner) {
-        var dlg = new javafx.scene.control.Dialog<javafx.scene.control.ButtonType>();
-        dlg.setTitle("Display settings");
-        dlg.setHeaderText("Text and card sizes (saved on this machine)");
+        StackPane root = DialogHelper.getRootContainer();
+        if (root == null && owner != null && owner.getScene() != null
+                && owner.getScene().getRoot() instanceof StackPane sp) {
+            root = sp;
+        }
+
         var textBox = new javafx.scene.control.ChoiceBox<DisplaySettings.TextTier>();
         textBox.getItems().addAll(DisplaySettings.TextTier.values());
         textBox.setValue(DisplaySettings.text());
         var cardBox = new javafx.scene.control.ChoiceBox<DisplaySettings.CardTier>();
         cardBox.getItems().addAll(DisplaySettings.CardTier.values());
         cardBox.setValue(DisplaySettings.cards());
+
         var grid = new javafx.scene.layout.GridPane();
-        grid.setHgap(8);
-        grid.setVgap(8);
+        grid.setHgap(10);
+        grid.setVgap(10);
         grid.add(new javafx.scene.control.Label("Text size:"), 0, 0);
         grid.add(textBox, 1, 0);
         grid.add(new javafx.scene.control.Label("Card size:"), 0, 1);
         grid.add(cardBox, 1, 1);
+
+        if (root != null) {
+            StackPane backdrop = new StackPane();
+            backdrop.setStyle("-fx-background-color: rgba(15, 23, 42, 0.65);");
+            backdrop.setAlignment(javafx.geometry.Pos.CENTER);
+
+            VBox card = new VBox(16);
+            card.setMaxWidth(420);
+            card.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+            card.setPadding(new javafx.geometry.Insets(20));
+            card.setStyle("-fx-background-color: -color-bg-default; -fx-background-radius: 8; -fx-border-color: -color-border-subtle; -fx-border-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 16, 0, 0, 4);");
+            StackPane.setAlignment(card, javafx.geometry.Pos.CENTER);
+
+            Label titleLabel = new Label("Display settings");
+            titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+            Label subLabel = new Label("Text and card sizes (saved on this machine)");
+            subLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: -color-fg-muted;");
+
+            Button cancelBtn = new Button("Cancel");
+            StackPane finalRoot = root;
+            cancelBtn.setOnAction(e -> finalRoot.getChildren().remove(backdrop));
+
+            Button saveBtn = new Button("Save");
+            saveBtn.setStyle("-fx-font-weight: bold; -fx-base: #0284c7; -fx-text-fill: white;");
+            saveBtn.setOnAction(e -> {
+                finalRoot.getChildren().remove(backdrop);
+                DisplaySettings.setText(textBox.getValue());
+                DisplaySettings.setCards(cardBox.getValue());
+                if (owner != null && owner.getScene() != null) {
+                    owner.getScene().getRoot().setStyle("-fx-font-size: " + textBox.getValue().px + "px;");
+                }
+            });
+
+            HBox btnRow = new HBox(10, cancelBtn, saveBtn);
+            btnRow.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+            card.getChildren().addAll(titleLabel, subLabel, grid, btnRow);
+            backdrop.getChildren().add(card);
+
+            backdrop.setOnKeyPressed(e -> {
+                if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                    finalRoot.getChildren().remove(backdrop);
+                }
+            });
+
+            root.getChildren().add(backdrop);
+            saveBtn.requestFocus();
+            return;
+        }
+
+        var dlg = new javafx.scene.control.Dialog<javafx.scene.control.ButtonType>();
+        dlg.setTitle("Display settings");
+        dlg.setHeaderText("Text and card sizes (saved on this machine)");
         dlg.getDialogPane().setContent(grid);
         dlg.getDialogPane().getButtonTypes().addAll(
                 javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
         dlg.setResultConverter(b -> b);
-        dlg.initOwner(owner);
-        var ok = dlg.showAndWait().orElse(javafx.scene.control.ButtonType.CANCEL)
+        var ok = DialogHelper.showAndWait(dlg, owner).orElse(javafx.scene.control.ButtonType.CANCEL)
                 == javafx.scene.control.ButtonType.OK;
         if (!ok) return;
         DisplaySettings.setText(textBox.getValue());
@@ -123,11 +181,18 @@ public class FxApp extends Application {
         VBox nav = new VBox(2);
         nav.getStyleClass().add("side-nav");
         StackPane content = new StackPane();
+        content.getStyleClass().add("content-area");
+        content.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
         java.util.Map<String, javafx.scene.Node> viewCache = new java.util.HashMap<>();
         java.util.function.Function<String, javafx.scene.Node> viewFor = name -> viewCache.computeIfAbsent(name, n -> switch (n) {
+            case "Rapid Intake" -> RapidIntakeView.build(CatalogView.activeCatalog, CatalogView.activeTable);
+            case "Staging" -> StagingView.build();
+            case "Storage" -> StorageView.build();
+            case "Trips" -> TripView.build();
             case "Priority" -> PriorityView.build(cards);
             case "Store Map" -> GraphView.build();
             case "Benchmarks" -> BenchmarkView.build();
+            case "Audit" -> AuditView.build();
             case "Demos" -> DemoView.build(cards);
             default -> CatalogView.build(cards);
         });
@@ -139,10 +204,15 @@ public class FxApp extends Application {
         };
         nav.getChildren().add(sectionLabel("COUNTER"));
         Button catalogBtn = navBtn(nav, "Catalog", "#059669");
+        Button rapidIntakeBtn = navBtn(nav, "Rapid Intake", "#0ea5e9");
+        Button stagingBtn = navBtn(nav, "Staging", "#10b981");
+        Button storageBtn = navBtn(nav, "Storage", "#0284c7");
+        Button tripsBtn = navBtn(nav, "Trips", "#6366f1");
         Button priorityBtn = navBtn(nav, "Priority", "#d97706");
         Button mapBtn = navBtn(nav, "Store Map", "#2563eb");
         nav.getChildren().add(sectionLabel("MANAGER"));
         Button benchBtn = navBtn(nav, "Benchmarks", "#7c3aed");
+        Button auditBtn = navBtn(nav, "Audit", "#0e7490");
         Button demosBtn = null;
         if (Boolean.getBoolean("tutorengine.dev")) {
             nav.getChildren().add(sectionLabel("DEV"));
@@ -151,12 +221,17 @@ public class FxApp extends Application {
             dev.setOnAction(e -> show.accept(dev, "Demos"));
         }
         catalogBtn.setOnAction(e -> show.accept(catalogBtn, "Catalog"));
+        rapidIntakeBtn.setOnAction(e -> show.accept(rapidIntakeBtn, "Rapid Intake"));
+        stagingBtn.setOnAction(e -> show.accept(stagingBtn, "Staging"));
+        storageBtn.setOnAction(e -> show.accept(storageBtn, "Storage"));
+        tripsBtn.setOnAction(e -> show.accept(tripsBtn, "Trips"));
         priorityBtn.setOnAction(e -> show.accept(priorityBtn, "Priority"));
         mapBtn.setOnAction(e -> show.accept(mapBtn, "Store Map"));
         benchBtn.setOnAction(e -> show.accept(benchBtn, "Benchmarks"));
+        auditBtn.setOnAction(e -> show.accept(auditBtn, "Audit"));
         String[] mapPreselect = new String[1]; // set by CatalogView Locate
         CatalogView.locateHandler = slot -> {
-            viewCache.put("Store Map", GraphView.build(cards, slot));
+            viewCache.put("Store Map", GraphView.build(cards, slot, CatalogView.lastLocatedCard));
             setActive(activeBtn, mapBtn);
             content.getChildren().setAll(viewCache.get("Store Map"));
             crossfade(content);
@@ -176,8 +251,14 @@ public class FxApp extends Application {
         settingsBtn.setOnAction(e -> openSettings(stage));
 
         BorderPane top = new BorderPane();
-        top.setLeft(new javafx.scene.layout.HBox(8, activeLabel, switchBtn, lockBtn));
-        top.setRight(new javafx.scene.layout.HBox(8, settingsBtn, themeBtn));
+        top.getStyleClass().add("top-bar");
+        top.setPadding(new javafx.geometry.Insets(8, 14, 8, 14));
+        var topLeft = new javafx.scene.layout.HBox(8, activeLabel, switchBtn, lockBtn);
+        topLeft.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        var topRight = new javafx.scene.layout.HBox(8, settingsBtn, themeBtn);
+        topRight.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        top.setLeft(topLeft);
+        top.setRight(topRight);
         root.setTop(top);
 
         // Lock overlay covers the whole shell until someone authenticates.
@@ -231,21 +312,26 @@ public class FxApp extends Application {
 
         SplitPane split = new SplitPane(nav, content);
         split.setDividerPositions(0.22);
+        SplitPane.setResizableWithParent(nav, false);
         root.setCenter(split);
 
         stage.setTitle("TutorEngine");
+        stage.setMinWidth(960);
+        stage.setMinHeight(600);
+        DialogHelper.registerPrimaryStage(stage);
+        DialogHelper.registerRootContainer(shell);
         javafx.scene.Scene scene = new javafx.scene.Scene(shell, 1000, 640);
         // Any input resets the idle clock (registered before first show).
         scene.addEventFilter(javafx.scene.input.InputEvent.ANY, e -> idle.playFromStart());
         idle.play();
-        // Clerk shortcuts: Alt+1..5 jump straight to a tab, no mouse needed.
+        // Clerk shortcuts: Alt+1..6 jump straight to a tab, no mouse needed.
         Button[] order = demosBtn == null
-                ? new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn}
-                : new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn, demosBtn};
+                ? new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn, auditBtn}
+                : new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn, auditBtn, demosBtn};
         javafx.scene.input.KeyCode[] keys = {
                 javafx.scene.input.KeyCode.DIGIT1, javafx.scene.input.KeyCode.DIGIT2,
                 javafx.scene.input.KeyCode.DIGIT3, javafx.scene.input.KeyCode.DIGIT4,
-                javafx.scene.input.KeyCode.DIGIT5};
+                javafx.scene.input.KeyCode.DIGIT5, javafx.scene.input.KeyCode.DIGIT6};
         for (int i = 0; i < order.length; i++) {
             Button target = order[i];
             scene.getAccelerators().put(
@@ -253,10 +339,26 @@ public class FxApp extends Application {
                             javafx.scene.input.KeyCombination.ALT_DOWN),
                     target::fire);
         }
+        scene.getAccelerators().put(
+                new javafx.scene.input.KeyCodeCombination(javafx.scene.input.KeyCode.R,
+                        javafx.scene.input.KeyCombination.ALT_DOWN),
+                rapidIntakeBtn::fire);
         try {
-            // Project-root relative; missing file degrades to Primer defaults.
-            var css = java.nio.file.Paths.get("tutorengine/ui/tutorengine.css").toUri().toURL();
-            scene.getStylesheets().add(css.toExternalForm());
+            var res = FxApp.class.getResource("tutorengine.css");
+            if (res != null) {
+                scene.getStylesheets().add(res.toExternalForm());
+            } else {
+                java.nio.file.Path[] candidates = {
+                    java.nio.file.Paths.get("tutorengine/ui/tutorengine.css"),
+                    java.nio.file.Paths.get("TutorEngine/tutorengine/ui/tutorengine.css")
+                };
+                for (var p : candidates) {
+                    if (java.nio.file.Files.exists(p)) {
+                        scene.getStylesheets().add(p.toUri().toURL().toExternalForm());
+                        break;
+                    }
+                }
+            }
         } catch (Exception ignored) { }
         stage.setScene(scene);
         // Restore the saved text tier (default Standard when unset).

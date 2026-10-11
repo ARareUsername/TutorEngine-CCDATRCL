@@ -106,8 +106,11 @@ public final class AuthView {
             }
         });
 
-        VBox box = new VBox(10, title, grid, selected, pin, pad, loginBtn, badge, error);
+        VBox box = new VBox(12, title, grid, selected, pin, pad, loginBtn, badge, error);
         box.setAlignment(Pos.CENTER);
+        box.setMaxWidth(440);
+        box.getStyleClass().add("auth-card");
+        box.setPadding(new javafx.geometry.Insets(24));
         return box;
     }
 
@@ -145,9 +148,11 @@ public final class AuthView {
                 error.setText("Registration failed: " + ex.getMessage());
             }
         });
-        VBox box = new VBox(10, title, display, username, pin, confirm, badge, go, error);
+        VBox box = new VBox(12, title, display, username, pin, confirm, badge, go, error);
         box.setAlignment(Pos.CENTER);
-        box.setMaxWidth(360);
+        box.setMaxWidth(380);
+        box.getStyleClass().add("auth-card");
+        box.setPadding(new javafx.geometry.Insets(24));
         return box;
     }
 

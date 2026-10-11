@@ -83,8 +83,9 @@ public final class BenchmarkView {
             c.setCellValueFactory(d -> new SimpleStringProperty(d.getValue()[k]));
             ctx.getColumns().add(c);
         }
-        ctx.getItems().addAll(complexityRows());
-        return new VBox(8, benchBox, new Label("Complexity (Template E):"), ctx);
+        VBox root = new VBox(10, benchBox, new Label("Complexity (Template E):"), ctx);
+        root.getStyleClass().add("view-container");
+        return root;
     }
 
     public static void main(String[] args) {

@@ -111,6 +111,19 @@ public class StorageLocation {
     // live in utility boxes), then set-code cluster, then bulk-rares overflow.
     // Never null.
     public static String route(Card c) {
+        return route(c, "");
+    }
+
+    // Collector-number-aware overload: identifies the specific printing within
+    // a version group. Fallback to setCode-only routing when no collector
+    // number is provided.
+    public static String route(Card c, String collectorNumber) {
+        String cn = collectorNumber == null ? "" : collectorNumber.trim();
+        if (!cn.isEmpty()) {
+            String code = c.getSetCode() == null ? "" : c.getSetCode().trim().toUpperCase();
+            return SET_SLOT.getOrDefault(code, "CAB-RARE-LOW");
+        }
+        // Fallback: existing routing logic.
         String pinned = c.getBoxLocationId() == null ? "" : c.getBoxLocationId().trim();
         for (StorageLocation s : slots())
             if (s.getId().equalsIgnoreCase(pinned)) return s.getId();

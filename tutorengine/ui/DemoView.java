@@ -22,8 +22,9 @@ public final class DemoView {
         demoBtn(row, out, "BST", () -> DemoTexts.bstDemo(cards));
         demoBtn(row, out, "Heap", () -> DemoTexts.heapDemo(cards));
         demoBtn(row, out, "Sorts", () -> DemoTexts.sortsDemo(cards));
-        demoBtn(row, out, "Collision", DemoTexts::collisionDemo);
-        return new VBox(8, row, out);
+        VBox root = new VBox(10, row, out);
+        root.getStyleClass().add("view-container");
+        return root;
     }
 
     private static void demoBtn(HBox row, Label out, String title, java.util.function.Supplier<String> demo) {

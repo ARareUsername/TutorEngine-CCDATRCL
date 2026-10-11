@@ -44,8 +44,9 @@ public final class PriorityView {
             log.setText("Listed: " + listed);
             refresh.run();
         });
-        refresh.run();
-        return new VBox(8, top, next, log);
+        VBox root = new VBox(10, top, next, log);
+        root.getStyleClass().add("view-container");
+        return root;
     }
 
     public static void main(String[] args) {

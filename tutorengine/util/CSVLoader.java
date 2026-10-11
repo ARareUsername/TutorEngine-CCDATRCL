@@ -71,8 +71,8 @@ public class CSVLoader {
             String line = lines.get(i).trim();
             if (line.isEmpty()) continue;
             String[] p = splitCsv(line);
-            if (p.length != 11 && p.length != 15) {
-                System.out.println("SKIP line " + (i + 1) + ": expected 11 or 15 columns, got " + p.length);
+            if (p.length != 11 && p.length != 15 && p.length != 16) {
+                System.out.println("SKIP line " + (i + 1) + ": expected 11, 15, or 16 columns, got " + p.length);
                 continue;
             }
             try {
@@ -90,10 +90,11 @@ public class CSVLoader {
                 int demand = Integer.parseInt(p[8].trim());
                 boolean foil = Boolean.parseBoolean(p[9].trim());
                 String box = p[10].trim();
-                String mana = p.length == 15 ? p[11].trim() : "";
-                String pw = p.length == 15 ? p[12].trim() : "";
-                String tw = p.length == 15 ? p[13].trim() : "";
-                String code = p.length == 15 ? p[14].trim() : "";
+                String mana = p.length >= 12 ? p[11].trim() : "";
+                String pw = p.length >= 13 ? p[12].trim() : "";
+                String tw = p.length >= 14 ? p[13].trim() : "";
+                String code = p.length >= 15 ? p[14].trim() : "";
+                String imageUrl = p.length >= 16 ? p[15].trim() : "";
                 if (sku.isEmpty() || name.isEmpty()) {
                     System.out.println("SKIP line " + (i + 1) + ": empty SKU or name");
                     continue;
@@ -104,7 +105,7 @@ public class CSVLoader {
                 }
                 double php = toPhp(price); // CSV holds USD; Cards carry PHP
                 out.add(new Card(sku, name, setName, color, cardType,
-                        year, php, qty, demand, foil, box, mana, pw, tw, code));
+                        year, php, qty, demand, foil, box, mana, pw, tw, code, imageUrl));
             } catch (NumberFormatException e) {
                 System.out.println("SKIP line " + (i + 1) + ": bad number");
             }
