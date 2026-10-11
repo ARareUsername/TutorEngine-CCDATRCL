@@ -121,6 +121,41 @@ public final class CatalogView {
             col("Location", c -> c.getBoxLocationId()),
             numCol("Priority", c -> String.format("%.2f", c.calculatePriority())));
         table.getItems().addAll(cards);
+        // Row click selects the card's SKU (reuses search: details + picture + Locate).
+        table.getSelectionModel().selectedItemProperty().addListener((o, old, sel) -> {
+            if (sel != null && !sel.getSku().equals(skuField.getText().trim())) {
+                skuField.setText(sel.getSku());
+                searchBtn.fire();
+            }
+        });
+        // Hover a row 600ms -> card picture tooltip (worker thread, cached first).
+        table.setRowFactory(tv -> {
+            javafx.scene.control.TableRow<Card> row = new javafx.scene.control.TableRow<>();
+            javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip();
+            tip.setShowDelay(javafx.util.Duration.millis(600));
+            javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView();
+            iv.setFitWidth(200);
+            iv.setPreserveRatio(true);
+            tip.setGraphic(iv);
+            row.setTooltip(tip);
+            row.hoverProperty().addListener((ho, was, is) -> {
+                if (is && !row.isEmpty()) {
+                    Card c = row.getItem();
+                    javafx.concurrent.Task<javafx.scene.image.Image> load =
+                            new javafx.concurrent.Task<>() {
+                        @Override protected javafx.scene.image.Image call() {
+                            return CardImageCache.getFx(c.getSku(), c.getName(), 200);
+                        }
+                    };
+                    load.setOnSucceeded(done -> {
+                        if (load.getValue() != null && row.isHover() && row.getItem() == c)
+                            iv.setImage(load.getValue());
+                    });
+                    new Thread(load, "card-hover").start();
+                }
+            });
+            return row;
+        });
         // Session catalog editing (in-memory only, never written back to CSV).
         TextField nameField = new TextField();
         nameField.setPromptText("Name (for Add)");
