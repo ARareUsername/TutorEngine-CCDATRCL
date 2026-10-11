@@ -1,0 +1,19 @@
+TracePacket — Huypungco / SkuCorrector (1-char-diff graph + bfsSuggest depth<=2)
+Real data from: java tutorengine.algorithms.SkuCorrector
+Build cost O(n^2*L); search cost O(V+E). SPEC S8, tests T05/T07.
+
+GRAPH (6 SKUs, tail varies): MTG-OTJ-050..055, edges = 1-char diffs.
+  Each node links to siblings differing in last digit (clique of 6).
+
+BFS levels from typo "MTG-OTJ-05O" (letter O for zero), maxDepth=2:
+  L1 (seed, 1-edit vs typo): 050,051,052,053,054,055 (all 6, Oprintln order)
+  L2 (graph neighbors of L1 within depth 2): already seen — no new nodes
+  Result: [053,052,055,054,051,050] visit order (HashMap order; all depth 1)
+  T07 PASS: typo suggests real SKUs.
+
+Exact "MTG-OTJ-055": [] (no suggestions needed). T08-part PASS.
+Gibberish "ZZZ": [] + "not found" message. T08 PASS (empty-safe).
+
+isOneCharDiff checks: (055,056)=true; (055,065)=true; (055,055)=false.
+DEFENSE: build checks every pair once; search visits each node/edge once;
+maxDepth=2 guarantees suggestions are <=2 edits away (precision over recall).

@@ -1,0 +1,25 @@
+TracePacket — Huypungco / StoreNavigator (BFS shortest path + DFS audit)
+Real data from: java tutorengine.algorithms.StoreNavigator
+Map: 18 nodes / 21 edges (spec min 10/15). O(V+E) both traversals.
+
+NODES (18): Checkout Counter, Intake Sorting Desk, Showcase Display,
+CAB-1..CAB-5 (5), CAB-1-UPPER/LOWER ... CAB-5-UPPER/LOWER (10)
+EDGES (21): Checkout-Intake, Checkout-Showcase (2)
+  + Intake-CAB-n x5 + CAB-n-CAB-n+1 chain x4 + CAB-n-slot x10
+
+BFS Checkout Counter -> CAB-5-UPPER (3 hops):
+  L0: [Checkout Counter]
+  L1: [Intake Sorting Desk, Showcase Display]  (from Checkout)
+  L2: [CAB-1, CAB-2, CAB-3, CAB-4, CAB-5]       (from Intake Desk)
+  L3: [CAB-5-UPPER] GOAL                        (from CAB-5)
+  Path: Checkout Counter -> Intake Sorting Desk -> CAB-5 -> CAB-5-UPPER
+  Missing node "Narnia": [] empty-safe (never null/throw). T08 PASS.
+
+DFS audit from Checkout Counter (18/18, each exactly once):
+  Checkout Counter | Showcase Display | Intake Sorting Desk | CAB-5 |
+  CAB-5-LOWER | CAB-5-UPPER | CAB-4 | CAB-4-LOWER | CAB-4-UPPER |
+  CAB-3 | CAB-3-LOWER | CAB-3-UPPER | CAB-2 | CAB-2-LOWER |
+  CAB-2-UPPER | CAB-1 | CAB-1-LOWER | CAB-1-UPPER
+  T07 PASS: full reachability, no repeats (seen-set guards cycles).
+
+DEFENSE: BFS queue guarantees min hops; DFS stack does not — same O(V+E).
