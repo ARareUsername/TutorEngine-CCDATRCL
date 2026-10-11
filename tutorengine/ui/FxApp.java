@@ -47,7 +47,7 @@ public class FxApp extends Application {
         List<Card> cards = CatalogView.loadCards();
 
         ListView<String> nav = new ListView<>();
-        nav.getItems().addAll("Catalog", "Priority", "Store Map", "Benchmarks");
+        nav.getItems().addAll("Catalog", "Priority", "Store Map", "Benchmarks", "Demos");
         StackPane content = new StackPane();
         BorderPane root = new BorderPane();
 
@@ -67,6 +67,7 @@ public class FxApp extends Application {
                 case "Priority" -> content.getChildren().setAll(PriorityView.build(cards));
                 case "Store Map" -> content.getChildren().setAll(GraphView.build());
                 case "Benchmarks" -> content.getChildren().setAll(BenchmarkView.build());
+                case "Demos" -> content.getChildren().setAll(DemoView.build(cards));
                 default -> content.getChildren().setAll(CatalogView.build(cards));
             }
         });

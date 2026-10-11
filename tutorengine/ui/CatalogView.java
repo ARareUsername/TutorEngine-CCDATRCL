@@ -84,7 +84,53 @@ public final class CatalogView {
             col("Priority", c -> String.format("%.2f", c.calculatePriority())));
         table.getItems().addAll(cards);
 
-        return new VBox(8, new HBox(8, skuField, searchBtn), result, table);
+        // Session catalog editing (in-memory only, never written back to CSV).
+        TextField nameField = new TextField();
+        nameField.setPromptText("Name (for Add)");
+        nameField.setPrefWidth(140);
+        TextField priceField = new TextField();
+        priceField.setPromptText("Price");
+        priceField.setPrefWidth(70);
+        Button addBtn = new Button("Add");
+        addBtn.setOnAction(e -> {
+            String sku = skuField.getText() == null ? "" : skuField.getText().trim();
+            if (sku.isEmpty() || !sku.matches("[A-Za-z0-9-]+")) {
+                result.setText("Invalid SKU: letters, digits, hyphens only.");
+                return;
+            }
+            if (catalog.containsKey(sku)) {
+                result.setText("Already in catalog: " + sku);
+                return;
+            }
+            double price;
+            try {
+                price = Double.parseDouble(priceField.getText().trim());
+            } catch (Exception ex) {
+                result.setText("Invalid price: use a number like 12.50.");
+                return;
+            }
+            String name = nameField.getText() == null || nameField.getText().trim().isEmpty()
+                    ? sku : nameField.getText().trim();
+            Card c = new Card(sku, name, "Session Add", "Colorless", "Creature",
+                    2026, price, 1, 50, false, "Intake Sorting Desk");
+            catalog.put(sku, c);
+            table.getItems().add(c);
+            result.setText("Added (session-only): " + c);
+        });
+        Button delBtn = new Button("Delete");
+        delBtn.setOnAction(e -> {
+            String sku = skuField.getText() == null ? "" : skuField.getText().trim();
+            Card removed = catalog.remove(sku);
+            if (removed == null) {
+                result.setText("Not in catalog: " + sku);
+            } else {
+                table.getItems().removeIf(k -> k.getSku().equals(sku));
+                result.setText("Deleted: " + removed.getName() + " [" + sku + "]");
+            }
+        });
+
+        return new VBox(8, new HBox(8, skuField, searchBtn),
+                new HBox(8, nameField, priceField, addBtn, delBtn), result, table);
     }
 
     private static TableColumn<Card, String> col(String title, java.util.function.Function<Card, String> f) {

@@ -55,7 +55,7 @@ public class Main {
 
     // Mirrors HashMap's spread ((h ^ (h >>> 16))) and bucket ((n-1) & hash).
     // new HashMap<>(7) sizes its table to 8, so n = 8 here.
-    static int bucketOf(String key) {
+    public static int bucketOf(String key) {
         int h = key.hashCode();
         return (8 - 1) & (h ^ (h >>> 16));
     }

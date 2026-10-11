@@ -44,6 +44,8 @@ import tutorengine.util.CSVLoader;
 public class TutorEngineUI {
     private final Map<String, Card> catalog = new HashMap<>(101);
     private final Map<String, List<String>> skuGraph;
+    private final PriorityDesk sessionDesk = new PriorityDesk();
+    private boolean deskPrimed = false;
     private final JTextArea log = new JTextArea(20, 60);
     private final JLabel preview = new JLabel();
 
@@ -79,6 +81,26 @@ public class TutorEngineUI {
         top.add(skuField);
         top.add(searchBtn);
 
+        // Session catalog editing (in-memory only, never written back to CSV).
+        JTextField nameField = new JTextField(12);
+        nameField.setToolTipText("Card name (for Add)");
+        JTextField priceField = new JTextField(6);
+        priceField.setToolTipText("Price (for Add)");
+        JButton addBtn = new JButton("Add");
+        addBtn.addActionListener(e -> addRecord(skuField.getText(), nameField.getText(), priceField.getText()));
+        JButton delBtn = new JButton("Delete");
+        delBtn.addActionListener(e -> deleteRecord(skuField.getText()));
+        JPanel editRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        editRow.add(new JLabel("session catalog (not saved):"));
+        editRow.add(nameField);
+        editRow.add(priceField);
+        editRow.add(addBtn);
+        editRow.add(delBtn);
+
+        JPanel north = new JPanel(new java.awt.GridLayout(2, 1));
+        north.add(top);
+        north.add(editRow);
+
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton listBtn = new JButton("List Catalog");
         listBtn.addActionListener(e -> {
@@ -92,8 +114,7 @@ public class TutorEngineUI {
             Card star = desk.peek();
             log(star == null ? "No cards to prioritize." : "Top priority: " + star);
         });
-        JButton mapBtn = new JButton("Store Map");
-        mapBtn.addActionListener(e -> {
+        JButton mapBtn = new JButton("Store Map");        mapBtn.addActionListener(e -> {
             Map<String, List<String>> g = StoreNavigator.sampleMap();
             Card sample = catalog.isEmpty() ? null : catalog.values().iterator().next();
             String goal = sample == null ? "CAB-T-TOP" : StorageLocation.route(sample);
@@ -108,19 +129,82 @@ public class TutorEngineUI {
         bottom.add(topBtn);
         bottom.add(mapBtn);
 
+        // §11 demos as text (DemoTexts builders; 5-card scripts, never the full 60).
+        JPanel demos = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        demos.add(new JLabel("demos:"));
+        addDemoBtn(demos, "List", () -> tutorengine.ui.DemoTexts.listDemo(sessionCards()));
+        addDemoBtn(demos, "Stack/Q", () -> tutorengine.ui.DemoTexts.stackQueueDemo(sessionCards()));
+        addDemoBtn(demos, "BST", () -> tutorengine.ui.DemoTexts.bstDemo(sessionCards()));
+        addDemoBtn(demos, "Heap", () -> tutorengine.ui.DemoTexts.heapDemo(sessionCards()));
+        addDemoBtn(demos, "Sorts", () -> tutorengine.ui.DemoTexts.sortsDemo(sessionCards()));
+        addDemoBtn(demos, "Collision", tutorengine.ui.DemoTexts::collisionDemo);
+        JButton nextBtn = new JButton("List next");
+        nextBtn.addActionListener(e -> {
+            if (!deskPrimed || sessionDesk.size() == 0) {
+                while (sessionDesk.poll() != null) { }
+                catalog.values().forEach(sessionDesk::offer);
+                deskPrimed = true;
+            }
+            Card next = sessionDesk.poll();
+            log(next == null ? "Heap drained." : "Next: " + next);
+        });
+        demos.add(nextBtn);
+        JPanel south = new JPanel(new java.awt.GridLayout(2, 1));
+        south.add(bottom);
+        south.add(demos);
+
         preview.setText("[card image appears here]");
         JPanel east = new JPanel(new FlowLayout(FlowLayout.LEFT));
         east.add(preview);
 
-        f.add(top, BorderLayout.NORTH);
+        f.add(north, BorderLayout.NORTH);
         f.add(new JScrollPane(log), BorderLayout.CENTER);
         f.add(east, BorderLayout.EAST);
-        f.add(bottom, BorderLayout.SOUTH);
+        f.add(south, BorderLayout.SOUTH);
         f.pack();
         f.setLocationRelativeTo(null);
         f.setVisible(true);
         String example = catalog.isEmpty() ? "MTG-XXXX-000" : catalog.keySet().iterator().next();
         log("Loaded " + catalog.size() + " cards. Try SKU " + example + " and press Search.");
+    }
+
+    private List<Card> sessionCards() {
+        return new java.util.ArrayList<>(catalog.values());
+    }
+
+    private void addDemoBtn(JPanel row, String title, java.util.function.Supplier<String> demo) {
+        JButton b = new JButton(title);
+        b.addActionListener(e -> log("--- " + title + " ---\n" + demo.get()));
+        row.add(b);
+    }
+
+    private void addRecord(String rawSku, String rawName, String rawPrice) {
+        String guard = checkSku(rawSku);
+        if (guard != null) { log(guard); return; }
+        String sku = rawSku.trim();
+        if (catalog.containsKey(sku)) { log("Already in catalog: " + sku); return; }
+        String name = rawName == null || rawName.trim().isEmpty() ? sku : rawName.trim();
+        double price;
+        try {
+            price = Double.parseDouble(rawPrice == null ? "" : rawPrice.trim());
+        } catch (NumberFormatException ex) {
+            log("Invalid price: use a number like 12.50.");
+            return;
+        }
+        Card c = new Card(sku, name, "Session Add", "Colorless", "Creature",
+                2026, price, 1, 50, false, "Intake Sorting Desk");
+        catalog.put(sku, c);
+        deskPrimed = false;
+        log("Added (session-only): " + c);
+    }
+
+    private void deleteRecord(String rawSku) {
+        String guard = checkSku(rawSku);
+        if (guard != null) { log(guard); return; }
+        String sku = rawSku.trim();
+        Card removed = catalog.remove(sku);
+        deskPrimed = false;
+        log(removed == null ? "Not in catalog: " + sku : "Deleted: " + removed.getName() + " [" + sku + "]");
     }
 
     private void search(String raw) {

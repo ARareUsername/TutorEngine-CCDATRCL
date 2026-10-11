@@ -44,6 +44,9 @@ If you prefer using the command line:
 * [x] JavaFX + AtlantaFX UI shell (`javafx-atlantafx-ui`: FxApp, Theme, 4 views — implemented 2026-10-08)
 * [x] Fuzzy card search (`fuzzy-card-search`: field matchers + fan-out + UI fallback in `SkuCorrector`) (PR #12: new `tutorengine/search/SkuFuzzy.java`, calls `bfsSuggest` without editing it; UI shows Did-you-mean)
 * [x] Cabinet store map (`cabinet-store-map`: hierarchy model + canonical 18-node graph + fill display) (model + graph on master; PR #12 adds fill display to Swing UI + `Main` via `GraphView.fillCounts`)
+* [x] Session add/delete records in both UIs with guards (ui-demo-coverage: duplicate/unknown messages, in-memory only)
+* [x] §11 demo surfaces in both UIs — list traversal, stack/queue, BST, heap, both sorts, collision (ui-demo-coverage: `DemoTexts` builders + Demos panels)
+* [x] Benchmark + complexity display (ui-demo-coverage: `BenchmarkView` reads `bench.txt` with placeholder fallback + Template E table)
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*
