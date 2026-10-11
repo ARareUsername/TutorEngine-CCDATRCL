@@ -11,7 +11,8 @@ import tutorengine.model.Card;
 // PURPOSE: Read Dataset/cards.csv and convert each row into a Card object.
 // Every other feature (search, sorting, benchmarks) consumes the list built here,
 // so a crash in this file breaks the whole app. The CSV header must stay exactly:
-//   sku,name,setName,color,cardType,releaseYear,price,quantity,demandScore,isFoil,boxLocationId
+//   sku,name,setName,color,cardType,releaseYear,price,quantity,demandScore,isFoil,boxLocationId,manaCost,power,toughness,setCode
+// (11-col legacy rows still load, with the 4 new fields blank.)
 //
 // HOW TO IMPLEMENT:
 //   1. In load(path): read all lines with Files.readAllLines(Path.of(path)).
@@ -59,9 +60,9 @@ public class CSVLoader {
         for (int i = 1; i < lines.size(); i++) { // line 0 is the header
             String line = lines.get(i).trim();
             if (line.isEmpty()) continue;
-            String[] p = line.split(",", -1);
-            if (p.length != 11) {
-                System.out.println("SKIP line " + (i + 1) + ": expected 11 columns, got " + p.length);
+            String[] p = splitCsv(line);
+            if (p.length != 11 && p.length != 15) {
+                System.out.println("SKIP line " + (i + 1) + ": expected 11 or 15 columns, got " + p.length);
                 continue;
             }
             try {
@@ -79,6 +80,10 @@ public class CSVLoader {
                 int demand = Integer.parseInt(p[8].trim());
                 boolean foil = Boolean.parseBoolean(p[9].trim());
                 String box = p[10].trim();
+                String mana = p.length == 15 ? p[11].trim() : "";
+                String pw = p.length == 15 ? p[12].trim() : "";
+                String tw = p.length == 15 ? p[13].trim() : "";
+                String code = p.length == 15 ? p[14].trim() : "";
                 if (sku.isEmpty() || name.isEmpty()) {
                     System.out.println("SKIP line " + (i + 1) + ": empty SKU or name");
                     continue;
@@ -88,7 +93,7 @@ public class CSVLoader {
                     continue;
                 }
                 out.add(new Card(sku, name, setName, color, cardType,
-                        year, price, qty, demand, foil, box));
+                        year, price, qty, demand, foil, box, mana, pw, tw, code));
             } catch (NumberFormatException e) {
                 System.out.println("SKIP line " + (i + 1) + ": bad number");
             }

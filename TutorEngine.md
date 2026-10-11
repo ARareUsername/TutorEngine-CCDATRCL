@@ -306,3 +306,9 @@ Add new work as a NEW file with an OWNER header (never split one file across mem
 - **Storage math:** 60 cards x small ≈ 1-3 MB total. Even full `normal` for all 60 ≈ 5-9 MB. Cap cache at ~50 MB with delete-oldest eviction and it never grows unbounded.
 - **Rules:** respect Scryfall rate limits (cache first, ~100 ms between fetches); store only the `image_uris` URL per card (add `imageUrl` to the CSV/card, not the bytes).
 - **Acceptance:** search existing SKU with internet → image in <2 s; airplane mode → cached image or placeholder, no crash; resize window → layout reflows, image scales.
+
+## 9. JavaFX UI stack (OpenSpec change `javafx-atlantafx-ui`)
+
+- Versions (pinned 2026-10-08, all JDK 17-compatible): `org.openjfx:javafx-controls:21.0.4`, `io.github.mkpaz:atlantafx-base:2.1.0`, `org.openjfx:javafx-maven-plugin:0.0.8`.
+- Run: `mvn javafx:run` (FxApp). Default `mvn exec:java` still opens the Swing UI.
+- First build needs network (one-time dependency fetch); headless machines keep using `Main` CLI demos.

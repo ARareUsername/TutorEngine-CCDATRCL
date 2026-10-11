@@ -25,9 +25,20 @@ public class Card implements Comparable<Card> {
     private int demandScore;
     private boolean isFoil;
     private String boxLocationId;
+    private String manaCost;    // e.g. "{2}{G}"; "" for lands
+    private String power;       // creatures only; "" otherwise
+    private String toughness;   // creatures only; "" otherwise
+    private String setCode;     // expansion code, e.g. "BLB" (maps to the set symbol)
 
     public Card(String sku, String name, String setName, String color, String cardType,
                 int releaseYear, double price, int quantity, int demandScore, boolean isFoil, String boxLocationId) {
+        this(sku, name, setName, color, cardType, releaseYear, price, quantity,
+             demandScore, isFoil, boxLocationId, "", "", "", "");
+    }
+
+    public Card(String sku, String name, String setName, String color, String cardType,
+                int releaseYear, double price, int quantity, int demandScore, boolean isFoil, String boxLocationId,
+                String manaCost, String power, String toughness, String setCode) {
         this.sku = sku;
         this.name = name;
         this.setName = setName;
@@ -39,6 +50,10 @@ public class Card implements Comparable<Card> {
         this.demandScore = demandScore;
         this.isFoil = isFoil;
         this.boxLocationId = boxLocationId;
+        this.manaCost = manaCost;
+        this.power = power;
+        this.toughness = toughness;
+        this.setCode = setCode;
     }
 
     public double calculatePriority() {
@@ -51,6 +66,12 @@ public class Card implements Comparable<Card> {
         return this.name.compareToIgnoreCase(other.name);
     }
 
+    // Physical filing order: boxes are sorted by expansion (year, then set code).
+    public static final java.util.Comparator<Card> BY_EXPANSION =
+            java.util.Comparator.comparingInt(Card::getReleaseYear)
+                    .thenComparing(Card::getSetCode)
+                    .thenComparing(Card::getName, String::compareToIgnoreCase);
+
     public String getSku() { return sku; }
     public String getName() { return name; }
     public String getSetName() { return setName; }
@@ -62,6 +83,10 @@ public class Card implements Comparable<Card> {
     public int getDemandScore() { return demandScore; }
     public boolean isFoil() { return isFoil; }
     public String getBoxLocationId() { return boxLocationId; }
+    public String getManaCost() { return manaCost; }
+    public String getPower() { return power; }
+    public String getToughness() { return toughness; }
+    public String getSetCode() { return setCode; }
 
     @Override
     public String toString() {

@@ -50,28 +50,12 @@ public class TransactionLog {
         }
     }
 
-    // TRACE (1 page) - LinkedList diary, 3 insertions -> traversal -> deletions.
-    // E1 = "INTAKE MTG-TSP-157"   E2 = "DELETE MTG-UGIN-146"   E3 = "INTAKE MTG-WOC-129"
-    //
-    //   step   operation     entries (head -> tail)        returns / output
-    //     0    start         []                            -
-    //     1    log(E1)       [E1]                          addLast: tail = 1
-    //     2    log(E2)       [E1, E2]                      addLast: tail = 2
-    //     3    log(E3)       [E1, E2, E3]                  addLast: tail = 3
-    //     4    printAll()    [E1, E2, E3]                  prints "1. E1 / 2. E2 / 3. E3"
-    //     5    undoLast()    [E1, E2]                      E3 (removeLast: tail = 2)
-    //     6    undoLast()    []                            null - safe, never throws
-    //
-    // Only head/tail are ever relinked, so addLast/removeLast are O(1) at any size:
-    // an ArrayList would shift elements for end removals on a shrinking array.
-    // Undo deletes the record only - it does not reverse what the entry described.
-
     public static void main(String[] args) {
         TransactionLog t = new TransactionLog();
         t.log("INTAKE MTG-TSP-157"); //Card.csv (line 3)
         t.log("DELETE MTG-UGIN-146");//Card.csv (line 12)
         t.log("INTAKE MTG-WOC-129");//Card.csv (line 35)
-        
+
         System.out.println("All entries:"); t.printAll();
         System.out.println();
         
@@ -91,3 +75,19 @@ public class TransactionLog {
         
     }
 }
+
+// TRACE (1 page) - LinkedList diary, 3 insertions -> traversal -> deletions.
+    // E1 = "INTAKE MTG-TSP-157"   E2 = "DELETE MTG-UGIN-146"   E3 = "INTAKE MTG-WOC-129"
+    //
+    //   step   operation     entries (head -> tail)        returns / output
+    //     0    start         []                            -
+    //     1    log(E1)       [E1]                          addLast: tail = 1
+    //     2    log(E2)       [E1, E2]                      addLast: tail = 2
+    //     3    log(E3)       [E1, E2, E3]                  addLast: tail = 3
+    //     4    printAll()    [E1, E2, E3]                  prints "1. E1 / 2. E2 / 3. E3"
+    //     5    undoLast()    [E1, E2]                      E3 (removeLast: tail = 2)
+    //     6    undoLast()    []                            null - safe, never throws
+    //
+    // Only head/tail are ever relinked, so addLast/removeLast are O(1) at any size:
+    // an ArrayList would shift elements for end removals on a shrinking array.
+    // Undo deletes the record only - it does not reverse what the entry described.
