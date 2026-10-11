@@ -104,14 +104,14 @@ public final class GraphView {
         if (targetCard != null) {
             DividerGuide.Guidance guidance = DividerGuide.calculateForCatalog(targetCard, loaded);
             Label guidanceTitle = new Label("📍 In-Box Divider Guidance for: " + targetCard.getName() + " [" + targetCard.getSku() + "]");
-            guidanceTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #065f46;");
+            guidanceTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: -color-success-fg;");
 
             Label guidanceDesc = new Label(guidance.guidanceText());
-            guidanceDesc.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #047857;");
+            guidanceDesc.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -color-success-fg;");
 
             guidanceBox.getChildren().addAll(guidanceTitle, guidanceDesc);
             guidanceBox.setPadding(new Insets(8, 12, 8, 12));
-            guidanceBox.setStyle("-fx-background-color: #ecfdf5; -fx-border-color: #10b981; -fx-border-width: 1px; -fx-border-radius: 6px;");
+            guidanceBox.setStyle("-fx-background-color: -color-success-subtle; -fx-border-color: -color-success-emphasis; -fx-border-width: 1px; -fx-border-radius: 6px;");
         }
 
         // Box fill + Capacity State Badges (Task 1.2)
@@ -156,10 +156,10 @@ public final class GraphView {
                     boolean ok = BoxCapacity.recordProvisioning(idField.getText(), labelField.getText(), unitField.getText(), tierField.getText());
                     if (ok) {
                         provisionNotice.setText("✓ Provisioned box volume: " + labelField.getText() + " (" + idField.getText() + ")");
-                        provisionNotice.setStyle("-fx-text-fill: #059669;");
+                        provisionNotice.setStyle("-fx-text-fill: -color-success-fg;");
                     } else {
                         provisionNotice.setText("⚠️ Failed to record provisioning.");
-                        provisionNotice.setStyle("-fx-text-fill: #dc2626;");
+                        provisionNotice.setStyle("-fx-text-fill: -color-danger-fg;");
                     }
                 }
             });

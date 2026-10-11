@@ -84,7 +84,8 @@ public final class RapidIntakeView {
 
         Button resolveBtn = new Button("Resolve");
         Button stageBtn = new Button("Stage Card (Enter)");
-        stageBtn.setStyle("-fx-font-weight: bold; -fx-base: #0284c7; -fx-text-fill: white;");
+        stageBtn.getStyleClass().add("accent");
+        stageBtn.setStyle("-fx-font-weight: bold;");
 
         Label statusLabel = new Label("Ready. Type shortcut and press Enter.");
         statusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: -color-fg-muted;");
@@ -112,7 +113,7 @@ public final class RapidIntakeView {
         Label detailsLabel = new Label("");
         detailsLabel.setStyle("-fx-font-size: 12px;");
         Label routingLabel = new Label("");
-        routingLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0369a1;");
+        routingLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -color-link-fg;");
 
         HBox variantRibbon = new HBox(6);
         variantRibbon.setAlignment(Pos.CENTER_LEFT);
@@ -146,7 +147,8 @@ public final class RapidIntakeView {
         countLabel.setStyle("-fx-font-weight: bold;");
 
         Button commitBatchBtn = new Button("Commit Batch to Inventory");
-        commitBatchBtn.setStyle("-fx-font-weight: bold; -fx-base: #16a34a; -fx-text-fill: white;");
+        commitBatchBtn.getStyleClass().add("success");
+        commitBatchBtn.setStyle("-fx-font-weight: bold;");
         Button clearBatchBtn = new Button("Discard Uncommitted");
 
         Button removeLastBtn = new Button("Remove Last");
@@ -175,9 +177,9 @@ public final class RapidIntakeView {
                 List<DraftRow> drafts = RapidIntake.loadDrafts(c, employeeHandle[0]);
                 if (!drafts.isEmpty()) {
                     Label bannerText = new Label("Found " + drafts.size() + " uncommitted draft(s) from previous session for " + employeeHandle[0]);
-                    bannerText.setStyle("-fx-font-weight: bold; -fx-text-fill: #854d0e;");
+                    bannerText.setStyle("-fx-font-weight: bold; -fx-text-fill: -color-warning-fg;");
                     Button restoreBtn = new Button("Restore Drafts");
-                    restoreBtn.setStyle("-fx-base: #ca8a04; -fx-text-fill: white; -fx-font-weight: bold;");
+                    restoreBtn.setStyle("-fx-font-weight: bold;");
                     Button discardBtn = new Button("Discard");
 
                     restoreBtn.setOnAction(e -> {
@@ -193,7 +195,7 @@ public final class RapidIntakeView {
                         }
                         bannerSlot.getChildren().clear();
                         statusLabel.setText("Restored " + drafts.size() + " drafts to current batch.");
-                        statusLabel.setStyle("-fx-text-fill: #16a34a;");
+                        statusLabel.setStyle("-fx-text-fill: -color-success-fg;");
                         updateSummary.run();
                         shortcutField.requestFocus();
                     });
@@ -207,14 +209,14 @@ public final class RapidIntakeView {
                             shortcutField.requestFocus();
                         } catch (Exception ex) {
                             statusLabel.setText("Error discarding drafts: " + ex.getMessage());
-                            statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                            statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                         }
                     });
 
                     HBox banner = new HBox(10, bannerText, restoreBtn, discardBtn);
                     banner.setAlignment(Pos.CENTER_LEFT);
                     banner.setPadding(new Insets(8, 12, 8, 12));
-                    banner.setStyle("-fx-background-color: #fef9c3; -fx-background-radius: 6; -fx-border-color: #fde047; -fx-border-radius: 6;");
+                    banner.setStyle("-fx-background-color: -color-warning-subtle; -fx-background-radius: 6; -fx-border-color: -color-warning-emphasis; -fx-border-width: 1px; -fx-border-radius: 6;");
                     bannerSlot.getChildren().add(banner);
                 }
             } catch (Exception ex) {
@@ -257,10 +259,12 @@ public final class RapidIntakeView {
                         variantRibbon.getChildren().add(new Label("Variants:"));
                         for (Variant v : list) {
                             String labelText = String.format("[Alt+%d] #%s %s", v.index(), v.collectorNumber(), v.rarity());
-                            Button vBtn = new Button(labelText);
-                            vBtn.setStyle(v.collectorNumber().equalsIgnoreCase(card.collectorNumber())
-                                    ? "-fx-font-weight: bold; -fx-base: #0284c7; -fx-text-fill: white;"
-                                    : "-fx-font-size: 11px;");
+                                Button vBtn = new Button(labelText);
+                                boolean selected = v.collectorNumber().equalsIgnoreCase(card.collectorNumber());
+                                if (selected) vBtn.getStyleClass().add("accent");
+                                vBtn.setStyle(selected
+                                        ? "-fx-font-weight: bold;"
+                                        : "-fx-font-size: 11px;");
                             vBtn.setOnAction(e -> {
                                 try {
                                     ResolvedCard switched = RapidIntake.resolve(
@@ -305,7 +309,7 @@ public final class RapidIntakeView {
                         ResolvedCard res = RapidIntake.resolveByName(sel);
                         displayResolved[0].accept(res);
                         statusLabel.setText("Resolved by name: " + res.name() + " [" + res.setCode() + " #" + res.collectorNumber() + "]");
-                        statusLabel.setStyle("-fx-text-fill: #0369a1;");
+                        statusLabel.setStyle("-fx-text-fill: -color-link-fg;");
                         nameFallbackLabel.setVisible(false);
                         nameFallbackLabel.setManaged(false);
                         nameSuggestions.setVisible(false);
@@ -314,7 +318,7 @@ public final class RapidIntakeView {
                         shortcutField.requestFocus();
                     } catch (Exception ex) {
                         statusLabel.setText("Name resolution failed: " + ex.getMessage());
-                        statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                        statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                     }
                 }
             });
@@ -325,7 +329,7 @@ public final class RapidIntakeView {
             String text = shortcutField.getText() == null ? "" : shortcutField.getText().trim();
             if (text.isEmpty() && currentResolved[0] == null) {
                 statusLabel.setText("Please enter a shortcut first.");
-                statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                 shortcutField.requestFocus();
                 return;
             }
@@ -337,7 +341,7 @@ public final class RapidIntakeView {
                     displayResolved[0].accept(toStage);
                 } catch (Exception ex) {
                     statusLabel.setText(ex.getMessage());
-                    statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                    statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                     shortcutField.selectAll();
                     shortcutField.requestFocus();
                     return;
@@ -371,7 +375,7 @@ public final class RapidIntakeView {
                             newCard.getName(), toStage.setCode(), toStage.collectorNumber(),
                             newCard.getQuantity(), toStage.foil() ? "Foil" : "Non-foil", newCard.getBoxLocationId()));
                 }
-                statusLabel.setStyle("-fx-text-fill: #16a34a;");
+                statusLabel.setStyle("-fx-text-fill: -color-success-fg;");
 
                 // Reset field & refocus for next card (Autofocus loop)
                 shortcutField.clear();
@@ -389,10 +393,10 @@ public final class RapidIntakeView {
                 ResolvedCard res = RapidIntake.resolve(q);
                 displayResolved[0].accept(res);
                 statusLabel.setText("Resolved card. Press Enter to stage.");
-                statusLabel.setStyle("-fx-text-fill: #0369a1;");
+                statusLabel.setStyle("-fx-text-fill: -color-link-fg;");
             } catch (Exception ex) {
                 statusLabel.setText(ex.getMessage());
-                statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                 showNameFallback.run();
             }
             shortcutField.requestFocus();
@@ -426,7 +430,7 @@ public final class RapidIntakeView {
             batchLabel.setText("Batch: " + activeBatchId[0]);
 
             statusLabel.setText("✓ Successfully committed " + count + " cards to Catalog View & inventory. Drafts purged.");
-            statusLabel.setStyle("-fx-text-fill: #16a34a;");
+            statusLabel.setStyle("-fx-text-fill: -color-success-fg;");
             updateSummary.run();
             shortcutField.requestFocus();
         });
@@ -467,7 +471,7 @@ public final class RapidIntakeView {
                 } catch (Exception ignored) {}
             }).start();
             statusLabel.setText("Removed: " + last.getName() + " (Undo available)");
-            statusLabel.setStyle("-fx-text-fill: #dc2626;");
+            statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
             updateSummary.run();
             shortcutField.requestFocus();
         });
@@ -483,7 +487,7 @@ public final class RapidIntakeView {
                 } catch (Exception ignored) {}
             }).start();
             statusLabel.setText("Restored removed card.");
-            statusLabel.setStyle("-fx-text-fill: #16a34a;");
+            statusLabel.setStyle("-fx-text-fill: -color-success-fg;");
             lastRemovedDraftId[0] = null;
             shortcutField.requestFocus();
         });
@@ -528,7 +532,7 @@ public final class RapidIntakeView {
                                     picked.setCode(), picked.collectorNumber(), cur.foil(), cur.quantity(), cur.condition(), "", null));
                             displayResolved[0].accept(switched);
                             statusLabel.setText("Switched to variant #" + picked.collectorNumber());
-                            statusLabel.setStyle("-fx-text-fill: #0369a1;");
+                            statusLabel.setStyle("-fx-text-fill: -color-link-fg;");
                         } catch (Exception ignored) {}
                     }
                     e.consume(); // Intercept and prevent scene accelerator bubbling
@@ -598,14 +602,14 @@ public final class RapidIntakeView {
                             } catch (Exception ignored) {}
                         }).start();
                         statusLabel.setText("Qty updated to " + v);
-                        statusLabel.setStyle("-fx-text-fill: #16a34a;");
+                        statusLabel.setStyle("-fx-text-fill: -color-success-fg;");
                     } else {
                         field.setText(String.valueOf(getTableView().getItems().get(getIndex()).getQuantity()));
                     }
                 } catch (NumberFormatException ex) {
                     field.setText(String.valueOf(getTableView().getItems().get(getIndex()).getQuantity()));
                     statusLabel.setText("Invalid quantity — reverted.");
-                    statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                    statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                 }
             }
             @Override protected void updateItem(Number item, boolean empty) {

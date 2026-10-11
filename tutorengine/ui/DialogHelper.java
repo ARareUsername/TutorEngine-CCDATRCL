@@ -84,7 +84,8 @@ public final class DialogHelper {
         });
 
         Button confirmBtn = new Button("Confirm");
-        confirmBtn.setStyle("-fx-font-weight: bold; -fx-base: #dc2626; -fx-text-fill: white;");
+        confirmBtn.getStyleClass().add("danger");
+        confirmBtn.setStyle("-fx-font-weight: bold;");
         confirmBtn.setOnAction(e -> {
             root.getChildren().remove(backdrop);
             if (onConfirm != null) onConfirm.run();
