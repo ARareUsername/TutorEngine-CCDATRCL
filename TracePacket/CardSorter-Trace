@@ -1,0 +1,57 @@
+================================================================================
+COMPREHENSIVE TRACE PACKET (BST, HEAP, AND SINGLE SORT PASS)
+Owner: Dimazana | Course: CCDATRCL - Data Structures and Algorithms[cite: 4]
+================================================================================
+
+--------------------------------------------------------------------------------
+1. SINGLE SORT PASS TRACE (Insertion Sort on 5 Cards)
+--------------------------------------------------------------------------------
+Initial State (i = 0):
+Web -> Kor Outfitter -> Forest -> Spirit -> Fury Sliver[cite: 1]
+
+- Pass 1 (i = 1): Current Card -> Kor Outfitter
+  Compare with "Web", shift Web right.
+  Contents: Kor Outfitter -> Web -> Forest -> Spirit -> Fury Sliver[cite: 1]
+
+- Pass 2 (i = 2): Current Card -> Forest
+  Compare and shift Web and Kor Outfitter right.
+  Contents: Forest -> Kor Outfitter -> Web -> Spirit -> Fury Sliver[cite: 1]
+
+- Pass 3 (i = 3): Current Card -> Spirit
+  Compare with Web (shift right) and Kor Outfitter (stop).
+  Contents: Forest -> Kor Outfitter -> Spirit -> Web -> Fury Sliver[cite: 1]
+
+- Pass 4 (i = 4): Current Card -> Fury Sliver
+  Compare and shift Web, Spirit, and Kor Outfitter right, stopping at Forest.
+  Final Sorted Order: Forest -> Fury Sliver -> Kor Outfitter -> Spirit -> Web[cite: 1]
+
+--------------------------------------------------------------------------------
+2. BINARY SEARCH TREE (BST) INSERTION TRACE
+--------------------------------------------------------------------------------
+Sequence inserted: 50, 30, 70, 20, 40, 60, 80[cite: 79]
+
+- Insert 50: Tree is empty -> becomes root[cite: 79].
+- Insert 30: 30 < 50 -> attached to the left of 50[cite: 79].
+- Insert 70: 70 > 50 -> attached to the right of 50[cite: 79].
+- Insert 20: 20 < 50 (go left), 20 < 30 (attached to the left of 30)[cite: 79].
+- Insert 40: 40 < 50 (go left), 40 > 30 (attached to the right of 30)[cite: 79].
+- Insert 60: 60 > 50 (go right), 60 < 70 (attached to the left of 70)[cite: 79].
+- Insert 80: 80 > 50 (go right), 80 > 70 (attached to the right of 70)[cite: 79].
+
+--------------------------------------------------------------------------------
+3. MAX-HEAP TRACE (Insertion and Deletion / Extract-Max)
+--------------------------------------------------------------------------------
+A) Insertion Trace: Insert 10 into Max-Heap [9, 7, 8, 3, 2, 5][cite: 88]
+- Step 1: Append 10 at the next open slot (index 6) to keep the tree complete[cite: 88].
+- Step 2: Compare 10 with its parent at index 2 (value 8); 10 > 8, so swap[cite: 88].
+- Step 3: Compare 10 with its new parent at index 0 (value 9); 10 > 9, so swap again[cite: 88].
+- Step 4: 10 reaches the root (no higher parent); heap property restored[cite: 88].
+Final Max-Heap Array: [10, 7, 9, 3, 2, 5, 8][cite: 88]
+
+B) Deletion Trace (Extract-Max): Remove max from [10, 7, 9, 3, 2, 5, 8][cite: 89]
+- Step 1: Root (10) is removed and reported as the maximum[cite: 89].
+- Step 2: Move the last element (8) into the root, and shrink the array by one[cite: 89].
+- Step 3: Compare 8 with its larger child (9); 9 > 8, so swap[cite: 89].
+- Step 4: 8 (at index 2) has child 5; 5 < 8, so stop; heap property restored[cite: 89].
+Final Max-Heap Array: [9, 7, 8, 3, 2, 5][cite: 89]
+================================================================================
