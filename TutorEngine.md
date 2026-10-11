@@ -281,6 +281,8 @@ public class Main {
 ## 7. Member Assignments (conflict-free: one owner per file)
 
 > Rule: edit ONLY your files. Each file header names its owner. Every file has a `main()` demo so it presents standalone (`javac <file> && java <class>`). Need ≥15 meaningful commits total, all members, across days.
+>
+> Exception: Bondoc, Karl B. is the team leader/admin and is authorized to modify any member's files/work when integrating modules or unblocking delivery. Such edits go through pull-request review like everyone else's.
 
 | Member | Owns (do not touch others') | Must deliver | Presents |
 |---|---|---|---|

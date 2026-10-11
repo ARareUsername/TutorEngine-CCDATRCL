@@ -132,10 +132,11 @@ public class TutorEngineUI {
             return;
         }
         log("Not found: " + sku);
-        List<Card> near = SkuFuzzy.suggest(catalog, skuGraph, sku, 3);
+        List<Card> near = SkuCorrector.multiSearch(catalog, skuGraph, sku);
         if (!near.isEmpty()) {
-            log("Did you mean:");
-            near.forEach(n -> log("  " + n.getName() + " [" + n.getSku() + "]"));
+            log("No exact match — closest:");
+            near.stream().limit(3).forEach(n -> log("  " + n.getName() + " [" + n.getSku() + "]"
+                    + " (" + SkuCorrector.matchedField(catalog, skuGraph, sku, n) + ")"));
         }
     }
 

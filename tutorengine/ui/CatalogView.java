@@ -42,6 +42,7 @@ public final class CatalogView {
 
     public static Node build(List<Card> cards) {
         Map<String, Card> catalog = indexOf(cards);
+        Map<String, List<String>> skuGraph = tutorengine.algorithms.SkuCorrector.build(cards);
         TextField skuField = new TextField();
         skuField.setPromptText("SKU e.g. MTG-OTJ-055");
         Label result = new Label("Type an SKU and press Search.");
@@ -51,7 +52,19 @@ public final class CatalogView {
             Card c = lookup(catalog, skuField.getText());
             result.getStyleClass().removeAll(Theme.BADGE_OK, Theme.BADGE_LOW_STOCK, Theme.BADGE_FOIL);
             if (c == null) {
-                result.setText("Not found: " + skuField.getText().trim());
+                String q = skuField.getText() == null ? "" : skuField.getText().trim();
+                List<Card> near = tutorengine.algorithms.SkuCorrector.multiSearch(catalog, skuGraph, q);
+                if (near.isEmpty()) {
+                    result.setText("Not found: " + q);
+                } else {
+                    StringBuilder sb = new StringBuilder("No exact match — closest:");
+                    for (int i = 0; i < Math.min(3, near.size()); i++) {
+                        Card n = near.get(i);
+                        sb.append(" | ").append(n.getName()).append(" [")
+                          .append(tutorengine.algorithms.SkuCorrector.matchedField(catalog, skuGraph, q, n)).append("]");
+                    }
+                    result.setText(sb.toString());
+                }
             } else {
                 result.setText("Found: " + c);
                 result.getStyleClass().add(Theme.badgeFor(c.getQuantity(), c.isFoil()));
