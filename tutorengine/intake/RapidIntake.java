@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import tutorengine.auth.UserSessionManager;
+import tutorengine.model.AuditCommit;
 import tutorengine.model.Card;
 import tutorengine.model.StorageLocation;
 import tutorengine.algorithms.SkuCorrector;
@@ -339,6 +340,22 @@ public final class RapidIntake {
 
         String draftId = UUID.randomUUID().toString();
         String finish = card.foil() ? "FOIL" : "NONFOIL";
+
+        // Record audit entry: each rapid intake input attributed to the current active user
+        String employeeDisplay = employeeHandle;
+        try {
+            employeeDisplay = tutorengine.auth.UserSessionManager.getInstance()
+                    .requireEmployee().displayName();
+        } catch (IllegalStateException ignored) {
+            // No active user; keep original employeeHandle
+        }
+        String tag = tutorengine.model.AuditCommit.generateTag(employeeDisplay, 1);
+        try {
+            tutorengine.audit.AuditLog.recordCommit(tag, employeeDisplay, 1);
+        } catch (Exception ignored) {
+            // Audit failure does not block the draft save
+        }
+
         String sql = "INSERT INTO intake_drafts ("
                 + "draft_id, employee_handle, batch_id, scryfall_id, name, set_code, collector_number, "
                 + "condition, finish, quantity, price_php, image_uri, created_at) "
