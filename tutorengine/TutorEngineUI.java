@@ -95,9 +95,11 @@ public class TutorEngineUI {
         JButton mapBtn = new JButton("Store Map");
         mapBtn.addActionListener(e -> {
             Map<String, List<String>> g = StoreNavigator.sampleMap();
+            Card sample = catalog.isEmpty() ? null : catalog.values().iterator().next();
+            String goal = sample == null ? "CAB-T-TOP" : StorageLocation.route(sample);
             log("Map: " + StoreNavigator.nodeCount(g) + " nodes / "
-                    + StoreNavigator.edgeCount(g) + " edges; e.g. Checkout -> CAB-5-UPPER: "
-                    + String.join(" -> ", StoreNavigator.bfsPath(g, StoreNavigator.CHECKOUT, "CAB-5-UPPER")));
+                    + StoreNavigator.edgeCount(g) + " edges; e.g. Checkout -> " + goal + ": "
+                    + String.join(" -> ", StoreNavigator.bfsPath(g, StoreNavigator.CHECKOUT, goal)));
             GraphView.fillCounts(new java.util.ArrayList<>(catalog.values())).forEach((slot, n) -> {
                 if (n > 0) log("  " + slot + ": " + n + "/" + StorageLocation.BOX_CAPACITY + " cards");
             });

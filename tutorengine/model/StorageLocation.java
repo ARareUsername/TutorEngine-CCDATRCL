@@ -7,13 +7,16 @@ import java.util.Map;
 import java.util.Objects;
 import tutorengine.util.CSVLoader;
 
-// OWNER: Huypungco — Graph & Benchmark. Do not edit files owned by others; use PR comments instead.
+// OWNER: Huypungco — Graph & Benchmark. Admin edit by Bondoc (TutorEngine.md section 7):
+// remodel slots to mtg_storage_organization_guide.md with card-level routing.
 //2026-10-11
-// PURPOSE: One pin on the store map. The storage area is a single 1x5 cabinet row
-// (CAB-1..CAB-5, left to right), each cabinet with an UPPER and LOWER shelf holding
-// one ~1000-card horizontal box. Front nodes (Checkout Counter, Intake Sorting Desk,
-// Showcase Display) are not in a cabinet. Current box names stay valid via ALIAS:
-// every dataset boxLocationId resolves to exactly one slot id.
+// PURPOSE: One pin on the store map. Physical truth is the guide: a black wire
+// rack (M core top, Modern/Standard-M middle, L top-right, P/O/N+others lower)
+// plus a white cabinet (T top, Urza/Un/W middle, utility bottom). Each slot holds
+// one ~1000-card box. Front nodes (Checkout Counter, Intake Sorting Desk,
+// Showcase Display) are not slots. Dataset box names stay valid in the CSV but
+// no longer drive placement: every card routes by type, then set code, with
+// unlisted codes overflowing to the bulk-rares slot (guide section 3).
 //
 //
 // HOW TO TEST:
@@ -60,60 +63,74 @@ public class StorageLocation {
 
     @Override public String toString() { return id + " -> " + label + " [" + zone + "]"; }
 
-    // All 10 shelf slots, left to right, upper then lower per cabinet.
+    // All 9 box slots: rack tiers + cabinet shelves, guide order.
     public static List<StorageLocation> slots() {
-        List<StorageLocation> out = new ArrayList<>(10);
-        for (int n = 1; n <= 5; n++)
-            for (String s : List.of("UPPER", "LOWER"))
-                out.add(new StorageLocation("CAB-" + n + "-" + s, "Cabinet " + n + " " + s.toLowerCase() + " shelf",
-                        "Cabinet", "CAB-" + n, s, BOX_CAPACITY));
-        return out;
+        return List.of(
+            new StorageLocation("RACK-M-TOP", "Black rack top: core M10-M21",
+                    "Rack", "RACK", "TOP", BOX_CAPACITY),
+            new StorageLocation("RACK-M-MID", "Black rack middle: Modern + Standard M",
+                    "Rack", "RACK", "MID", BOX_CAPACITY),
+            new StorageLocation("RACK-L-TOP", "Black rack top-right: L cluster",
+                    "Rack", "RACK", "TOP", BOX_CAPACITY),
+            new StorageLocation("RACK-PON-LOW", "Black rack lower: P/O/N + others",
+                    "Rack", "RACK", "LOW", BOX_CAPACITY),
+            new StorageLocation("CAB-T-TOP", "White cabinet top: T cluster",
+                    "Cabinet", "CAB", "TOP", BOX_CAPACITY),
+            new StorageLocation("CAB-UW-MID", "White cabinet middle: Urza/Un/W",
+                    "Cabinet", "CAB", "MID", BOX_CAPACITY),
+            new StorageLocation("CAB-LANDS-LOW", "White cabinet bottom: lands",
+                    "Cabinet", "CAB", "LOW", BOX_CAPACITY),
+            new StorageLocation("CAB-TOKEN-LOW", "White cabinet bottom: tokens",
+                    "Cabinet", "CAB", "LOW", BOX_CAPACITY),
+            new StorageLocation("CAB-RARE-LOW", "White cabinet bottom: bulk rares + overflow",
+                    "Cabinet", "CAB", "LOW", BOX_CAPACITY));
     }
 
-    // Current box name -> slot id. Boxes are filed in expansion order inside
-    // (see Card.BY_EXPANSION); slots run left to right here for the map.
-    // Empty shelves are expansion space (honest: the 60-card sample fills ~6%/box).
-    public static Map<String, String> aliasTable() {
-        Map<String, String> m = new LinkedHashMap<>();
-        m.put("Bulk Box A (White/Blue)", "CAB-1-UPPER");
-        m.put("Bulk Box B (Black/Red)", "CAB-3-UPPER");
-        m.put("Bulk Box C (Green/Colorless)", "CAB-5-UPPER");
-        m.put("Showcase Display", "Showcase Display");
-        m.put("Showcase Display (High Value)", "Showcase Display");
-        m.put("Intake Sorting Desk", "Intake Sorting Desk");
-        m.put("Checkout Counter", "Checkout Counter");
-        return m;
+    // Set code -> slot, straight from the guide section 1 clusters.
+    static final Map<String, String> SET_SLOT = new LinkedHashMap<>();
+    static {
+        for (String s : new String[]{"M10","M11","M12","M13","M14","M15","M19","M20","M21"})
+            SET_SLOT.put(s, "RACK-M-TOP");
+        for (String s : new String[]{"MH1","MH2","MH3","MMA","MM2","MM3","MOM","MAT","MKM",
+                "MID","MIR","MOR","MRD","MBS","MMQ"})
+            SET_SLOT.put(s, "RACK-M-MID");
+        for (String s : new String[]{"LTR","LCI","LRW","LEG","LGN"})
+            SET_SLOT.put(s, "RACK-L-TOP");
+        for (String s : new String[]{"PLC","PLS","PCY","OGW","ONE","NEO","NPH","NEM",
+                "RNA","KHM","VIS","TOR","XLN","ZEN","ZNR"})
+            SET_SLOT.put(s, "RACK-PON-LOW");
+        for (String s : new String[]{"THS","THB","TDM","TSR","TSP"})
+            SET_SLOT.put(s, "CAB-T-TOP");
+        for (String s : new String[]{"USG","ULG","UDS","UNH","UST","UNF",
+                "WAR","WOE","WWK","WTH"})
+            SET_SLOT.put(s, "CAB-UW-MID");
     }
 
-    public static String resolve(String boxName) { return aliasTable().get(boxName); }
+    // Card-level placement: type first (lands/tokens live in utility boxes),
+    // then set-code cluster, then bulk-rares overflow. Never null.
+    public static String route(Card c) {
+        String type = c.getCardType() == null ? "" : c.getCardType().trim();
+        if (type.equalsIgnoreCase("Land")) return "CAB-LANDS-LOW";
+        if (type.equalsIgnoreCase("Token")) return "CAB-TOKEN-LOW";
+        String code = c.getSetCode() == null ? "" : c.getSetCode().trim().toUpperCase();
+        return SET_SLOT.getOrDefault(code, "CAB-RARE-LOW");
+    }
 
     public static void main(String[] args) {
         for (StorageLocation s : slots()) System.out.println(s);
-        System.out.println("--- alias check vs Dataset/cards.csv ---");
-        int bad = 0;
-        for (Card c : CSVLoader.load("Dataset/cards.csv")) {
-            if (resolve(c.getBoxLocationId()) == null) {
-                System.out.println("UNMAPPED: " + c.getBoxLocationId());
-                bad++;
-            }
-        }
-        System.out.println(bad == 0 ? "All box names resolve. StorageLocation OK."
-                : bad + " UNMAPPED box names!");
-        // Expansion order check: each occupied slot's cards in filing order.
-        java.util.Map<String, java.util.List<Card>> per = new java.util.LinkedHashMap<>();
-        for (Card c : CSVLoader.load("Dataset/cards.csv")) {
-            String slot = resolve(c.getBoxLocationId());
-            if (slot != null && slot.startsWith("CAB-"))
-                per.computeIfAbsent(slot, k -> new java.util.ArrayList<>()).add(c);
-        }
+        System.out.println("--- route check vs Dataset/cards.csv ---");
+        Map<String, List<Card>> per = new LinkedHashMap<>();
+        for (Card c : CSVLoader.load("Dataset/cards.csv"))
+            per.computeIfAbsent(route(c), k -> new ArrayList<>()).add(c);
+        int total = 0;
         for (var e : per.entrySet()) {
             e.getValue().sort(Card.BY_EXPANSION);
-            Card f = e.getValue().get(0), l = e.getValue().get(e.getValue().size() - 1);
-            System.out.println(e.getKey() + ": " + e.getValue().size() + " cards, "
-                    + f.getSetCode() + " " + f.getReleaseYear() + " -> "
-                    + l.getSetCode() + " " + l.getReleaseYear() + " (expansion order)");
+            System.out.println(e.getKey() + ": " + e.getValue().size() + " cards");
+            total += e.getValue().size();
         }
+        System.out.println(total == 60 ? "All 60 cards route. StorageLocation OK."
+                : "ROUTED " + total + " (need 60)!");
         System.out.println("equal ids equal: "
-                + new StorageLocation("CAB-1-UPPER", "x").equals(new StorageLocation("CAB-1-UPPER", "y")));
+                + new StorageLocation("CAB-T-TOP", "x").equals(new StorageLocation("CAB-T-TOP", "y")));
     }
 }

@@ -37,8 +37,8 @@ public final class GraphView {
         Map<String, Integer> m = new LinkedHashMap<>();
         for (StorageLocation s : StorageLocation.slots()) m.put(s.getId(), 0);
         for (Card c : cards) {
-            String slot = StorageLocation.resolve(c.getBoxLocationId());
-            if (slot != null && m.containsKey(slot)) m.put(slot, m.get(slot) + 1);
+            String slot = StorageLocation.route(c);
+            if (m.containsKey(slot)) m.put(slot, m.get(slot) + 1);
         }
         return m;
     }
@@ -48,7 +48,7 @@ public final class GraphView {
         Map<String, List<String>> g = storeMap();
         ChoiceBox<String> dest = new ChoiceBox<>();
         dest.getItems().addAll(g.keySet());
-        dest.getSelectionModel().select("CAB-5-UPPER");
+        dest.getSelectionModel().select("CAB-T-TOP");
         Label route = new Label();
         Label audit = new Label("Audit order (" + auditOrder().size() + " nodes): "
                 + String.join(" | ", auditOrder()));
@@ -76,7 +76,7 @@ public final class GraphView {
     public static void main(String[] args) {
         Map<String, List<String>> g = storeMap();
         System.out.println("nodes=" + StoreNavigator.nodeCount(g) + " edges=" + StoreNavigator.edgeCount(g));
-        System.out.println("route: " + String.join(" -> ", pathTo("CAB-5-UPPER")));
+        System.out.println("route: " + String.join(" -> ", pathTo("CAB-T-TOP")));
         System.out.println("audit (" + auditOrder().size() + " nodes)");
         System.out.println("fill: " + fillCounts(CatalogView.loadCards()));
         System.out.println("missing: " + pathTo("Narnia") + " (empty-safe)");

@@ -10,19 +10,18 @@ import java.util.Map;
 import java.util.Set;
 import tutorengine.model.StorageLocation;
 
-// OWNER: Huypungco — Graph & Benchmark. Do not edit files owned by others; use PR comments instead.
+// OWNER: Huypungco — Graph & Benchmark. Admin edit by Bondoc (TutorEngine.md section 7):
+// remodel sampleMap to mtg_storage_organization_guide.md slots (card-level routing).
 //2026-10-11
 // PURPOSE: The physical store as a map: front nodes (checkout, intake desk,
-// showcase) plus one 1x5 cabinet row (CAB-1..CAB-5), each cabinet with UPPER/LOWER
-// shelf slots holding ~1000-card boxes. BFS answers "shortest walk from checkout
-// to this card's box"; DFS audits every slot. Slot ids come from StorageLocation
-// so the map and the alias table can never disagree.
+// showcase) plus the guide's box slots (black-rack tiers, white-cabinet shelves).
+// BFS answers "shortest walk from checkout to this card's slot"; DFS audits every
+// slot. Slot ids come from StorageLocation so the map and routing never disagree.
 //
 // HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.algorithms.StoreNavigator
-//   Expected: nodes=18 edges=21 (need >=10/15); shortest path Checkout ->
-//   CAB-5-UPPER prints 3 hops; dfs() names all 18 nodes exactly once; a made-up
-//   location yields an empty path.
+//   Expected: nodes=12 edges=17 (need >=10/15); a TSP card routes to CAB-T-TOP
+//   in 2 hops; dfs() names all 12 nodes exactly once; a made-up goal yields empty.
 //
 // DEFENSE: both searches visit each node and edge once — O(V+E); the queue version
 // guarantees shortest hops, the stack version does not.
@@ -30,19 +29,23 @@ import tutorengine.model.StorageLocation;
 public class StoreNavigator {
     public static final String CHECKOUT = "Checkout Counter";
 
-    // 18 nodes / 21 edges: the canonical cabinet map (spec minimum S6: 10/15).
+    // 12 nodes / 16 edges: desk-spoke aisles + rack-tier and cabinet-shelf chains.
     public static Map<String, List<String>> sampleMap() {
         Map<String, List<String>> g = new HashMap<>();
         addNode(g, CHECKOUT);
         addNode(g, "Intake Sorting Desk");
         addNode(g, "Showcase Display");
         for (StorageLocation s : StorageLocation.slots()) addNode(g, s.getId());
-        for (int n = 1; n <= 5; n++) addNode(g, "CAB-" + n);
         addEdge(g, CHECKOUT, "Intake Sorting Desk");
         addEdge(g, CHECKOUT, "Showcase Display");
-        for (int n = 1; n <= 5; n++) addEdge(g, "Intake Sorting Desk", "CAB-" + n);
-        for (int n = 1; n < 5; n++) addEdge(g, "CAB-" + n, "CAB-" + (n + 1));
-        for (StorageLocation s : StorageLocation.slots()) addEdge(g, s.getCabinet(), s.getId());
+        for (StorageLocation s : StorageLocation.slots())
+            addEdge(g, "Intake Sorting Desk", s.getId());
+        addEdge(g, "RACK-M-TOP", "RACK-M-MID");
+        addEdge(g, "RACK-M-MID", "RACK-PON-LOW");
+        addEdge(g, "RACK-L-TOP", "RACK-PON-LOW");
+        addEdge(g, "CAB-T-TOP", "CAB-UW-MID");
+        addEdge(g, "CAB-LANDS-LOW", "CAB-TOKEN-LOW");
+        addEdge(g, "CAB-TOKEN-LOW", "CAB-RARE-LOW");
         return g;
     }
 
@@ -104,8 +107,15 @@ public class StoreNavigator {
     public static void main(String[] args) {
         Map<String, List<String>> g = sampleMap();
         System.out.println("nodes=" + nodeCount(g) + " edges=" + edgeCount(g) + " (need >=10/15)");
-        List<String> path = bfsPath(g, CHECKOUT, "CAB-5-UPPER");
-        System.out.println("BFS path: " + String.join(" -> ", path) + " (" + (path.size() - 1) + " hops)");
+        String tspSku = "";
+        for (tutorengine.model.Card c : tutorengine.util.CSVLoader.load("Dataset/cards.csv"))
+            if ("TSP".equals(c.getSetCode())) { tspSku = c.getSku(); break; }
+        String slot = "";
+        for (tutorengine.model.Card c : tutorengine.util.CSVLoader.load("Dataset/cards.csv"))
+            if (c.getSku().equals(tspSku)) slot = StorageLocation.route(c);
+        List<String> path = bfsPath(g, CHECKOUT, slot);
+        System.out.println("TSP card " + tspSku + " routes to " + slot + ": "
+                + String.join(" -> ", path) + " (" + (path.size() - 1) + " hops)");
         List<String> audit = dfs(g, CHECKOUT);
         System.out.println("DFS audit (" + audit.size() + " nodes): " + String.join(" | ", audit));
         System.out.println("missing node: " + bfsPath(g, CHECKOUT, "Narnia") + " (empty-safe)");

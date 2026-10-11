@@ -1,25 +1,41 @@
-TracePacket — Huypungco / StoreNavigator (BFS shortest path + DFS audit)
-Real data from: java tutorengine.algorithms.StoreNavigator
-Map: 18 nodes / 21 edges (spec min 10/15). O(V+E) both traversals.
+TracePacket — Huypungco/Bondoc / StoreNavigator (BFS shortest path + DFS audit)
+Real data from: jshell excerpt run + java tutorengine.algorithms.StoreNavigator
+Map: 12 nodes / 17 edges (spec min 10/15). O(V+E) both traversals.
+Slots per mtg_storage_organization_guide.md; cards route by type, then set
+code, unlisted codes to CAB-RARE-LOW (60/60 route, none unrouted).
 
-NODES (18): Checkout Counter, Intake Sorting Desk, Showcase Display,
-CAB-1..CAB-5 (5), CAB-1-UPPER/LOWER ... CAB-5-UPPER/LOWER (10)
-EDGES (21): Checkout-Intake, Checkout-Showcase (2)
-  + Intake-CAB-n x5 + CAB-n-CAB-n+1 chain x4 + CAB-n-slot x10
+EXCERPT (rack tiers: desk + M-TOP/M-MID/PON-LOW; 4 nodes / 5 edges)
+BFS Intake Sorting Desk -> RACK-PON-LOW (1 hop):
+  L0: [Intake Sorting Desk]
+  L1: [RACK-M-TOP, RACK-M-MID, RACK-PON-LOW GOAL]  (desk spokes)
+  Path: Intake Sorting Desk -> RACK-PON-LOW (spoke beats the tier chain)
+DFS audit from Intake Sorting Desk (4/4, each exactly once):
+  Intake Sorting Desk | RACK-PON-LOW | RACK-M-MID | RACK-M-TOP
+  (stack dives to the newest spoke first, then climbs the tier chain)
+Missing goal "Narnia": [] empty-safe (never null/throw).
 
-BFS Checkout Counter -> CAB-5-UPPER (3 hops):
+APPENDIX (full 12-node / 17-edge guide map)
+NODES (12): Checkout Counter, Intake Sorting Desk, Showcase Display,
+RACK-M-TOP, RACK-M-MID, RACK-L-TOP, RACK-PON-LOW,
+CAB-T-TOP, CAB-UW-MID, CAB-LANDS-LOW, CAB-TOKEN-LOW, CAB-RARE-LOW
+EDGES (17): Checkout-Intake, Checkout-Showcase (2) + desk-slot spokes x9
+  + rack chains M-TOP-M-MID, M-MID-PON-LOW, L-TOP-PON-LOW (3)
+  + cabinet links T-TOP-UW-MID, LANDS-TOKEN, TOKEN-RARE (3)
+
+BFS Checkout Counter -> CAB-T-TOP (2 hops):
   L0: [Checkout Counter]
   L1: [Intake Sorting Desk, Showcase Display]  (from Checkout)
-  L2: [CAB-1, CAB-2, CAB-3, CAB-4, CAB-5]       (from Intake Desk)
-  L3: [CAB-5-UPPER] GOAL                        (from CAB-5)
-  Path: Checkout Counter -> Intake Sorting Desk -> CAB-5 -> CAB-5-UPPER
-  Missing node "Narnia": [] empty-safe (never null/throw). T08 PASS.
+  L2: [CAB-T-TOP GOAL, ...]                     (desk spokes; TSP lives here)
+  Path: Checkout Counter -> Intake Sorting Desk -> CAB-T-TOP
+  T07 PASS: fewest hops (any route must cross the desk spoke).
 
-DFS audit from Checkout Counter (18/18, each exactly once):
-  Checkout Counter | Showcase Display | Intake Sorting Desk | CAB-5 |
-  CAB-5-LOWER | CAB-5-UPPER | CAB-4 | CAB-4-LOWER | CAB-4-UPPER |
-  CAB-3 | CAB-3-LOWER | CAB-3-UPPER | CAB-2 | CAB-2-LOWER |
-  CAB-2-UPPER | CAB-1 | CAB-1-LOWER | CAB-1-UPPER
+DFS audit from Checkout Counter (12/12, each exactly once):
+  Checkout Counter | Showcase Display | Intake Sorting Desk | CAB-RARE-LOW |
+  CAB-TOKEN-LOW | CAB-LANDS-LOW | CAB-UW-MID | CAB-T-TOP | RACK-PON-LOW |
+  RACK-L-TOP | RACK-M-MID | RACK-M-TOP
   T07 PASS: full reachability, no repeats (seen-set guards cycles).
 
 DEFENSE: BFS queue guarantees min hops; DFS stack does not — same O(V+E).
+Fill note (box-fill-display): 60-card sample routes LANDS=7, T-TOP=2,
+PON-LOW=6, RARE-LOW=36, UW-MID=3, M-TOP=2, M-MID=4 (L-TOP/TOKEN empty —
+honest sample gaps, not model gaps).

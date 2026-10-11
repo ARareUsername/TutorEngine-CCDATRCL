@@ -35,7 +35,7 @@ import tutorengine.util.CSVLoader;
 //     [0] "Loaded N cards" with N >= 50 (or a WARNING + 3 fallback cards)
 //     [1] Highest Action Priority: <top card> (Priority Score: <number>)
 //     [2] guarded search: hit, empty-guard, invalid-guard, graceful miss + fuzzy
-//     [3] BFS Traversal Route from Checkout Counter over the 18-node cabinet map
+//     [3] BFS Traversal Route from Checkout Counter over the 12-node guide map
 //         + box fill counts + retrieval path to the first card's slot.
 //     [4] collision demo: MTG-OTJ-001 and MTG-OTJ-009 share bucket 1 of a
 //         HashMap(7); both entries print as one bucket chain, both get() fine.
@@ -111,7 +111,7 @@ public class Main {
                 + StoreNavigator.nodeCount(storeFloor) + " nodes / "
                 + StoreNavigator.edgeCount(storeFloor) + " edges):");
         bfs(storeFloor, "Checkout Counter");
-        String slot = StorageLocation.resolve(cards.get(0).getBoxLocationId());
+        String slot = StorageLocation.route(cards.get(0));
         System.out.println("Retrieve " + cards.get(0).getSku() + " from " + slot + ": "
                 + String.join(" -> ", StoreNavigator.bfsPath(storeFloor, StoreNavigator.CHECKOUT, slot)));
         System.out.println("Box fill (slot: cards stored): " + GraphView.fillCounts(cards));
