@@ -116,7 +116,7 @@ public final class CatalogView {
                 final int gen = ++searchGen[0];
                 javafx.concurrent.Task<javafx.scene.image.Image> load = new javafx.concurrent.Task<>() {
                     @Override protected javafx.scene.image.Image call() {
-                        return CardImageCache.getFx(c.getSku(), c.getName(), w, pv);
+                        return CardImageCache.getFx(c.getSku(), c.getName(), w, pv, c.getSetCode());
                     }
                 };
                 load.setOnSucceeded(done -> {
@@ -166,7 +166,7 @@ public final class CatalogView {
                     javafx.concurrent.Task<javafx.scene.image.Image> load =
                             new javafx.concurrent.Task<>() {
                         @Override protected javafx.scene.image.Image call() {
-                            return CardImageCache.getFx(c.getSku(), c.getName(), tw, src);
+                            return CardImageCache.getFx(c.getSku(), c.getName(), tw, src, c.getSetCode());
                         }
                     };
                     load.setOnSucceeded(done -> {

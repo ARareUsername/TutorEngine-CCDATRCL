@@ -101,7 +101,7 @@ public final class IntakeDialog {
                 var imgTask = new javafx.concurrent.Task<javafx.scene.image.Image>() {
                     @Override protected javafx.scene.image.Image call() {
                         return CardImageCache.getFx("LIVE-" + d.setCode(), d.name(), 200,
-                                CardImageCache.Variant.NORMAL);
+                                CardImageCache.Variant.NORMAL, d.setCode());
                     }
                 };
                 imgTask.setOnSucceeded(done2 -> {

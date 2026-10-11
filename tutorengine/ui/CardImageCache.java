@@ -84,8 +84,15 @@ public final class CardImageCache {
 
     public static synchronized javafx.scene.image.Image getFx(
             String sku, String cardName, int width, Variant v) {
+        return getFx(sku, cardName, width, v, "");
+    }
+
+    // setCode constrains the lookup to our printing: Scryfall resolves bare
+    // token names like "Wolf" to a different card ("Human // Wolf") without it.
+    public static synchronized javafx.scene.image.Image getFx(
+            String sku, String cardName, int width, Variant v, String setCode) {
         try {
-            byte[] bytes = fetchBytes(sku, cardName, v);
+            byte[] bytes = fetchBytes(sku, cardName, v, setCode);
             if (bytes == null) return null;
             return new javafx.scene.image.Image(new java.io.ByteArrayInputStream(bytes),
                     Math.max(1, width), 0, true, true);
@@ -120,12 +127,16 @@ public final class CardImageCache {
     private static boolean migrated = false;
 
     static synchronized byte[] fetchBytes(String sku, String cardName, Variant v) {
+        return fetchBytes(sku, cardName, v, "");
+    }
+
+    static synchronized byte[] fetchBytes(String sku, String cardName, Variant v, String setCode) {
         try {
             if (!migrated) { migrated = true; migrateCache(); }
             Files.createDirectories(DIR);
             Path p = pathFor(sku, v);
             if (Files.exists(p)) return Files.readAllBytes(p);
-            fetch(sku, cardName, p, v);
+            fetch(sku, cardName, p, v, setCode);
             evictIfNeeded();
             return Files.exists(p) ? Files.readAllBytes(p) : null;
         } catch (Exception e) {
@@ -150,25 +161,36 @@ public final class CardImageCache {
         fetch(sku, cardName, dest, large ? Variant.NORMAL : Variant.SMALL);
     }
 
+    private static HttpResponse<byte[]> send(HttpClient client, String url) throws Exception {
+        return client.send(
+                HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10))
+                        .header("User-Agent", "TutorEngine/1.0 (CCDATRCL school project)")
+                        .header("Accept", "image/jpeg")
+                        .GET().build(),
+                HttpResponse.BodyHandlers.ofByteArray());
+    }
+
     private static void fetch(String sku, String cardName, Path dest, Variant v) throws Exception {
+        fetch(sku, cardName, dest, v, "");
+    }
+
+    private static void fetch(String sku, String cardName, Path dest, Variant v, String setCode) throws Exception {
         long wait = MIN_GAP_MS - (System.currentTimeMillis() - lastFetchMs);
         if (wait > 0) Thread.sleep(wait);
         lastFetchMs = System.currentTimeMillis();
         // Double-faced names ("A // B") 404 on exact: query the front face.
         String query = cardName.contains("//") ? cardName.split("//")[0].trim() : cardName;
-        String url = "https://api.scryfall.com/cards/named?exact="
+        String set = setCode == null ? "" : setCode.trim().toLowerCase();
+        String base = "https://api.scryfall.com/cards/named?exact="
                 + URLEncoder.encode(query, StandardCharsets.UTF_8)
                 + "&format=image&version=" + v.api;
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
-        HttpResponse<byte[]> r = client.send(
-                HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(10))
-                        .header("User-Agent", "TutorEngine/1.0 (CCDATRCL school project)")
-                        .header("Accept", "image/jpeg")
-                        .GET().build(),
-                HttpResponse.BodyHandlers.ofByteArray());
+        HttpResponse<byte[]> r = send(client, base + (set.isEmpty() ? "" : "&set=" + set));
+        // Set-constrained miss (custom printings): fall back to name-only.
+        if (r.statusCode() == 404 && !set.isEmpty()) r = send(client, base);
         if (Boolean.getBoolean("tutorengine.debug"))
             System.err.println("scryfall status=" + r.statusCode() + " bytes=" + r.body().length
                     + " body=" + new String(r.body(), StandardCharsets.UTF_8));
