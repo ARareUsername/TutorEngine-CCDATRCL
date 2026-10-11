@@ -51,7 +51,6 @@ public class TransactionLog {
     }
 
     public static void main(String[] args) {
-        // TODO De Jesus: extend this demo to 3 entries + undo + empty-case.
         TransactionLog t = new TransactionLog();
         t.log("INTAKE MTG-TSP-157"); //Card.csv (line 3)
         t.log("DELETE MTG-UGIN-146");//Card.csv (line 12)

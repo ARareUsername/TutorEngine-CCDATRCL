@@ -37,6 +37,7 @@ import tutorengine.model.TransactionLog;
 // DEFENSE: demonstrate queue vs stack behavior in one run; why ArrayDeque is
 // constant time at both ends.
 // SPEC: S7 Stack/Queue, S11 stack-or-queue op, Template H trace.
+
 public class IntakeBuffer {
     private final TransactionLog log = new TransactionLog();
     private final Deque<Card> queue = new ArrayDeque<>();
@@ -45,13 +46,42 @@ public class IntakeBuffer {
     public void stage(Card c) { queue.offer(c); }
     public Card processNext() {
         Card c = queue.poll();
-        if (c != null){
-            undo.push(c); log.log("INTAKE " + c.getSku()); 
+        if (c != null) {
+            undo.push(c);
+            log.log("INTAKE " + c.getSku());
         }
         return c;
     }
     public Card undo() { return undo.isEmpty() ? null : undo.pop(); }
     public int pending() { return queue.size(); }
+    public TransactionLog getLog() { return log; }
+    
+    public TransactionLog getlog(){
+        return log;
+    }
+    // TRACE (1 page) - queue + stack.
+    // D = Bird MTG-TOTJ-7, E = Temporal Manipulation MTG-SLD-1169,
+    // F = Gorion, Wise Mentor MTG-CLB-276   (Dataset/cards.csv lines 33, 54, 59)
+    //
+    //   step   operation             queue (front->back)   undo (top->bottom)   pending   returns
+    //     0    start                 []                    []                     0       -
+    //     1    stage(D)  offer       [D]                   []                     1       -
+    //     2    stage(E)              [D, E]                []                     2       -
+    //     3    stage(F)              [D, E, F]             []                     3       -
+    //     4    processNext() poll    [E, F]                [D]                    2       D
+    //     5    processNext()         [F]                   [E, D]                 1       E
+    //     6    undo()  pop           [F]                   [D]                    1       E
+    //     7    processNext()         []                    [F, D]                 0       F
+    //     8    processNext() empty   []                    [F, D]                 0       null
+    //     9    undo()                []                    [D]                    0       F
+    //     10   undo()                []                    []                     0       D
+    //     11   undo()  empty         []                    []                     0       null
+    //
+    // Queue out: D, E, F (first in, first out).  Undo lane out: E, F, D (last in, first out).
+    // FIFO happens at step 4 (poll), LIFO at step 6 (pop).
+    // A misread card returns at step 6 while D is still buried under it, so it can be fixed and
+    // staged again without touching the waiting line.  Every processNext() also writes
+    // "INTAKE <SKU>" to the TransactionLog diary (steps 4, 5, 7).  Empty ops return null, silent.
 
     public static void main(String[] args) {
         
