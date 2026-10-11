@@ -48,6 +48,65 @@ public final class HoverPreviewHelper {
         attach(table, nameExtractor, setCodeExtractor, null);
     }
 
+    // Attaches hover preview tooltip directly to any JavaFX Node (e.g. card tiles, grid cards)
+    public static void attachToNode(
+            javafx.scene.Node node,
+            String name,
+            String setCode,
+            String id) {
+        if (node == null || !isValidHoverItem(name)) return;
+        Tooltip tip = new Tooltip();
+        tip.setShowDelay(Duration.millis(HOVER_DELAY_MS));
+        ImageView iv = new ImageView();
+        iv.setFitWidth(DisplaySettings.cards().tooltip);
+        iv.setPreserveRatio(true);
+        tip.setGraphic(iv);
+        Tooltip.install(node, tip);
+
+        @SuppressWarnings("unchecked")
+        javafx.concurrent.Task<Image>[] currentTask = new javafx.concurrent.Task[1];
+
+        Runnable startLoad = () -> {
+            if (currentTask[0] != null) {
+                currentTask[0].cancel();
+                currentTask[0] = null;
+            }
+            iv.setImage(null);
+            if (node.isHover()) {
+                final int tw = DisplaySettings.cards().tooltip;
+                iv.setFitWidth(tw);
+                final CardImageCache.Variant src = resolveVariant(DisplaySettings.cards());
+                javafx.concurrent.Task<Image> load = new javafx.concurrent.Task<>() {
+                    @Override protected Image call() {
+                        if (isCancelled()) return null;
+                        return CardImageCache.getFx(id, name, tw, src, setCode);
+                    }
+                };
+                load.setOnSucceeded(done -> {
+                    if (!load.isCancelled() && load.getValue() != null && node.isHover()) {
+                        iv.setImage(load.getValue());
+                    }
+                });
+                currentTask[0] = load;
+                Thread t = new Thread(load, "node-hover-card");
+                t.setDaemon(true);
+                t.start();
+            }
+        };
+
+        node.hoverProperty().addListener((obs, was, is) -> {
+            if (is) {
+                startLoad.run();
+            } else {
+                if (currentTask[0] != null) {
+                    currentTask[0].cancel();
+                    currentTask[0] = null;
+                }
+                iv.setImage(null);
+            }
+        });
+    }
+
     // Resolves a canonical SKU identifier when set code and collector number are known,
     // otherwise falling back to provided identifier or card name.
     public static String buildCardKey(String setCode, String collectorNumber, String fallbackId) {

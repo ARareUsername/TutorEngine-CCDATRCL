@@ -217,6 +217,12 @@ public final class PriorityView {
         colLocation.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().currentLocation()));
 
         showcaseTable.getColumns().addAll(colRank, colStatus, colSku, colName, colPrice, colQty, colDemand, colFoil, colScore, colLocation);
+        HoverPreviewHelper.attach(
+                showcaseTable,
+                ShowcaseRow::name,
+                r -> r.card() != null ? r.card().getSetCode() : "",
+                r -> r.card() != null ? HoverPreviewHelper.buildCardKey(r.card().getSetCode(), r.card().getCollectorNumber(), r.sku()) : r.sku()
+        );
         Tab showcaseTab = new Tab("All Cards & Allocation Ranking", showcaseTable);
 
         // Tab B: Max-Heap Array & Tree Structure Inspector (Defense DSA Feature)
@@ -329,6 +335,13 @@ public final class PriorityView {
                 locationLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #0369a1;");
 
                 slotCard.getChildren().addAll(slotBadge, nameLbl, priceLbl, scoreLbl, locationLbl);
+                slotCard.setCursor(javafx.scene.Cursor.HAND);
+                HoverPreviewHelper.attachToNode(
+                        slotCard,
+                        c.getName(),
+                        c.getSetCode(),
+                        HoverPreviewHelper.buildCardKey(c.getSetCode(), c.getCollectorNumber(), c.getSku())
+                );
                 glassWallGrid.getChildren().add(slotCard);
             }
 
