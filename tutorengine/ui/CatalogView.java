@@ -45,6 +45,13 @@ public final class CatalogView {
         return catalog.get(sku.trim());
     }
 
+    // Catalog mutations need a logged-in employee; messages explain the gate.
+    static boolean needLogin(Label result) {
+        if (tutorengine.auth.UserSessionManager.getInstance().isAuthenticated()) return false;
+        result.setText("Log in to change the catalog (Switch User, top bar).");
+        return true;
+    }
+
     public static Node build(List<Card> cards) {
         Map<String, Card> catalog = indexOf(cards);
         Map<String, List<String>> skuGraph = tutorengine.algorithms.SkuCorrector.build(cards);
@@ -194,6 +201,7 @@ public final class CatalogView {
         Card[] lastRemoved = new Card[1];
         Button addBtn = new Button("Add");
         addBtn.setOnAction(e -> {
+            if (needLogin(result)) return;
             String sku = skuField.getText() == null ? "" : skuField.getText().trim();
             if (sku.isEmpty() || !sku.matches("[A-Za-z0-9-]+")) {
                 result.setText("Invalid SKU: letters, digits, hyphens only.");
@@ -233,6 +241,7 @@ public final class CatalogView {
         });
         Button removeBtn = new Button("Remove");
         removeBtn.setOnAction(e -> {
+            if (needLogin(result)) return;
             String sku = skuField.getText() == null ? "" : skuField.getText().trim();
             Card target = catalog.get(sku);
             if (target == null) {
@@ -256,6 +265,7 @@ public final class CatalogView {
         });
         Button undoBtn = new Button("Undo remove");
         undoBtn.setOnAction(e -> {
+            if (needLogin(result)) return;
             if (lastRemoved[0] == null) {
                 result.setText("Nothing to undo.");
                 return;

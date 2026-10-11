@@ -5,11 +5,14 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import tutorengine.auth.Employees;
+import tutorengine.auth.UserSessionManager;
 import tutorengine.model.Card;
 import tutorengine.util.CSVLoader;
 
@@ -160,6 +163,10 @@ public class FxApp extends Application {
         };
         BorderPane root = new BorderPane();
 
+        // Session widget: who is on the counter, plus switch/lock.
+        Label activeLabel = new Label("Not logged in");
+        Button switchBtn = new Button("Switch User");
+        Button lockBtn = new Button("Lock");
         Button themeBtn = new Button("Dark mode");
         themeBtn.setOnAction(e -> {
             Theme.toggle();
@@ -169,8 +176,56 @@ public class FxApp extends Application {
         settingsBtn.setOnAction(e -> openSettings(stage));
 
         BorderPane top = new BorderPane();
+        top.setLeft(new javafx.scene.layout.HBox(8, activeLabel, switchBtn, lockBtn));
         top.setRight(new javafx.scene.layout.HBox(8, settingsBtn, themeBtn));
         root.setTop(top);
+
+        // Lock overlay covers the whole shell until someone authenticates.
+        StackPane shell = new StackPane(root);
+        javafx.scene.layout.StackPane overlay = new javafx.scene.layout.StackPane();
+        overlay.setStyle("-fx-background-color: rgba(15,23,42,0.55);");
+        Runnable refreshActive = () -> {
+            var who = UserSessionManager.getInstance().currentOrNull();
+            activeLabel.setText(who == null ? "Not logged in"
+                    : "Active: " + who.displayName() + " (" + who.role() + ")");
+        };
+        Runnable showLock = () -> {
+            boolean firstRun = false;
+            try {
+                firstRun = Employees.empty();
+            } catch (Exception ex) {
+                overlay.getChildren().setAll(new Label("Employee store unavailable: " + ex.getMessage()));
+                overlay.setVisible(true);
+                return;
+            }
+            overlay.getChildren().setAll(firstRun
+                    ? AuthView.setupForm(() -> {
+                        overlay.setVisible(false);
+                        refreshActive.run();
+                    })
+                    : AuthView.loginForm(() -> {
+                        overlay.setVisible(false);
+                        refreshActive.run();
+                    }));
+            overlay.setVisible(true);
+        };
+        switchBtn.setOnAction(e -> {
+            try {
+                UserSessionManager.getInstance().logout();
+            } catch (Exception ex) {
+                // logout best-effort; lock screen still shows
+            }
+            refreshActive.run();
+            showLock.run();
+        });
+        lockBtn.setOnAction(e -> showLock.run());
+        shell.getChildren().add(overlay);
+
+        // 10-minute idle auto-lock; any input resets the clock.
+        var idle = new javafx.animation.PauseTransition(javafx.util.Duration.minutes(10));
+        idle.setOnFinished(e -> {
+            if (UserSessionManager.getInstance().isAuthenticated()) showLock.run();
+        });
 
         catalogBtn.fire(); // initial view (also sets the active highlight)
 
@@ -179,7 +234,10 @@ public class FxApp extends Application {
         root.setCenter(split);
 
         stage.setTitle("TutorEngine");
-        javafx.scene.Scene scene = new javafx.scene.Scene(root, 1000, 640);
+        javafx.scene.Scene scene = new javafx.scene.Scene(shell, 1000, 640);
+        // Any input resets the idle clock (registered before first show).
+        scene.addEventFilter(javafx.scene.input.InputEvent.ANY, e -> idle.playFromStart());
+        idle.play();
         // Clerk shortcuts: Alt+1..5 jump straight to a tab, no mouse needed.
         Button[] order = demosBtn == null
                 ? new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn}
@@ -204,5 +262,14 @@ public class FxApp extends Application {
         // Restore the saved text tier (default Standard when unset).
         root.setStyle("-fx-font-size: " + DisplaySettings.text().px + "px;");
         stage.show();
+        // Employee store first: gated startup (setup on empty DB, else login).
+        try {
+            tutorengine.db.Db.migrate();
+        } catch (Exception ex) {
+            overlay.getChildren().setAll(new Label("Employee store unavailable: " + ex.getMessage()));
+            overlay.setVisible(true);
+            return;
+        }
+        showLock.run();
     }
 }

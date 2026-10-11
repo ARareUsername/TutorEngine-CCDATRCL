@@ -49,6 +49,7 @@ If you prefer using the command line:
 * [x] Clerk workflows (clerk-workflow-fixes: card picture on hits incl. `//` double-face fix, Locate-to-shelf + clickable suggestions, qty/slot add form, remove confirm + undo, card dock under the table, Demos behind `-Dtutorengine.dev`)
 * [x] Display accessibility tiers (display-settings: Settings dialog with text 13/15/17px + card S/M/L tiers, `normal`-variant previews, Preferences persistence)
 * [x] Live intake of uncataloged cards (scryfall-card-intake: New-card dialog with Scryfall autocomplete, verify image, PHP price prefill, `LIVE-<SET>-<seq>` SKUs; manual form stays as offline fallback)
+* [x] Employee auth + sessions (employee-auth-session: SQLite employees/sessions, PIN + badge login, lock overlay, switch/lock widget, idle lock, first-launch setup, session-gated catalog edits, role guardrails, metrics export)
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*

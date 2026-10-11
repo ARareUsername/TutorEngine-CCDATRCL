@@ -1,3 +1,7 @@
 *.class
 target/
 ImageCache/
+tutorengine.db
+tutorengine.db-wal
+tutorengine.db-shm
+tutorengine.db-journal
