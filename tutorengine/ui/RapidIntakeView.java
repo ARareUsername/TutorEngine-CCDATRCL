@@ -112,7 +112,7 @@ public final class RapidIntakeView {
         Label detailsLabel = new Label("");
         detailsLabel.setStyle("-fx-font-size: 12px;");
         Label routingLabel = new Label("");
-        routingLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0369a1;");
+        routingLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -color-accent-fg;");
 
         HBox variantRibbon = new HBox(6);
         variantRibbon.setAlignment(Pos.CENTER_LEFT);
@@ -175,7 +175,7 @@ public final class RapidIntakeView {
                 List<DraftRow> drafts = RapidIntake.loadDrafts(c, employeeHandle[0]);
                 if (!drafts.isEmpty()) {
                     Label bannerText = new Label("Found " + drafts.size() + " uncommitted draft(s) from previous session for " + employeeHandle[0]);
-                    bannerText.setStyle("-fx-font-weight: bold; -fx-text-fill: #854d0e;");
+                    bannerText.setStyle("-fx-font-weight: bold; -fx-text-fill: -color-warning-fg;");
                     Button restoreBtn = new Button("Restore Drafts");
                     restoreBtn.setStyle("-fx-base: #ca8a04; -fx-text-fill: white; -fx-font-weight: bold;");
                     Button discardBtn = new Button("Discard");
@@ -193,7 +193,7 @@ public final class RapidIntakeView {
                         }
                         bannerSlot.getChildren().clear();
                         statusLabel.setText("Restored " + drafts.size() + " drafts to current batch.");
-                        statusLabel.setStyle("-fx-text-fill: #16a34a;");
+                        statusLabel.setStyle("-fx-text-fill: -color-success-fg;");
                         updateSummary.run();
                         shortcutField.requestFocus();
                     });
@@ -207,14 +207,14 @@ public final class RapidIntakeView {
                             shortcutField.requestFocus();
                         } catch (Exception ex) {
                             statusLabel.setText("Error discarding drafts: " + ex.getMessage());
-                            statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                            statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                         }
                     });
 
                     HBox banner = new HBox(10, bannerText, restoreBtn, discardBtn);
                     banner.setAlignment(Pos.CENTER_LEFT);
                     banner.setPadding(new Insets(8, 12, 8, 12));
-                    banner.setStyle("-fx-background-color: #fef9c3; -fx-background-radius: 6; -fx-border-color: #fde047; -fx-border-radius: 6;");
+                    banner.setStyle("-fx-background-color: -color-warning-subtle; -fx-background-radius: 6; -fx-border-color: -color-warning-emphasis; -fx-border-radius: 6;");
                     bannerSlot.getChildren().add(banner);
                 }
             } catch (Exception ex) {
