@@ -46,20 +46,30 @@ public final class CardImageCache {
     private CardImageCache() {}
 
     public static Path pathFor(String sku) {
-        return DIR.resolve(sku.replaceAll("[^A-Za-z0-9-]", "_") + ".jpg");
+        return pathFor(sku, false);
+    }
+
+    // Large variant (Scryfall normal) lives beside the small as <SKU>-large.jpg.
+    public static Path pathFor(String sku, boolean large) {
+        return DIR.resolve(sku.replaceAll("[^A-Za-z0-9-]", "_") + (large ? "-large" : "") + ".jpg");
     }
 
     // Cached thumbnail scaled to `width` px (aspect kept); null = unavailable.
     public static synchronized ImageIcon get(String sku, String cardName, int width) {
-        byte[] bytes = fetchBytes(sku, cardName);
+        byte[] bytes = fetchBytes(sku, cardName, false);
         return bytes == null ? null : readBytes(bytes, width);
     }
 
     // JavaFX twin of get(): same cache files, JavaFX Image out. Null-safe;
     // image decode needs no running toolkit, only rendering does.
     public static synchronized javafx.scene.image.Image getFx(String sku, String cardName, int width) {
+        return getFx(sku, cardName, width, false);
+    }
+
+    // Large=true pulls the Scryfall normal variant for big previews.
+    public static synchronized javafx.scene.image.Image getFx(String sku, String cardName, int width, boolean large) {
         try {
-            byte[] bytes = fetchBytes(sku, cardName);
+            byte[] bytes = fetchBytes(sku, cardName, large);
             if (bytes == null) return null;
             return new javafx.scene.image.Image(new java.io.ByteArrayInputStream(bytes),
                     Math.max(1, width), 0, true, true);
@@ -70,12 +80,12 @@ public final class CardImageCache {
     }
 
     // Raw cached-or-fetched JPEG bytes; null when offline/unknown. Headless-safe.
-    static synchronized byte[] fetchBytes(String sku, String cardName) {
+    static synchronized byte[] fetchBytes(String sku, String cardName, boolean large) {
         try {
             Files.createDirectories(DIR);
-            Path p = pathFor(sku);
+            Path p = pathFor(sku, large);
             if (Files.exists(p)) return Files.readAllBytes(p);
-            fetch(sku, cardName, p);
+            fetch(sku, cardName, p, large);
             evictIfNeeded();
             return Files.exists(p) ? Files.readAllBytes(p) : null;
         } catch (Exception e) {
@@ -96,13 +106,13 @@ public final class CardImageCache {
         }
     }
 
-    private static void fetch(String sku, String cardName, Path dest) throws Exception {
+    private static void fetch(String sku, String cardName, Path dest, boolean large) throws Exception {
         long wait = MIN_GAP_MS - (System.currentTimeMillis() - lastFetchMs);
         if (wait > 0) Thread.sleep(wait);
         lastFetchMs = System.currentTimeMillis();
         String url = "https://api.scryfall.com/cards/named?exact="
                 + URLEncoder.encode(cardName, StandardCharsets.UTF_8)
-                + "&format=image&version=small";
+                + "&format=image&version=" + (large ? "normal" : "small");
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(10))
@@ -149,7 +159,7 @@ public final class CardImageCache {
         } else {
             System.out.println("MISS (offline?) for " + c.getSku() + " — placeholder path, app keeps working.");
         }
-        byte[] raw = fetchBytes(c.getSku(), c.getName());
+        byte[] raw = fetchBytes(c.getSku(), c.getName(), false);
         System.out.println("fetchBytes=" + (raw == null ? "null" : raw.length + " B"));
         try {
             javafx.scene.image.Image fx = getFx(c.getSku(), c.getName(), 146);

@@ -60,8 +60,38 @@ public class FxApp extends Application {
         if (!btn.getStyleClass().contains("nav-active")) btn.getStyleClass().add("nav-active");
     }
 
-    private static void crossfade(StackPane content) {
-        // Subtle 200ms crossfade on view switch (clerk-speed motion).
+    // Accessibility tiers dialog (text + card size), persisted per machine.
+    private static void openSettings(Stage owner) {
+        var dlg = new javafx.scene.control.Dialog<javafx.scene.control.ButtonType>();
+        dlg.setTitle("Display settings");
+        dlg.setHeaderText("Text and card sizes (saved on this machine)");
+        var textBox = new javafx.scene.control.ChoiceBox<DisplaySettings.TextTier>();
+        textBox.getItems().addAll(DisplaySettings.TextTier.values());
+        textBox.setValue(DisplaySettings.text());
+        var cardBox = new javafx.scene.control.ChoiceBox<DisplaySettings.CardTier>();
+        cardBox.getItems().addAll(DisplaySettings.CardTier.values());
+        cardBox.setValue(DisplaySettings.cards());
+        var grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(8);
+        grid.setVgap(8);
+        grid.add(new javafx.scene.control.Label("Text size:"), 0, 0);
+        grid.add(textBox, 1, 0);
+        grid.add(new javafx.scene.control.Label("Card size:"), 0, 1);
+        grid.add(cardBox, 1, 1);
+        dlg.getDialogPane().setContent(grid);
+        dlg.getDialogPane().getButtonTypes().addAll(
+                javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+        dlg.setResultConverter(b -> b);
+        dlg.initOwner(owner);
+        var ok = dlg.showAndWait().orElse(javafx.scene.control.ButtonType.CANCEL)
+                == javafx.scene.control.ButtonType.OK;
+        if (!ok) return;
+        DisplaySettings.setText(textBox.getValue());
+        DisplaySettings.setCards(cardBox.getValue());
+        owner.getScene().getRoot().setStyle("-fx-font-size: " + textBox.getValue().px + "px;");
+    }
+
+    private static void crossfade(StackPane content) {        // Subtle 200ms crossfade on view switch (clerk-speed motion).
         var ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), content);
         ft.setFromValue(0.35);
         ft.setToValue(1.0);
@@ -135,9 +165,11 @@ public class FxApp extends Application {
             Theme.toggle();
             themeBtn.setText(Theme.isDark() ? "Light mode" : "Dark mode");
         });
+        Button settingsBtn = new Button("Settings");
+        settingsBtn.setOnAction(e -> openSettings(stage));
 
         BorderPane top = new BorderPane();
-        top.setRight(themeBtn);
+        top.setRight(new javafx.scene.layout.HBox(8, settingsBtn, themeBtn));
         root.setTop(top);
 
         catalogBtn.fire(); // initial view (also sets the active highlight)
@@ -169,6 +201,8 @@ public class FxApp extends Application {
             scene.getStylesheets().add(css.toExternalForm());
         } catch (Exception ignored) { }
         stage.setScene(scene);
+        // Restore the saved text tier (default Standard when unset).
+        root.setStyle("-fx-font-size: " + DisplaySettings.text().px + "px;");
         stage.show();
     }
 }

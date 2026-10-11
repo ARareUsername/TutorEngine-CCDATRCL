@@ -53,7 +53,7 @@ public final class CatalogView {
         Label result = new Label("Type an SKU and press Search.");
         result.setWrapText(true);
         javafx.scene.image.ImageView preview = new javafx.scene.image.ImageView();
-        preview.setFitWidth(146);
+        preview.setFitWidth(DisplaySettings.cards().preview);
         preview.setPreserveRatio(true);
         Button searchBtn = new Button("Search SKU");
         searchBtn.setDefaultButton(true);
@@ -95,10 +95,14 @@ public final class CatalogView {
                 result.setText("Found: " + c);
                 result.getStyleClass().add(Theme.badgeFor(c.getQuantity(), c.isFoil()));
                 // Thumbnail off the UI thread; offline/unknown keeps the placeholder.
+                // M/L tiers render from the normal variant, S reuses small.
+                preview.setFitWidth(DisplaySettings.cards().preview);
                 preview.setImage(null);
+                final boolean big = DisplaySettings.cards() != DisplaySettings.CardTier.S;
+                final int w = DisplaySettings.cards().preview;
                 javafx.concurrent.Task<javafx.scene.image.Image> load = new javafx.concurrent.Task<>() {
                     @Override protected javafx.scene.image.Image call() {
-                        return CardImageCache.getFx(c.getSku(), c.getName(), 146);
+                        return CardImageCache.getFx(c.getSku(), c.getName(), w, big);
                     }
                 };
                 load.setOnSucceeded(done -> {
@@ -134,17 +138,18 @@ public final class CatalogView {
             javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip();
             tip.setShowDelay(javafx.util.Duration.millis(600));
             javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView();
-            iv.setFitWidth(200);
+            iv.setFitWidth(DisplaySettings.cards().tooltip);
             iv.setPreserveRatio(true);
             tip.setGraphic(iv);
             row.setTooltip(tip);
             row.hoverProperty().addListener((ho, was, is) -> {
                 if (is && !row.isEmpty()) {
                     Card c = row.getItem();
+                    final int tw = DisplaySettings.cards().tooltip;
                     javafx.concurrent.Task<javafx.scene.image.Image> load =
                             new javafx.concurrent.Task<>() {
                         @Override protected javafx.scene.image.Image call() {
-                            return CardImageCache.getFx(c.getSku(), c.getName(), 200);
+                            return CardImageCache.getFx(c.getSku(), c.getName(), tw);
                         }
                     };
                     load.setOnSucceeded(done -> {
