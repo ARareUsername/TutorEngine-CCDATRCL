@@ -6,7 +6,7 @@ import tutorengine.algorithms.CardSorter;
 import tutorengine.model.Card;
 
 // OWNER: Huypungco — Graph & Benchmark. Do not edit files owned by others; use PR comments instead.
-//
+// 2026-10-11
 // PURPOSE: Produces the measured numbers behind the report's speed claims.
 // Races Insertion Sort vs Selection Sort and instant SKU lookup vs one-by-one
 // scan at 100, 500, 1000, and 5000 cards, timed with the nanosecond clock.

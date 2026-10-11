@@ -8,17 +8,19 @@ import java.util.Objects;
 import tutorengine.util.CSVLoader;
 
 // OWNER: Huypungco — Graph & Benchmark. Do not edit files owned by others; use PR comments instead.
-//
+//2026-10-11
 // PURPOSE: One pin on the store map. The storage area is a single 1x5 cabinet row
 // (CAB-1..CAB-5, left to right), each cabinet with an UPPER and LOWER shelf holding
 // one ~1000-card horizontal box. Front nodes (Checkout Counter, Intake Sorting Desk,
 // Showcase Display) are not in a cabinet. Current box names stay valid via ALIAS:
 // every dataset boxLocationId resolves to exactly one slot id.
 //
+//
 // HOW TO TEST:
 //   Run: mvn -q exec:java -Dexec.mainClass=tutorengine.model.StorageLocation
 //   Expected: 10 shelf slots print as "id -> label [zone]", every dataset box name
 //   resolves (no UNMAPPED lines), two locations with the same id compare equal.
+//
 //
 // SPEC: S7 graph representation.
 public class StorageLocation {

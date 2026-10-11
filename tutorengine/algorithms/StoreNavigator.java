@@ -11,7 +11,7 @@ import java.util.Set;
 import tutorengine.model.StorageLocation;
 
 // OWNER: Huypungco — Graph & Benchmark. Do not edit files owned by others; use PR comments instead.
-//
+//2026-10-11
 // PURPOSE: The physical store as a map: front nodes (checkout, intake desk,
 // showcase) plus one 1x5 cabinet row (CAB-1..CAB-5), each cabinet with UPPER/LOWER
 // shelf slots holding ~1000-card boxes. BFS answers "shortest walk from checkout
