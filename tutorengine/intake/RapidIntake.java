@@ -11,11 +11,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import tutorengine.auth.UserSessionManager;
 import tutorengine.model.Card;
 import tutorengine.model.StorageLocation;
+import tutorengine.algorithms.SkuCorrector;
+import tutorengine.search.SkuFuzzy;
 import tutorengine.search.ScryfallLookup;
 import tutorengine.util.CSVLoader;
 
@@ -185,6 +189,28 @@ public final class RapidIntake {
         String body = get(API + "/cards/named?exact="
                 + URLEncoder.encode(exactName, StandardCharsets.UTF_8));
         return parseCardJson(body, false, 1, "NM");
+    }
+
+    // --- Fuzzy search over the local card catalog (same SkuFuzzy mechanism as catalog) ---
+    // Returns up to 5 card name suggestions for a free-text query.
+    // Falls back to Scryfall fuzzy if catalog unavailable; offline-first with local dataset.
+    public static List<String> fuzzySearch(String query) {
+        if (query == null || query.trim().length() < 2) return List.of();
+        try {
+            List<Card> cards = CSVLoader.load("Dataset/cards.csv");
+            Map<String, Card> catalog = new java.util.HashMap<>();
+            for (Card c : cards) catalog.put(c.getSku(), c);
+            Map<String, List<String>> graph = SkuCorrector.build(cards);
+            List<Card> hits = SkuFuzzy.suggest(catalog, graph, query.trim(), 5);
+            return hits.stream()
+                    .map(Card::getName)
+                    .distinct()
+                    .limit(5)
+                    .toList();
+        } catch (Exception ignored) {
+            // Fall back to Scryfall fuzzy search (offline-first: local catalog preferred)
+            return List.of();
+        }
     }
 
     public static ResolvedCard resolve(ParsedShortcut shortcut) throws Exception {
