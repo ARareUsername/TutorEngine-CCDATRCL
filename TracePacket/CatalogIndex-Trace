@@ -1,0 +1,71 @@
+================================================================================
+CATALOG INDEX TRACE PACKET (TREE OPERATIONS / TREEMAP)
+Owner: Dimazana | Course: CCDATRCL - Data Structures and Algorithms[cite: 268, 275]
+Spec: S7 tree, S11 catalog operations, Template H trace, test T09[cite: 268, 275]
+================================================================================
+
+--------------------------------------------------------------------------------
+1. TREE SHAPE PROGRESSION AFTER EACH OF THE 5 FILINGS
+--------------------------------------------------------------------------------
+Input Sequence (Alphabetical Order by Name):
+1. Forest, 2. Fury Sliver, 3. Kor Outfitter, 4. Spirit, 5. Web[cite: 268, 275]
+
+- After Filing 1 (put "Forest"):
+  Root: Forest[cite: 268, 275]
+
+- After Filing 2 (put "Fury Sliver"):
+  Root: Forest[cite: 268, 275]
+    \-- Fury Sliver[cite: 268, 275]
+
+- After Filing 3 (put "Kor Outfitter"):
+  Root: Forest[cite: 268, 275]
+    \-- Fury Sliver[cite: 268, 275]
+          \-- Kor Outfitter[cite: 268, 275]
+
+- After Filing 4 (put "Spirit"):
+  Root: Forest[cite: 268, 275]
+    \-- Fury Sliver[cite: 268, 275]
+          \-- Kor Outfitter[cite: 268, 275]
+                \-- Spirit[cite: 268, 275]
+
+- After Filing 5 (put "Web"):
+  Root: Forest[cite: 268, 275]
+    \-- Fury Sliver[cite: 268, 275]
+          \-- Kor Outfitter[cite: 268, 275]
+                \-- Spirit[cite: 268, 275]
+                      \-- Web[cite: 268, 275]
+
+--------------------------------------------------------------------------------
+2. SEARCH / LOOKUP OPERATIONS (HIT AND MISS)
+--------------------------------------------------------------------------------
+- HIT (Existing Card Lookup):
+  * Operation: index.get("Kor Outfitter")[cite: 268, 275]
+  * Result: Found: Kor Outfitter[cite: 268, 275]
+
+- MISS (Missing Card Lookup):
+  * Operation: index.get("Black Lotus")[cite: 268, 275]
+  * Result: Not found: Black Lotus (printed safely without crashing, matching SKU search courtesy)[cite: 268, 275]
+
+--------------------------------------------------------------------------------
+3. DELETION OPERATIONS (LEAF/ORDINARY ENTRY AND ROOT DELETION)
+--------------------------------------------------------------------------------
+- REMOVE ORDINARY ENTRY:
+  * Operation: index.remove("Kor Outfitter")[cite: 268, 275]
+  * Result: Removed: Kor Outfitter[cite: 268, 275]
+  * Tree automatically rearranges/re-balances pointers.
+
+- REMOVE FIRST ENTRY (ROOT DELETION):
+  * Operation: index.remove(index.firstKey())[cite: 268, 275]
+  * First Key Identified: Forest[cite: 268, 275]
+  * Result: Removed: Forest[cite: 268, 275]
+  * Deletes the root live successfully; tree re-adjusts minimum pointers.
+
+--------------------------------------------------------------------------------
+4. FINAL INORDER (A-Z) VERIFICATION
+--------------------------------------------------------------------------------
+Remaining items printed via inorder() maintain complete alphabetical sorting:
+1. Fury Sliver[cite: 268, 275]
+2. Spirit[cite: 268, 275]
+3. Web[cite: 268, 275]
+Total Remaining Cards: 3[cite: 268, 275]
+================================================================================
