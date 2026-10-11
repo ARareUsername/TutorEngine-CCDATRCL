@@ -95,14 +95,18 @@ public final class CatalogView {
                 result.setText("Found: " + c);
                 result.getStyleClass().add(Theme.badgeFor(c.getQuantity(), c.isFoil()));
                 // Thumbnail off the UI thread; offline/unknown keeps the placeholder.
-                // M/L tiers render from the normal variant, S reuses small.
+                // Source fits the tier: S renders small, M normal, L large.
                 preview.setFitWidth(DisplaySettings.cards().preview);
                 preview.setImage(null);
-                final boolean big = DisplaySettings.cards() != DisplaySettings.CardTier.S;
+                final CardImageCache.Variant pv = switch (DisplaySettings.cards()) {
+                    case L -> CardImageCache.Variant.LARGE;
+                    case M -> CardImageCache.Variant.NORMAL;
+                    default -> CardImageCache.Variant.SMALL;
+                };
                 final int w = DisplaySettings.cards().preview;
                 javafx.concurrent.Task<javafx.scene.image.Image> load = new javafx.concurrent.Task<>() {
                     @Override protected javafx.scene.image.Image call() {
-                        return CardImageCache.getFx(c.getSku(), c.getName(), w, big);
+                        return CardImageCache.getFx(c.getSku(), c.getName(), w, pv);
                     }
                 };
                 load.setOnSucceeded(done -> {
@@ -146,10 +150,13 @@ public final class CatalogView {
                 if (is && !row.isEmpty()) {
                     Card c = row.getItem();
                     final int tw = DisplaySettings.cards().tooltip;
+                    // Tooltips never upscale a smaller source: S uses small, else normal.
+                    final CardImageCache.Variant src = DisplaySettings.cards() == DisplaySettings.CardTier.S
+                            ? CardImageCache.Variant.SMALL : CardImageCache.Variant.NORMAL;
                     javafx.concurrent.Task<javafx.scene.image.Image> load =
                             new javafx.concurrent.Task<>() {
                         @Override protected javafx.scene.image.Image call() {
-                            return CardImageCache.getFx(c.getSku(), c.getName(), tw);
+                            return CardImageCache.getFx(c.getSku(), c.getName(), tw, src);
                         }
                     };
                     load.setOnSucceeded(done -> {

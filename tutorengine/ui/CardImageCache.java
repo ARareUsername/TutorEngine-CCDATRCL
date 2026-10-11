@@ -51,7 +51,18 @@ public final class CardImageCache {
 
     // Large variant (Scryfall normal) lives beside the small as <SKU>-large.jpg.
     public static Path pathFor(String sku, boolean large) {
-        return DIR.resolve(sku.replaceAll("[^A-Za-z0-9-]", "_") + (large ? "-large" : "") + ".jpg");
+        return pathFor(sku, large ? Variant.NORMAL : Variant.SMALL);
+    }
+
+    public enum Variant {
+        SMALL("small", ""), NORMAL("normal", "-normal"), LARGE("large", "-large");
+        final String api;
+        final String suffix;
+        Variant(String api, String suffix) { this.api = api; this.suffix = suffix; }
+    }
+
+    public static Path pathFor(String sku, Variant v) {
+        return DIR.resolve(sku.replaceAll("[^A-Za-z0-9-]", "_") + v.suffix + ".jpg");
     }
 
     // Cached thumbnail scaled to `width` px (aspect kept); null = unavailable.
@@ -68,8 +79,13 @@ public final class CardImageCache {
 
     // Large=true pulls the Scryfall normal variant for big previews.
     public static synchronized javafx.scene.image.Image getFx(String sku, String cardName, int width, boolean large) {
+        return getFx(sku, cardName, width, large ? Variant.NORMAL : Variant.SMALL);
+    }
+
+    public static synchronized javafx.scene.image.Image getFx(
+            String sku, String cardName, int width, Variant v) {
         try {
-            byte[] bytes = fetchBytes(sku, cardName, large);
+            byte[] bytes = fetchBytes(sku, cardName, v);
             if (bytes == null) return null;
             return new javafx.scene.image.Image(new java.io.ByteArrayInputStream(bytes),
                     Math.max(1, width), 0, true, true);
@@ -81,11 +97,35 @@ public final class CardImageCache {
 
     // Raw cached-or-fetched JPEG bytes; null when offline/unknown. Headless-safe.
     static synchronized byte[] fetchBytes(String sku, String cardName, boolean large) {
+        return fetchBytes(sku, cardName, large ? Variant.NORMAL : Variant.SMALL);
+    }
+
+    // One-time migration: early -large.jpg files hold normal bytes; move them
+    // aside so -large.jpg always means the large variant. Idempotent, safe.
+    public static synchronized void migrateCache() {
         try {
             Files.createDirectories(DIR);
-            Path p = pathFor(sku, large);
+            try (java.nio.file.DirectoryStream<Path> ds = Files.newDirectoryStream(DIR, "*-large.jpg")) {
+                for (Path p : ds) {
+                    String name = p.getFileName().toString();
+                    Path normal = DIR.resolve(name.substring(0, name.length() - "-large.jpg".length()) + "-normal.jpg");
+                    if (!Files.exists(normal)) Files.move(p, normal);
+                }
+            }
+        } catch (Exception e) {
+            if (Boolean.getBoolean("tutorengine.debug")) e.printStackTrace();
+        }
+    }
+
+    private static boolean migrated = false;
+
+    static synchronized byte[] fetchBytes(String sku, String cardName, Variant v) {
+        try {
+            if (!migrated) { migrated = true; migrateCache(); }
+            Files.createDirectories(DIR);
+            Path p = pathFor(sku, v);
             if (Files.exists(p)) return Files.readAllBytes(p);
-            fetch(sku, cardName, p, large);
+            fetch(sku, cardName, p, v);
             evictIfNeeded();
             return Files.exists(p) ? Files.readAllBytes(p) : null;
         } catch (Exception e) {
@@ -107,12 +147,16 @@ public final class CardImageCache {
     }
 
     private static void fetch(String sku, String cardName, Path dest, boolean large) throws Exception {
+        fetch(sku, cardName, dest, large ? Variant.NORMAL : Variant.SMALL);
+    }
+
+    private static void fetch(String sku, String cardName, Path dest, Variant v) throws Exception {
         long wait = MIN_GAP_MS - (System.currentTimeMillis() - lastFetchMs);
         if (wait > 0) Thread.sleep(wait);
         lastFetchMs = System.currentTimeMillis();
         String url = "https://api.scryfall.com/cards/named?exact="
                 + URLEncoder.encode(cardName, StandardCharsets.UTF_8)
-                + "&format=image&version=" + (large ? "normal" : "small");
+                + "&format=image&version=" + v.api;
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(10))
