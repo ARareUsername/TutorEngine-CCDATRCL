@@ -38,3 +38,30 @@
     -fx-padding: 10px 12px;
     -fx-font-size: 14px;
 }
+
+/* Grouped sidebar: workflow sections, dot-icon buttons, active marker. */
+.side-nav {
+    -fx-padding: 8px;
+    -fx-spacing: 2px;
+}
+.section-header {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-fg-muted;
+    -fx-padding: 10px 8px 2px 8px;
+}
+.nav-btn {
+    -fx-font-size: 14px;
+    -fx-padding: 10px 12px;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6px;
+}
+.nav-btn:hover {
+    -fx-background-color: -color-accent-subtle;
+}
+.nav-active {
+    -fx-font-weight: bold;
+    -fx-background-color: -color-accent-subtle;
+    -fx-border-color: -color-accent-emphasis;
+    -fx-border-width: 0 0 0 3px;
+}

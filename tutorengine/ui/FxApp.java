@@ -5,10 +5,10 @@ import java.util.List;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tutorengine.model.Card;
 import tutorengine.util.CSVLoader;
@@ -36,8 +36,38 @@ public class FxApp extends Application {
         if (Boolean.getBoolean("tutorengine.dev")) items.add("Demos");
         return items;
     }
-    // of failing, so check the local X socket before launching. Remote DISPLAY
-    // values are attempted normally and caught above if they fail.
+
+    private static javafx.scene.control.Label sectionLabel(String text) {
+        var l = new javafx.scene.control.Label(text);
+        l.getStyleClass().add("section-header");
+        return l;
+    }
+
+    private static Button navBtn(javafx.scene.layout.VBox nav, String title, String dotColor) {
+        var dot = new javafx.scene.shape.Circle(5);
+        dot.setFill(javafx.scene.paint.Color.web(dotColor));
+        var b = new Button(title, dot);
+        b.getStyleClass().add("nav-btn");
+        b.setMaxWidth(Double.MAX_VALUE);
+        b.setAlignment(javafx.geometry.Pos.BASELINE_LEFT);
+        nav.getChildren().add(b);
+        return b;
+    }
+
+    private static void setActive(Button[] active, Button btn) {
+        if (active[0] != null) active[0].getStyleClass().remove("nav-active");
+        active[0] = btn;
+        if (!btn.getStyleClass().contains("nav-active")) btn.getStyleClass().add("nav-active");
+    }
+
+    private static void crossfade(StackPane content) {
+        // Subtle 200ms crossfade on view switch (clerk-speed motion).
+        var ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), content);
+        ft.setFromValue(0.35);
+        ft.setToValue(1.0);
+        ft.play();
+    }
+
     // A stale DISPLAY (e.g. ":0" with no X server) makes the toolkit hang instead
     // of failing, so check the local X socket before launching. Remote DISPLAY
     // values are attempted normally and caught above if they fail.
@@ -55,19 +85,48 @@ public class FxApp extends Application {
         Theme.apply(Theme.LIGHT);
         List<Card> cards = CatalogView.loadCards();
 
-        ListView<String> nav = new ListView<>();
-        nav.getItems().addAll(navItems());
-        nav.getStyleClass().add("main-nav");
-        nav.setFixedCellSize(44);
+        // Grouped sidebar: Counter workflows, manager views, dev tooling (flagged).
+        // Tabs cache their nodes so switching back preserves results.
+        VBox nav = new VBox(2);
+        nav.getStyleClass().add("side-nav");
         StackPane content = new StackPane();
+        java.util.Map<String, javafx.scene.Node> viewCache = new java.util.HashMap<>();
+        java.util.function.Function<String, javafx.scene.Node> viewFor = name -> viewCache.computeIfAbsent(name, n -> switch (n) {
+            case "Priority" -> PriorityView.build(cards);
+            case "Store Map" -> GraphView.build();
+            case "Benchmarks" -> BenchmarkView.build();
+            case "Demos" -> DemoView.build(cards);
+            default -> CatalogView.build(cards);
+        });
+        Button[] activeBtn = new Button[1];
+        java.util.function.BiConsumer<Button, String> show = (btn, name) -> {
+            setActive(activeBtn, btn);
+            content.getChildren().setAll(viewFor.apply(name));
+            crossfade(content);
+        };
+        nav.getChildren().add(sectionLabel("COUNTER"));
+        Button catalogBtn = navBtn(nav, "Catalog", "#059669");
+        Button priorityBtn = navBtn(nav, "Priority", "#d97706");
+        Button mapBtn = navBtn(nav, "Store Map", "#2563eb");
+        nav.getChildren().add(sectionLabel("MANAGER"));
+        Button benchBtn = navBtn(nav, "Benchmarks", "#7c3aed");
+        Button demosBtn = null;
+        if (Boolean.getBoolean("tutorengine.dev")) {
+            nav.getChildren().add(sectionLabel("DEV"));
+            demosBtn = navBtn(nav, "Demos", "#64748b");
+            final Button dev = demosBtn;
+            dev.setOnAction(e -> show.accept(dev, "Demos"));
+        }
+        catalogBtn.setOnAction(e -> show.accept(catalogBtn, "Catalog"));
+        priorityBtn.setOnAction(e -> show.accept(priorityBtn, "Priority"));
+        mapBtn.setOnAction(e -> show.accept(mapBtn, "Store Map"));
+        benchBtn.setOnAction(e -> show.accept(benchBtn, "Benchmarks"));
         String[] mapPreselect = new String[1]; // set by CatalogView Locate
         CatalogView.locateHandler = slot -> {
-            mapPreselect[0] = slot;
-            nav.getSelectionModel().select("Store Map");
-            // Reselect fires even when already there (Locate is only reachable
-            // from Catalog, so selection always changes here).
-            content.getChildren().setAll(GraphView.build(cards, mapPreselect[0]));
-            mapPreselect[0] = null;
+            viewCache.put("Store Map", GraphView.build(cards, slot));
+            setActive(activeBtn, mapBtn);
+            content.getChildren().setAll(viewCache.get("Store Map"));
+            crossfade(content);
         };
         BorderPane root = new BorderPane();
 
@@ -81,23 +140,7 @@ public class FxApp extends Application {
         top.setRight(themeBtn);
         root.setTop(top);
 
-        nav.getSelectionModel().selectedItemProperty().addListener((o, old, sel) -> {
-            if (sel == null) return;
-            switch (sel) {
-                case "Priority" -> content.getChildren().setAll(PriorityView.build(cards));
-                case "Store Map" -> content.getChildren().setAll(GraphView.build());
-                case "Benchmarks" -> content.getChildren().setAll(BenchmarkView.build());
-                case "Demos" -> content.getChildren().setAll(DemoView.build(cards));
-                default -> content.getChildren().setAll(CatalogView.build(cards));
-            }
-            // Subtle 200ms crossfade on view switch (clerk-speed motion).
-            javafx.animation.FadeTransition ft =
-                    new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), content);
-            ft.setFromValue(0.35);
-            ft.setToValue(1.0);
-            ft.play();
-        });
-        nav.getSelectionModel().select("Catalog");
+        catalogBtn.fire(); // initial view (also sets the active highlight)
 
         SplitPane split = new SplitPane(nav, content);
         split.setDividerPositions(0.22);
@@ -105,6 +148,21 @@ public class FxApp extends Application {
 
         stage.setTitle("TutorEngine");
         javafx.scene.Scene scene = new javafx.scene.Scene(root, 1000, 640);
+        // Clerk shortcuts: Alt+1..5 jump straight to a tab, no mouse needed.
+        Button[] order = demosBtn == null
+                ? new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn}
+                : new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn, demosBtn};
+        javafx.scene.input.KeyCode[] keys = {
+                javafx.scene.input.KeyCode.DIGIT1, javafx.scene.input.KeyCode.DIGIT2,
+                javafx.scene.input.KeyCode.DIGIT3, javafx.scene.input.KeyCode.DIGIT4,
+                javafx.scene.input.KeyCode.DIGIT5};
+        for (int i = 0; i < order.length; i++) {
+            Button target = order[i];
+            scene.getAccelerators().put(
+                    new javafx.scene.input.KeyCodeCombination(keys[i],
+                            javafx.scene.input.KeyCombination.ALT_DOWN),
+                    target::fire);
+        }
         try {
             // Project-root relative; missing file degrades to Primer defaults.
             var css = java.nio.file.Paths.get("tutorengine/ui/tutorengine.css").toUri().toURL();
