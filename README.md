@@ -37,13 +37,13 @@ If you prefer using the command line:
 * [x] Convert Scryfall bulk data into 60-row `Dataset/cards.csv`
 * [x] Set up and verify Maven `pom.xml` build configuration
 * [x] Implement `CSVLoader.load()` with SKIP handling + wire 60-row dataset into `Main` and UI (fallback-safe; David keeps trace + report rows)
-* [ ] Create hash collision demo in `Main.java` (using `new HashMap<>(7)`, two colliding SKUs, and printed bucket chain)
-* [ ] Add input guards for empty or invalid SKUs in search
-* [ ] Implement `tutorengine/ui/CardImageCache.java` with responsive GUI preview (see `TutorEngine.md §8`)
-* [ ] Complete final system integration of all member modules into GUI and `Main`
+* [x] Create hash collision demo in `Main.java` (using `new HashMap<>(7)`, two colliding SKUs, and printed bucket chain) (PR #12: MTG-OTJ-001/009 share bucket 1, chain printed, both `get()` fine)
+* [x] Add input guards for empty or invalid SKUs in search (PR #12: `checkSku` in `Main` + `TutorEngineUI`, demo prints both guards)
+* [x] Implement `tutorengine/ui/CardImageCache.java` with responsive GUI preview (see `TutorEngine.md §8) (PR #12: cache-first, 100 ms gap, 50 MB eviction, worker-thread preview; verified HIT 12829 B + offline placeholder)
+* [x] Complete final system integration of all member modules into GUI and `Main` (PR #12: `Main` [5] smoke lines for catalog/heap/sorts/log/intake/typo; UI gains Top Priority + Store Map + fill buttons)
 * [x] JavaFX + AtlantaFX UI shell (`javafx-atlantafx-ui`: FxApp, Theme, 4 views — implemented 2026-10-08)
-* [ ] Fuzzy card search (`fuzzy-card-search`: field matchers + fan-out + UI fallback in `SkuCorrector`)
-* [ ] Cabinet store map (`cabinet-store-map`: hierarchy model + canonical 18-node graph + fill display)
+* [x] Fuzzy card search (`fuzzy-card-search`: field matchers + fan-out + UI fallback in `SkuCorrector`) (PR #12: new `tutorengine/search/SkuFuzzy.java`, calls `bfsSuggest` without editing it; UI shows Did-you-mean)
+* [x] Cabinet store map (`cabinet-store-map`: hierarchy model + canonical 18-node graph + fill display) (model + graph on master; PR #12 adds fill display to Swing UI + `Main` via `GraphView.fillCounts`)
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*
