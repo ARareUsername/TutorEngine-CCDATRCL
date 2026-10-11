@@ -51,25 +51,42 @@ public final class CardImageCache {
 
     // Cached thumbnail scaled to `width` px (aspect kept); null = unavailable.
     public static synchronized ImageIcon get(String sku, String cardName, int width) {
+        byte[] bytes = fetchBytes(sku, cardName);
+        return bytes == null ? null : readBytes(bytes, width);
+    }
+
+    // JavaFX twin of get(): same cache files, JavaFX Image out. Null-safe;
+    // image decode needs no running toolkit, only rendering does.
+    public static synchronized javafx.scene.image.Image getFx(String sku, String cardName, int width) {
         try {
-            Files.createDirectories(DIR);
-            Path p = pathFor(sku);
-            if (Files.exists(p)) {
-                ImageIcon hit = read(p, width);
-                if (hit != null) return hit;
-            }
-            fetch(sku, cardName, p);
-            evictIfNeeded();
-            return Files.exists(p) ? read(p, width) : null;
+            byte[] bytes = fetchBytes(sku, cardName);
+            if (bytes == null) return null;
+            return new javafx.scene.image.Image(new java.io.ByteArrayInputStream(bytes),
+                    Math.max(1, width), 0, true, true);
         } catch (Exception e) {
             if (Boolean.getBoolean("tutorengine.debug")) e.printStackTrace();
-            return null; // offline or bad data: caller shows the placeholder
+            return null;
         }
     }
 
-    private static ImageIcon read(Path p, int width) {
+    // Raw cached-or-fetched JPEG bytes; null when offline/unknown. Headless-safe.
+    static synchronized byte[] fetchBytes(String sku, String cardName) {
         try {
-            var img = ImageIO.read(p.toFile());
+            Files.createDirectories(DIR);
+            Path p = pathFor(sku);
+            if (Files.exists(p)) return Files.readAllBytes(p);
+            fetch(sku, cardName, p);
+            evictIfNeeded();
+            return Files.exists(p) ? Files.readAllBytes(p) : null;
+        } catch (Exception e) {
+            if (Boolean.getBoolean("tutorengine.debug")) e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static ImageIcon readBytes(byte[] bytes, int width) {
+        try {
+            var img = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
             if (img == null) return null;
             int w = Math.max(1, width);
             int h = Math.max(1, img.getHeight() * w / Math.max(1, img.getWidth()));
@@ -131,6 +148,15 @@ public final class CardImageCache {
             catch (Exception e) { System.out.println("HIT " + p); }
         } else {
             System.out.println("MISS (offline?) for " + c.getSku() + " — placeholder path, app keeps working.");
+        }
+        byte[] raw = fetchBytes(c.getSku(), c.getName());
+        System.out.println("fetchBytes=" + (raw == null ? "null" : raw.length + " B"));
+        try {
+            javafx.scene.image.Image fx = getFx(c.getSku(), c.getName(), 146);
+            System.out.println(fx == null ? "getFx=null (offline or headless toolkit)"
+                    : "getFx=" + (int) fx.getWidth() + "x" + (int) fx.getHeight());
+        } catch (Exception e) {
+            System.out.println("getFx needs a running toolkit (visual check on display)");
         }
         System.out.println("CardImageCache OK.");
     }

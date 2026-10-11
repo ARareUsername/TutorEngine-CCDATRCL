@@ -29,6 +29,15 @@ public class FxApp extends Application {
         }
     }
 
+    // Nav items, toolkit-free for headless checks. Demos hides unless dev flag.
+    public static java.util.List<String> navItems() {
+        var items = new java.util.ArrayList<>(
+                java.util.List.of("Catalog", "Priority", "Store Map", "Benchmarks"));
+        if (Boolean.getBoolean("tutorengine.dev")) items.add("Demos");
+        return items;
+    }
+    // of failing, so check the local X socket before launching. Remote DISPLAY
+    // values are attempted normally and caught above if they fail.
     // A stale DISPLAY (e.g. ":0" with no X server) makes the toolkit hang instead
     // of failing, so check the local X socket before launching. Remote DISPLAY
     // values are attempted normally and caught above if they fail.
@@ -47,10 +56,19 @@ public class FxApp extends Application {
         List<Card> cards = CatalogView.loadCards();
 
         ListView<String> nav = new ListView<>();
-        nav.getItems().addAll("Catalog", "Priority", "Store Map", "Benchmarks", "Demos");
+        nav.getItems().addAll(navItems());
         nav.getStyleClass().add("main-nav");
         nav.setFixedCellSize(44);
         StackPane content = new StackPane();
+        String[] mapPreselect = new String[1]; // set by CatalogView Locate
+        CatalogView.locateHandler = slot -> {
+            mapPreselect[0] = slot;
+            nav.getSelectionModel().select("Store Map");
+            // Reselect fires even when already there (Locate is only reachable
+            // from Catalog, so selection always changes here).
+            content.getChildren().setAll(GraphView.build(cards, mapPreselect[0]));
+            mapPreselect[0] = null;
+        };
         BorderPane root = new BorderPane();
 
         Button themeBtn = new Button("Dark mode");

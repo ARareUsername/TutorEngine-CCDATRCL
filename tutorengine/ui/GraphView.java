@@ -44,11 +44,17 @@ public final class GraphView {
     }
 
     public static Node build() {
-        List<Card> cards = CatalogView.loadCards();
+        return build(CatalogView.loadCards(), null);
+    }
+
+    // preselectSlot preselects the destination (Locate flow); null = default.
+    public static Node build(List<Card> cards, String preselectSlot) {
+        List<Card> loaded = cards == null ? CatalogView.loadCards() : cards;
         Map<String, List<String>> g = storeMap();
         ChoiceBox<String> dest = new ChoiceBox<>();
         dest.getItems().addAll(g.keySet());
-        dest.getSelectionModel().select("CAB-T-TOP");
+        if (preselectSlot != null && g.containsKey(preselectSlot)) dest.getSelectionModel().select(preselectSlot);
+        else dest.getSelectionModel().select("CAB-T-TOP");
         Label route = new Label();
         Label audit = new Label("Audit order (" + auditOrder().size() + " nodes): "
                 + String.join(" | ", auditOrder()));
@@ -62,7 +68,7 @@ public final class GraphView {
         go.fire();
 
         VBox fill = new VBox(4, new Label("Box fill (sample of 1000 capacity):"));
-        for (Map.Entry<String, Integer> e : fillCounts(cards).entrySet()) {
+        for (Map.Entry<String, Integer> e : fillCounts(loaded).entrySet()) {
             if (e.getValue() == 0) continue;
             double frac = e.getValue() / (double) StorageLocation.BOX_CAPACITY;
             ProgressBar bar = new ProgressBar(frac);

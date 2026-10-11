@@ -6,6 +6,7 @@ import java.util.Map;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -13,12 +14,16 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tutorengine.model.Card;
+import tutorengine.model.StorageLocation;
 import tutorengine.util.CSVLoader;
 
 // Catalog view: SKU search (hit/miss) + full sortable table.
 // indexOf()/lookup()/loadCards() are toolkit-free (headless main() below covers them).
+// locateHandler is set by FxApp: Locate buttons send a slot id to Store Map.
 public final class CatalogView {
     private CatalogView() {}
+
+    public static java.util.function.Consumer<String> locateHandler;
 
     public static List<Card> loadCards() {
         List<Card> loaded = CSVLoader.load("Dataset/cards.csv");
@@ -46,28 +51,61 @@ public final class CatalogView {
         TextField skuField = new TextField();
         skuField.setPromptText("SKU e.g. MTG-OTJ-055");
         Label result = new Label("Type an SKU and press Search.");
+        result.setWrapText(true);
+        javafx.scene.image.ImageView preview = new javafx.scene.image.ImageView();
+        preview.setFitWidth(146);
+        preview.setPreserveRatio(true);
         Button searchBtn = new Button("Search SKU");
         searchBtn.setDefaultButton(true);
+        Button locateBtn = new Button("Locate on shelf");
+        locateBtn.setVisible(false);
+        VBox linksBox = new VBox(4);
+        Card[] found = new Card[1];
+        locateBtn.setOnAction(e -> {
+            if (locateHandler != null && found[0] != null)
+                locateHandler.accept(StorageLocation.route(found[0]));
+        });
         searchBtn.setOnAction(e -> {
             Card c = lookup(catalog, skuField.getText());
             result.getStyleClass().removeAll(Theme.BADGE_OK, Theme.BADGE_LOW_STOCK, Theme.BADGE_FOIL);
+            linksBox.getChildren().clear();
+            locateBtn.setVisible(false);
+            found[0] = c;
             if (c == null) {
                 String q = skuField.getText() == null ? "" : skuField.getText().trim();
                 List<Card> near = tutorengine.algorithms.SkuCorrector.multiSearch(catalog, skuGraph, q);
                 if (near.isEmpty()) {
                     result.setText("Not found: " + q);
                 } else {
-                    StringBuilder sb = new StringBuilder("No exact match — closest:");
+                    result.setText("No exact match — closest (click to open):");
                     for (int i = 0; i < Math.min(3, near.size()); i++) {
                         Card n = near.get(i);
-                        sb.append(" | ").append(n.getName()).append(" [")
-                          .append(tutorengine.algorithms.SkuCorrector.matchedField(catalog, skuGraph, q, n)).append("]");
+                        String field = tutorengine.algorithms.SkuCorrector
+                                .matchedField(catalog, skuGraph, q, n);
+                        Hyperlink link = new Hyperlink(
+                                n.getName() + " [" + n.getSku() + "] (" + field + ")");
+                        link.setOnAction(ev -> {
+                            skuField.setText(n.getSku());
+                            searchBtn.fire();
+                        });
+                        linksBox.getChildren().add(link);
                     }
-                    result.setText(sb.toString());
                 }
             } else {
                 result.setText("Found: " + c);
                 result.getStyleClass().add(Theme.badgeFor(c.getQuantity(), c.isFoil()));
+                // Thumbnail off the UI thread; offline/unknown keeps the placeholder.
+                preview.setImage(null);
+                javafx.concurrent.Task<javafx.scene.image.Image> load = new javafx.concurrent.Task<>() {
+                    @Override protected javafx.scene.image.Image call() {
+                        return CardImageCache.getFx(c.getSku(), c.getName(), 146);
+                    }
+                };
+                load.setOnSucceeded(done -> {
+                    if (load.getValue() != null) preview.setImage(load.getValue());
+                });
+                new Thread(load, "card-image").start();
+                locateBtn.setVisible(true);
             }
         });
 
@@ -90,6 +128,13 @@ public final class CatalogView {
         TextField priceField = new TextField();
         priceField.setPromptText("Price");
         priceField.setPrefWidth(70);
+        TextField qtyField = new TextField();
+        qtyField.setPromptText("Qty");
+        qtyField.setPrefWidth(50);
+        TextField slotField = new TextField();
+        slotField.setPromptText("Slot (blank=auto)");
+        slotField.setPrefWidth(130);
+        Card[] lastRemoved = new Card[1];
         Button addBtn = new Button("Add");
         addBtn.setOnAction(e -> {
             String sku = skuField.getText() == null ? "" : skuField.getText().trim();
@@ -108,28 +153,65 @@ public final class CatalogView {
                 result.setText("Invalid price: use a number like 12.50.");
                 return;
             }
+            int qty;
+            try {
+                qty = Integer.parseInt(qtyField.getText() == null ? "" : qtyField.getText().trim());
+                if (qty <= 0) throw new NumberFormatException();
+            } catch (Exception ex) {
+                result.setText("Invalid quantity: use a whole number of 1 or more.");
+                return;
+            }
+            String slot = slotField.getText() == null ? "" : slotField.getText().trim();
+            if (!slot.isEmpty() && StorageLocation.slots().stream().noneMatch(s -> s.getId().equalsIgnoreCase(slot))) {
+                result.setText("Unknown slot: use a slot id like CAB-T-TOP (blank = auto).");
+                return;
+            }
             String name = nameField.getText() == null || nameField.getText().trim().isEmpty()
                     ? sku : nameField.getText().trim();
             Card c = new Card(sku, name, "Session Add", "Colorless", "Creature",
-                    2026, price, 1, 50, false, "Intake Sorting Desk");
+                    2026, price, qty, 50, false, slot.isEmpty() ? "Intake Sorting Desk" : slot.toUpperCase());
             catalog.put(sku, c);
             table.getItems().add(c);
-            result.setText("Added (session-only): " + c);
+            result.setText("Added (session-only): " + c + " -> " + StorageLocation.route(c));
         });
         Button delBtn = new Button("Delete");
         delBtn.setOnAction(e -> {
             String sku = skuField.getText() == null ? "" : skuField.getText().trim();
-            Card removed = catalog.remove(sku);
-            if (removed == null) {
+            Card target = catalog.get(sku);
+            if (target == null) {
                 result.setText("Not in catalog: " + sku);
-            } else {
-                table.getItems().removeIf(k -> k.getSku().equals(sku));
-                result.setText("Deleted: " + removed.getName() + " [" + sku + "]");
+                return;
             }
+            javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.CONFIRMATION,
+                    "Delete " + target.getName() + " [" + sku + "]?",
+                    javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+            confirm.setHeaderText("Confirm delete");
+            if (confirm.showAndWait().orElse(javafx.scene.control.ButtonType.CANCEL)
+                    != javafx.scene.control.ButtonType.OK) {
+                result.setText("Delete cancelled.");
+                return;
+            }
+            catalog.remove(sku);
+            table.getItems().removeIf(k -> k.getSku().equals(sku));
+            lastRemoved[0] = target;
+            result.setText("Deleted: " + target.getName() + " [" + sku + "] (Undo delete restores it)");
+        });
+        Button undoBtn = new Button("Undo delete");
+        undoBtn.setOnAction(e -> {
+            if (lastRemoved[0] == null) {
+                result.setText("Nothing to undo.");
+                return;
+            }
+            catalog.put(lastRemoved[0].getSku(), lastRemoved[0]);
+            table.getItems().add(lastRemoved[0]);
+            result.setText("Restored: " + lastRemoved[0].getName() + " [" + lastRemoved[0].getSku() + "]");
+            lastRemoved[0] = null;
         });
 
-        return new VBox(8, new HBox(8, skuField, searchBtn),
-                new HBox(8, nameField, priceField, addBtn, delBtn), result, table);
+        return new VBox(8, new HBox(8, skuField, searchBtn, locateBtn),
+                new HBox(8, nameField, priceField, qtyField, slotField, addBtn, delBtn, undoBtn),
+                result, linksBox, preview, table);
     }
 
     private static TableColumn<Card, String> col(String title, java.util.function.Function<Card, String> f) {

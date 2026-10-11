@@ -46,6 +46,7 @@ If you prefer using the command line:
 * [x] Session add/delete records in the JavaFX UI with guards (ui-demo-coverage: duplicate/unknown messages, in-memory only)
 * [x] §11 demo surfaces in the JavaFX UI — list traversal, stack/queue, BST, heap, both sorts, collision (ui-demo-coverage: `DemoTexts` builders + Demos tab)
 * [x] Benchmark + complexity display (ui-demo-coverage: `BenchmarkView` reads `bench.txt` with placeholder fallback + Template E table)
+* [x] Clerk workflows (clerk-workflow-fixes: card picture on hits, Locate-to-shelf + clickable suggestions, qty/slot add form, delete confirm + undo, Demos behind `-Dtutorengine.dev`)
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*

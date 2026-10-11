@@ -106,9 +106,14 @@ public class StorageLocation {
             SET_SLOT.put(s, "CAB-UW-MID");
     }
 
-    // Card-level placement: type first (lands/tokens live in utility boxes),
-    // then set-code cluster, then bulk-rares overflow. Never null.
+    // Card-level placement: a boxLocationId that names a slot id pins it
+    // (clerk override on the add form); otherwise type first (lands/tokens
+    // live in utility boxes), then set-code cluster, then bulk-rares overflow.
+    // Never null.
     public static String route(Card c) {
+        String pinned = c.getBoxLocationId() == null ? "" : c.getBoxLocationId().trim();
+        for (StorageLocation s : slots())
+            if (s.getId().equalsIgnoreCase(pinned)) return s.getId();
         String type = c.getCardType() == null ? "" : c.getCardType().trim();
         if (type.equalsIgnoreCase("Land")) return "CAB-LANDS-LOW";
         if (type.equalsIgnoreCase("Token")) return "CAB-TOKEN-LOW";
