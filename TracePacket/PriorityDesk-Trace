@@ -1,0 +1,76 @@
+================================================================================
+PRIORITY DESK TRACE PACKET (HEAP / MAX-HEAP OPERATIONS)
+Owner: Dimazana | Course: CCDATRCL - Data Structures and Algorithms[cite: 542]
+Spec: S7 heap, S8 priority calc, S11 heap add/remove, Template H trace, test T10[cite: 542]
+================================================================================
+
+--------------------------------------------------------------------------------
+1. CARD PRIORITY SCORE FORMULA CALCULATION
+--------------------------------------------------------------------------------
+Formula: Score = (price * 0.50) + (demandScore * 0.35) - (quantity * 3.0) + (foil ? 10 : 0)[cite: 542]
+
+Initial 5 Cards:
+1. Mana Drain: (2600.0 * 0.50) + (98 * 0.35) - (1 * 3.0) + 0 = 1300 + 34.3 - 3 = 1331.30[cite: 542]
+2. Llanowar Elves: (25.0 * 0.50) + (70 * 0.35) - (48 * 3.0) + 0 = 12.5 + 24.5 - 144 = -107.00[cite: 542]
+3. Mystical Tutor: (16.56 * 0.50) + (100 * 0.35) - (42 * 3.0) + 10 = 8.28 + 35 - 126 + 10 = -72.72[cite: 542]
+4. Birds of Paradise: (13.69 * 0.50) + (100 * 0.35) - (17 * 3.0) + 10 = 6.845 + 35 - 51 + 10 = 0.85[cite: 542]
+5. Narset, Parter of Veils: (19.03 * 0.50) + (98 * 0.35) - (9 * 3.0) + 10 = 9.515 + 34.3 - 27 + 10 = 26.82[cite: 542]
+
+Late Hot Card:
+6. Black Lotus: (5000.0 * 0.50) + (100 * 0.35) - (1 * 3.0) + 10 = 2500 + 35 - 3 + 10 = 2542.00[cite: 542]
+
+--------------------------------------------------------------------------------
+2. HEAP PROGRESSION (3 ARRIVALS BUBBLING UPWARD STEP-BY-STEP)
+--------------------------------------------------------------------------------
+Showing Array Representation & Heapify-Up (Sift-Up) for Max-Heap:
+
+- Arrival 1: Offer Mana Drain [1331.30][cite: 542]
+  Array: [Mana Drain (1331.30)][cite: 542]
+
+- Arrival 2: Offer Llanowar Elves [-107.00][cite: 542]
+  Array: [Mana Drain (1331.30), Llanowar Elves (-107.00)][cite: 542]
+  Compare child (-107.00) vs parent (1331.30): -107.00 < 1331.30 -> No swap.[cite: 542, 627]
+
+- Arrival 3: Offer Birds of Paradise [0.85][cite: 542]
+  Array: [Mana Drain (1331.30), Llanowar Elves (-107.00), Birds of Paradise (0.85)][cite: 542, 627]
+  Compare child (0.85) vs parent (1331.30): 0.85 < 1331.30 -> No swap.[cite: 542, 627]
+
+- Arrival 4: Offer Narset, Parter of Veils [26.82][cite: 542]
+  Array: [Mana Drain (1331.30), Llanowar Elves (-107.00), Birds of Paradise (0.85), Narset (26.82)][cite: 542, 627]
+  Bubble Up Step 1: Compare index 3 (Narset, 26.82) with parent index 1 (Llanowar Elves, -107.00).[cite: 542, 626, 627]
+  26.82 > -107.00 -> SWAP![cite: 542, 627]
+  Array after Swap 1: [Mana Drain (1331.30), Narset (26.82), Birds of Paradise (0.85), Llanowar Elves (-107.00)][cite: 542, 627]
+  Bubble Up Step 2: Compare index 1 (Narset, 26.82) with root index 0 (Mana Drain, 1331.30).[cite: 542, 626, 627]
+  26.82 < 1331.30 -> Stop.[cite: 542, 627]
+
+--------------------------------------------------------------------------------
+3. REMOVAL (1 REMOVAL SINKING DOWNWARD / HEAPIFY-DOWN)
+--------------------------------------------------------------------------------
+- Operation: poll() removes root (Mana Drain, Score = 1331.30)[cite: 542, 628]
+  Step 1: Extract root (Mana Drain)[cite: 542, 628].
+  Step 2: Move last leaf (Llanowar Elves, -107.00) to root position[cite: 542, 628].
+          Array before Sift-Down: [Llanowar Elves (-107.00), Narset (26.82), Birds of Paradise (0.85), Mystical Tutor (-72.72)][cite: 542, 627, 628]
+  Step 3: Sift-Down from root index 0 (-107.00):[cite: 542, 628]
+          Compare children at index 1 (Narset, 26.82) and index 2 (Birds of Paradise, 0.85).[cite: 542, 626, 627, 628]
+          Larger child is Narset (26.82) at index 1.[cite: 542, 627, 628]
+          Since 26.82 > -107.00 -> SWAP root with Narset![cite: 542, 627, 628]
+  Array after Sift-Down: [Narset (26.82), Llanowar Elves (-107.00), Birds of Paradise (0.85), Mystical Tutor (-72.72)][cite: 542, 627, 628]
+
+- Result of Peek after Poll: Next top card is Narset, Parter of Veils (Score = 26.82)[cite: 542].
+
+--------------------------------------------------------------------------------
+4. LINE-JUMPING PROOF & REWEIGHTING VERIFICATION
+--------------------------------------------------------------------------------
+- LINE-JUMPING TEST:
+  Offer Black Lotus [Score = 2542.00][cite: 542].
+  Black Lotus immediately bubbles up to root position (2542.00 > 26.82)[cite: 542, 627].
+  Peek verified: Black Lotus is now top priority[cite: 542].
+
+- REWEIGHTING REHEARSAL (Foil Bonus: 10 -> 20):
+  1. Black Lotus: 2552.00[cite: 542]
+  2. Mana Drain: 1331.30[cite: 542]
+  3. Narset, Parter of Veils: 36.82[cite: 542]
+  4. Birds of Paradise: 10.85[cite: 542]
+  5. Mystical Tutor: -62.72[cite: 542]
+  6. Llanowar Elves: -107.00[cite: 542]
+================================================================================
