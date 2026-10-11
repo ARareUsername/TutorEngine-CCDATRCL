@@ -55,12 +55,15 @@ public final class CatalogView {
         javafx.scene.image.ImageView preview = new javafx.scene.image.ImageView();
         preview.setFitWidth(DisplaySettings.cards().preview);
         preview.setPreserveRatio(true);
+        Label stats = new Label("Select a card to see its details.");
+        stats.setWrapText(true);
         Button searchBtn = new Button("Search SKU");
         searchBtn.setDefaultButton(true);
         Button locateBtn = new Button("Locate on shelf");
         locateBtn.setVisible(false);
         VBox linksBox = new VBox(4);
         Card[] found = new Card[1];
+        int[] searchGen = new int[1]; // latest search wins; stale workers stay silent
         locateBtn.setOnAction(e -> {
             if (locateHandler != null && found[0] != null)
                 locateHandler.accept(StorageLocation.route(found[0]));
@@ -92,8 +95,14 @@ public final class CatalogView {
                     }
                 }
             } else {
-                result.setText("Found: " + c);
+                result.setText("Found: " + c.getName() + " [" + c.getSku() + "]");
                 result.getStyleClass().add(Theme.badgeFor(c.getQuantity(), c.isFoil()));
+                stats.setText(c.getName() + " [" + c.getSku() + "]\n"
+                        + c.getSetName() + " · " + c.getColor() + " " + c.getCardType() + " " + c.getReleaseYear() + "\n"
+                        + String.format("PHP %.2f x%d | Demand %d%s\n", c.getPrice(), c.getQuantity(),
+                                c.getDemandScore(), c.isFoil() ? " | FOIL" : "")
+                        + "Shelf: " + StorageLocation.route(c) + " (box: " + c.getBoxLocationId() + ")\n"
+                        + String.format("Priority %.2f", c.calculatePriority()));
                 // Thumbnail off the UI thread; offline/unknown keeps the placeholder.
                 // Source fits the tier: S renders small, M normal, L large.
                 preview.setFitWidth(DisplaySettings.cards().preview);
@@ -104,13 +113,14 @@ public final class CatalogView {
                     default -> CardImageCache.Variant.SMALL;
                 };
                 final int w = DisplaySettings.cards().preview;
+                final int gen = ++searchGen[0];
                 javafx.concurrent.Task<javafx.scene.image.Image> load = new javafx.concurrent.Task<>() {
                     @Override protected javafx.scene.image.Image call() {
                         return CardImageCache.getFx(c.getSku(), c.getName(), w, pv);
                     }
                 };
                 load.setOnSucceeded(done -> {
-                    if (load.getValue() != null) preview.setImage(load.getValue());
+                    if (gen == searchGen[0] && load.getValue() != null) preview.setImage(load.getValue());
                 });
                 new Thread(load, "card-image").start();
                 locateBtn.setVisible(true);
@@ -221,8 +231,8 @@ public final class CatalogView {
             table.getItems().add(c);
             result.setText("Added (session-only): " + c + " -> " + StorageLocation.route(c));
         });
-        Button delBtn = new Button("Delete");
-        delBtn.setOnAction(e -> {
+        Button removeBtn = new Button("Remove");
+        removeBtn.setOnAction(e -> {
             String sku = skuField.getText() == null ? "" : skuField.getText().trim();
             Card target = catalog.get(sku);
             if (target == null) {
@@ -231,20 +241,20 @@ public final class CatalogView {
             }
             javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(
                     javafx.scene.control.Alert.AlertType.CONFIRMATION,
-                    "Delete " + target.getName() + " [" + sku + "]?",
+                    "Remove " + target.getName() + " [" + sku + "] from inventory?",
                     javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
-            confirm.setHeaderText("Confirm delete");
+            confirm.setHeaderText("Confirm remove");
             if (confirm.showAndWait().orElse(javafx.scene.control.ButtonType.CANCEL)
                     != javafx.scene.control.ButtonType.OK) {
-                result.setText("Delete cancelled.");
+                result.setText("Remove cancelled.");
                 return;
             }
             catalog.remove(sku);
             table.getItems().removeIf(k -> k.getSku().equals(sku));
             lastRemoved[0] = target;
-            result.setText("Deleted: " + target.getName() + " [" + sku + "] (Undo delete restores it)");
+            result.setText("Removed: " + target.getName() + " [" + sku + "] (Undo remove restores it)");
         });
-        Button undoBtn = new Button("Undo delete");
+        Button undoBtn = new Button("Undo remove");
         undoBtn.setOnAction(e -> {
             if (lastRemoved[0] == null) {
                 result.setText("Nothing to undo.");
@@ -256,9 +266,14 @@ public final class CatalogView {
             lastRemoved[0] = null;
         });
 
+        // Detail dock under the table: the table never shifts when selecting.
+        HBox formRow = new HBox(8, nameField, priceField, qtyField, slotField);
+        HBox btnRow = new HBox(8, addBtn, removeBtn, undoBtn);
+        VBox detail = new VBox(8, stats, formRow, btnRow);
+        HBox bottom = new HBox(12, preview, detail);
+
         return new VBox(8, new HBox(8, skuField, searchBtn, locateBtn),
-                new HBox(8, nameField, priceField, qtyField, slotField, addBtn, delBtn, undoBtn),
-                result, linksBox, preview, table);
+                result, linksBox, table, bottom);
     }
 
     private static TableColumn<Card, String> col(String title, java.util.function.Function<Card, String> f) {

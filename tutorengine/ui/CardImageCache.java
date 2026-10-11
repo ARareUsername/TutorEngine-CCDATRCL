@@ -154,8 +154,10 @@ public final class CardImageCache {
         long wait = MIN_GAP_MS - (System.currentTimeMillis() - lastFetchMs);
         if (wait > 0) Thread.sleep(wait);
         lastFetchMs = System.currentTimeMillis();
+        // Double-faced names ("A // B") 404 on exact: query the front face.
+        String query = cardName.contains("//") ? cardName.split("//")[0].trim() : cardName;
         String url = "https://api.scryfall.com/cards/named?exact="
-                + URLEncoder.encode(cardName, StandardCharsets.UTF_8)
+                + URLEncoder.encode(query, StandardCharsets.UTF_8)
                 + "&format=image&version=" + v.api;
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
