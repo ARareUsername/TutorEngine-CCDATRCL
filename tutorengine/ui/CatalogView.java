@@ -474,9 +474,6 @@ public final class CatalogView {
             return row;
         });
         // Session catalog editing (in-memory only, never written back to CSV).
-        TextField nameField = new TextField();
-        nameField.setPromptText("Name (for new)");
-        nameField.setPrefWidth(130);
         TextField priceField = new TextField();
         priceField.setPromptText("Price");
         priceField.setPrefWidth(70);
@@ -550,8 +547,7 @@ public final class CatalogView {
                 result.setText("Unknown slot: use a box id like BLB-1 (blank = auto).");
                 return;
             }
-            String name = nameField.getText() == null || nameField.getText().trim().isEmpty()
-                    ? sku : nameField.getText().trim();
+            String name = sku;
             Card c = new Card(sku, name, "Session Add", "Colorless", "Creature",
                     2026, price, qty, 50, false, slot.isEmpty() ? "Intake Sorting Desk" : slot.toUpperCase());
             catalog.put(sku, c);
@@ -752,7 +748,7 @@ public final class CatalogView {
         });
 
         // Detail dock under the table: the table never shifts when selecting.
-        HBox formRow = new HBox(8, nameField, priceField, qtyField, slotField);
+        HBox formRow = new HBox(8, priceField, qtyField, slotField);
         HBox btnRow = new HBox(8, addBtn, removeBtn, bulkDeleteBtn, undoBtn, redoBtn, importBtn, undoImportBtn, refreshBtn);
         VBox controls = new VBox(8, formRow, btnRow);
         VBox bottom = new VBox(8, detailPanel.getNode(), controls);
