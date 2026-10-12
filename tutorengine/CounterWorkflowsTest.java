@@ -139,5 +139,8 @@ public class CounterWorkflowsTest {
         check("FxApp dropped Staging nav item", !items.contains("Staging"));
         check("FxApp dropped Trips nav item", !items.contains("Trips"));
         check("FxApp dropped Store Map nav item", !items.contains("Store Map"));
+        check("FxApp nav order is Catalog > Rapid Intake > Storage > Outtake > Restock > Priority > Benchmarks",
+                items.equals(java.util.List.of("Catalog", "Rapid Intake", "Storage", "Outtake",
+                        "Restock", "Priority", "Benchmarks")));
     }
 }

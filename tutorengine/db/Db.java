@@ -150,28 +150,12 @@ public final class Db {
             // remove-unused-views: trip_sessions / trip_cards creation deleted
             // with the Trips view; cleanup of pre-existing files in v<8 below.
             if (v < 5) {
-                s.execute("CREATE TABLE IF NOT EXISTS intake_drafts ("
-                        + "draft_id VARCHAR(36) PRIMARY KEY,"
-                        + "batch_id VARCHAR(100),"
-                        + "scryfall_id VARCHAR(36) NOT NULL,"
-                        + "name VARCHAR(255) NOT NULL,"
-                        + "set_code VARCHAR(10) NOT NULL,"
-                        + "collector_number VARCHAR(20) NOT NULL,"
-                        + "condition VARCHAR(10) DEFAULT 'NM',"
-                        + "finish VARCHAR(20) DEFAULT 'NONFOIL',"
-                        + "quantity INT DEFAULT 1,"
-                        + "price_php DOUBLE DEFAULT 0.0,"
-                        + "image_uri TEXT,"
-                        + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
-                s.execute("CREATE INDEX IF NOT EXISTS idx_intake_drafts_created "
-                        + "ON intake_drafts (created_at)");
+                // remove-draft-recovery: intake_drafts creation deleted;
+                // cleanup of pre-existing DBs handled in v<11 below.
                 v = 5;
             }
             if (v < 6) {
-                // rapid-intake-improvements: soft-delete flag on intake_drafts.
-                try {
-                    s.execute("ALTER TABLE intake_drafts ADD COLUMN removed INT DEFAULT 0");
-                } catch (Exception ignored) { }
+                // rapid-intake-improvements: soft-delete flag on intake_drafts (table removed in v<11).
                 v = 6;
             }
             if (v < 7) {
@@ -246,10 +230,6 @@ public final class Db {
                 s.execute("DROP TABLE IF EXISTS audit_commits");
                 s.execute("DROP TABLE IF EXISTS employee_sessions");
                 s.execute("DROP TABLE IF EXISTS employees");
-                s.execute("DROP INDEX IF EXISTS idx_intake_drafts_handle");
-                try {
-                    s.execute("ALTER TABLE intake_drafts DROP COLUMN employee_handle");
-                } catch (Exception ignored) { }
                 v = 9;
             }
             if (v < 10) {
@@ -273,6 +253,21 @@ public final class Db {
                     } catch (Exception ignored) { }
                 }
                 v = 10;
+            }
+            if (v < 11) {
+                // remove-draft-recovery: drop intake_drafts table and indexes
+                s.execute("DROP INDEX IF EXISTS idx_intake_drafts_created");
+                s.execute("DROP INDEX IF EXISTS idx_intake_drafts_handle");
+                s.execute("DROP TABLE IF EXISTS intake_drafts");
+                v = 11;
+            }
+            if (v < 12) {
+                // Correct collector numbers in card_instances
+                s.execute("UPDATE card_instances SET collector_number = '217' "
+                        + "WHERE sku = 'MTG-PLST-XLN217' OR name = 'Admiral Beckett Brass'");
+                s.execute("UPDATE card_instances SET collector_number = REPLACE(collector_number, '''', '') "
+                        + "WHERE collector_number LIKE '''%'''");
+                v = 12;
             }
             s.execute("DELETE FROM schema_version");
             s.execute("INSERT INTO schema_version (version) VALUES (" + v + ")");

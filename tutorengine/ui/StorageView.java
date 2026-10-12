@@ -1,5 +1,6 @@
 package tutorengine.ui;
 
+import atlantafx.base.theme.Styles;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -189,7 +190,8 @@ public final class StorageView {
 
         // Batch confirmation bar
         Button confirmBatchBtn = new Button("✓ Confirm Batch Stored (All Cards Filed)");
-        confirmBatchBtn.setStyle("-fx-font-weight: bold; -fx-base: #059669; -fx-font-size: 13px; -fx-padding: 8px 16px;");
+        confirmBatchBtn.getStyleClass().add(Styles.SUCCESS);
+        confirmBatchBtn.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 8px 16px;");
         confirmBatchBtn.setDisable(true);
 
         Label confirmResultLabel = new Label();

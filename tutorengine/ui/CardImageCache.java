@@ -69,6 +69,8 @@ public final class CardImageCache {
     public static Path pathFor(String sku, Variant v, String collectorNumber) {
         String base = sku.replaceAll("[^A-Za-z0-9-]", "_");
         String num = collectorNumber == null ? "" : collectorNumber.trim().replaceAll("[^A-Za-z0-9]", "");
+        String canonical = tutorengine.util.CSVLoader.extractCollectorNumber(sku, "");
+        if (!canonical.isEmpty()) num = canonical;
         if (!num.isEmpty()) base += "-c" + num;
         return DIR.resolve(base + v.suffix + ".jpg");
     }
@@ -206,7 +208,9 @@ public final class CardImageCache {
                 .build();
         // Exact printing first: set + collector number pins the card on display.
         String set = setCode == null ? "" : setCode.trim().toLowerCase();
-        String num = collectorNumber == null ? "" : collectorNumber.trim();
+        String num = collectorNumber == null ? "" : collectorNumber.trim().replaceAll("[^A-Za-z0-9]", "");
+        String canonical = tutorengine.util.CSVLoader.extractCollectorNumber(sku, setCode);
+        if (!canonical.isEmpty()) num = canonical;
         if (!set.isEmpty() && !num.isEmpty()) {
             HttpResponse<byte[]> exact = send(client, "https://api.scryfall.com/cards/" + set + "/"
                     + URLEncoder.encode(num, StandardCharsets.UTF_8)

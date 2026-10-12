@@ -126,6 +126,13 @@ public final class RestockView {
         HBox statsRow = new HBox(8, badgeStock, badgeLow, badgePrio, badgeFill);
         statsRow.setAlignment(Pos.CENTER_LEFT);
 
+        javafx.scene.control.Button refreshBtn = new javafx.scene.control.Button("↻ Refresh");
+        refreshBtn.setTooltip(new javafx.scene.control.Tooltip("Recompute the deck from the live catalog"));
+        javafx.scene.control.Button dismissBtn = new javafx.scene.control.Button("Dismiss selected");
+        dismissBtn.setTooltip(new javafx.scene.control.Tooltip("Remove selected rows from the deck for this session"));
+        HBox actionRow = new HBox(8, refreshBtn, dismissBtn);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
+
         TableView<AttentionItem> table = new TableView<>(tableItems);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         VBox.setVgrow(table, Priority.ALWAYS);
@@ -181,6 +188,28 @@ public final class RestockView {
         Label statusLbl = new Label("Click a row to open its full record in the Catalog.");
         statusLbl.setStyle("-fx-text-fill: -color-fg-muted; -fx-font-size: 11px;");
 
+        Runnable reload = () -> {
+            List<Card> live = CatalogView.activeCards != null && !CatalogView.activeCards.isEmpty()
+                    ? CatalogView.activeCards : cards;
+            List<AttentionItem> fresh = computeAttentionList(live);
+            tableItems.setAll(fresh);
+            badgeStock.setText("STOCK (qty 0): " + fresh.stream().filter(i -> "STOCK".equals(i.getReason())).count());
+            badgeLow.setText("LOW (qty ≤ 3): " + fresh.stream().filter(i -> "LOW".equals(i.getReason())).count());
+            badgePrio.setText("PRIORITY: " + fresh.stream().filter(i -> "PRIORITY".equals(i.getReason())).count());
+            badgeFill.setText("FILL: " + fresh.stream().filter(i -> "FILL".equals(i.getReason())).count());
+            statusLbl.setText("Deck refreshed: " + fresh.size() + " item(s).");
+        };
+        refreshBtn.setOnAction(e -> reload.run());
+        dismissBtn.setOnAction(e -> {
+            AttentionItem sel = table.getSelectionModel().getSelectedItem();
+            if (sel == null) {
+                statusLbl.setText("Nothing selected to dismiss.");
+                return;
+            }
+            tableItems.remove(sel);
+            statusLbl.setText("Dismissed for this session: " + sel.getName() + " [" + sel.getSku() + "]");
+        });
+
         table.getSelectionModel().selectedItemProperty().addListener((o, old, sel) -> {
             if (sel != null) {
                 statusLbl.setText("Selected: " + sel.getName() + " [" + sel.getSku() + "]");
@@ -190,7 +219,7 @@ public final class RestockView {
             }
         });
 
-        root.getChildren().addAll(header, sub, statsRow, table, statusLbl);
+        root.getChildren().addAll(header, sub, statsRow, actionRow, table, statusLbl);
         return root;
     }
 

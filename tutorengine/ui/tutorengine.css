@@ -94,3 +94,40 @@
     -fx-border-radius: 8px;
 }
 
+/* Action button variants: high-contrast text and solid backgrounds across light and dark themes */
+.button.accent, .button.btn-primary {
+    -color-button-bg: #0284c7;
+    -color-button-fg: #ffffff;
+    -color-button-border: #0284c7;
+    -color-button-bg-hover: #0369a1;
+    -color-button-border-hover: #0369a1;
+    -color-button-bg-pressed: #075985;
+    -color-button-fg-hover: #ffffff;
+    -color-button-fg-pressed: #ffffff;
+    -fx-text-fill: #ffffff;
+}
+
+.button.success, .button.btn-success {
+    -color-button-bg: #16a34a;
+    -color-button-fg: #ffffff;
+    -color-button-border: #16a34a;
+    -color-button-bg-hover: #15803d;
+    -color-button-border-hover: #15803d;
+    -color-button-bg-pressed: #166534;
+    -color-button-fg-hover: #ffffff;
+    -color-button-fg-pressed: #ffffff;
+    -fx-text-fill: #ffffff;
+}
+
+.button.danger, .button.btn-danger {
+    -color-button-bg: #dc2626;
+    -color-button-fg: #ffffff;
+    -color-button-border: #dc2626;
+    -color-button-bg-hover: #b91c1c;
+    -color-button-border-hover: #b91c1c;
+    -color-button-bg-pressed: #991b1b;
+    -color-button-fg-hover: #ffffff;
+    -color-button-fg-pressed: #ffffff;
+    -fx-text-fill: #ffffff;
+}
+

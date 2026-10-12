@@ -117,10 +117,14 @@ public class CSVLoader {
                     continue;
                 }
                 double php = toPhp(price); // CSV holds USD; Cards carry PHP
-                // Fetch collector number and version label from Scryfall (cached)
-                String[] scryfallInfo = fetchScryfallInfo(name);
-                String collectorNumber = scryfallInfo[0];
-                String versionLabel = scryfallInfo[2];
+                // Extract collector number from SKU (e.g. MTG-PLST-XLN217 -> 217, MTG-TSP-157 -> 157)
+                String collectorNumber = extractCollectorNumber(sku, code);
+                String versionLabel = "Standard";
+                if (collectorNumber.isEmpty()) {
+                    String[] scryfallInfo = fetchScryfallInfo(name, code);
+                    collectorNumber = scryfallInfo[0];
+                    versionLabel = scryfallInfo[2];
+                }
                 out.add(new Card(sku, name, setName, color, cardType,
                         year, php, qty, demand, foil, box, mana, pw, tw, code, imageUrl,
                         collectorNumber, 1, versionLabel));
@@ -148,22 +152,43 @@ public class CSVLoader {
         return fields.toArray(new String[0]);
     }
 
+    // Extract collector number from SKU (e.g. MTG-PLST-XLN217 -> 217, MTG-TSP-157 -> 157)
+    public static String extractCollectorNumber(String sku, String setCode) {
+        if (sku == null || sku.isBlank()) return "";
+        String[] parts = sku.trim().split("-");
+        String last = parts[parts.length - 1];
+        if (setCode != null && !setCode.isBlank() && last.toUpperCase().startsWith(setCode.trim().toUpperCase())) {
+            last = last.substring(setCode.trim().length());
+        } else {
+            last = last.replaceFirst("^[A-Za-z]+", "");
+        }
+        return last;
+    }
+
     // Fetch collector number and printing variant from Scryfall for a given card name.
-// Results are cached in SCO_FALLBACK_CACHE so each card is only looked up once.
-// Returns an array of [collectorNumber, versionSeq, versionLabel] or blank strings.
-public static String[] fetchScryfallInfo(String name) {
+    // Results are cached in SCO_FALLBACK_CACHE so each card is only looked up once.
+    // Returns an array of [collectorNumber, versionSeq, versionLabel] or blank strings.
+    public static String[] fetchScryfallInfo(String name) {
+        return fetchScryfallInfo(name, "");
+    }
+
+    public static String[] fetchScryfallInfo(String name, String setCode) {
         // Return cached result if available.
-        String key = name == null ? "" : name.trim().toLowerCase();
+        String sCode = setCode == null ? "" : setCode.trim();
+        String key = (name == null ? "" : name.trim().toLowerCase()) + "|" + sCode.toLowerCase();
         if (SCO_FALLBACK_CACHE.containsKey(key)) {
             return SCO_FALLBACK_CACHE.get(key);
         }
         String[] result = {"", "1", "Standard"}; // collectorNumber, versionSeq, versionLabel
         try {
-            // Scryfall API: /cards/named?exact=<name>&format=json
-            String url = "https://api.scryfall.com/cards/named?exact=" +
-                    java.net.URLEncoder.encode(name.trim(), java.nio.charset.StandardCharsets.UTF_8) +
-                    "&format=json";
+            // Scryfall API: /cards/named?exact=<name>[&set=<code>]&format=json
+            String base = "https://api.scryfall.com/cards/named?exact=" +
+                    java.net.URLEncoder.encode(name.trim(), java.nio.charset.StandardCharsets.UTF_8);
+            String url = base + (sCode.isEmpty() ? "" : "&set=" + java.net.URLEncoder.encode(sCode.toLowerCase(), java.nio.charset.StandardCharsets.UTF_8)) + "&format=json";
             String body = tutorengine.search.ScryfallLookup.get(url);
+            if (body == null && !sCode.isEmpty()) {
+                body = tutorengine.search.ScryfallLookup.get(base + "&format=json");
+            }
             if (body == null) {
                 SCO_FALLBACK_CACHE.put(key, result);
                 return result;

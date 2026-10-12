@@ -77,21 +77,6 @@ public final class RapidIntake {
             String imageUri
     ) {}
 
-    public record DraftRow(
-            String draftId,
-            String batchId,
-            String scryfallId,
-            String name,
-            String setCode,
-            String collectorNumber,
-            String condition,
-            String finish,
-            int quantity,
-            double pricePhp,
-            String imageUri,
-            String createdAt
-    ) {}
-
     // 1.1 Shortcut Parser: <SET> <NUM> [foil|f] [x<QTY>] (case-insensitive)
     public static ParsedShortcut parseShortcut(String input) {
         if (input == null || input.trim().isEmpty()) {
@@ -161,8 +146,21 @@ public final class RapidIntake {
             if (result != null) return result;
         }
 
-        // Fall back to fuzzy name search for non-matching input if at least 2 chars
+        // Try SKU lookup (MTG-SET-NUM format, e.g. MTG-BLB-1) before fuzzy name search
         String trimmed = input == null ? "" : input.trim();
+        if (trimmed.startsWith("MTG-") && trimmed.split("-").length >= 3) {
+            try {
+                String setCode = trimmed.split("-")[1].toLowerCase();
+                String number = trimmed.split("-")[2].toUpperCase();
+                String body = get(API + "/cards/" + URLEncoder.encode(setCode, StandardCharsets.UTF_8)
+                        + "/" + URLEncoder.encode(number, StandardCharsets.UTF_8));
+                if (body != null) return parseCardJson(body, false, 1, "NM");
+            } catch (Exception ignored) {
+                // Continue to fuzzy name search if SKU lookup fails
+            }
+        }
+
+        // Fall back to fuzzy name search for non-matching input if at least 2 chars
         if (trimmed.length() >= 2) {
             try {
                 String body = get(API + "/cards/named?fuzzy="
@@ -313,171 +311,51 @@ public final class RapidIntake {
         return list;
     }
 
-    // 2.1 SQLite intake_drafts Persistence
-    public static String saveDraft(Connection c, String batchId, ResolvedCard card) throws Exception {
-        // Dedup: same setCode + collectorNumber → increment qty (rapid-intake-improvements)
-        String existingId = findDuplicate(c, card);
-        if (existingId != null) {
-            try (PreparedStatement ps = c.prepareStatement(
-                    "UPDATE intake_drafts SET quantity = quantity + ? WHERE draft_id = ?")) {
-                ps.setInt(1, card.quantity());
-                ps.setString(2, existingId);
-                ps.executeUpdate();
-            }
-            return existingId;
-        }
-
-        String draftId = UUID.randomUUID().toString();
-        String finish = card.foil() ? "FOIL" : "NONFOIL";
-
-        String sql = "INSERT INTO intake_drafts ("
-                + "draft_id, batch_id, scryfall_id, name, set_code, collector_number, "
-                + "condition, finish, quantity, price_php, image_uri, created_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
-        try (PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, draftId);
-            ps.setString(2, batchId == null ? "DRAFT-" + System.currentTimeMillis() : batchId);
-            ps.setString(3, card.scryfallId());
-            ps.setString(4, card.name());
-            ps.setString(5, card.setCode());
-            ps.setString(6, card.collectorNumber());
-            ps.setString(7, card.condition() == null ? "NM" : card.condition());
-            ps.setString(8, finish);
-            ps.setInt(9, card.quantity());
-            ps.setDouble(10, card.phpPrice() == null ? 0.0 : card.phpPrice());
-            ps.setString(11, card.imageUri());
-            ps.executeUpdate();
-        }
-        return draftId;
-    }
-
-    // Dedup key: setCode + collectorNumber when collector number exists;
-    // fallback to normalized name when no collector number.
-    private static String findDuplicate(Connection c, ResolvedCard card) throws Exception {
-        String sql;
-        if (card.collectorNumber() != null && !card.collectorNumber().isBlank()) {
-            sql = "SELECT draft_id FROM intake_drafts WHERE name = ? AND set_code = ?"
-                    + " AND collector_number = ? AND removed = 0 LIMIT 1";
-            try (PreparedStatement ps = c.prepareStatement(sql)) {
-                ps.setString(1, card.name());
-                ps.setString(2, card.setCode());
-                ps.setString(3, card.collectorNumber());
-                try (ResultSet rs = ps.executeQuery()) {
-                    return rs.next() ? rs.getString(1) : null;
-                }
-            }
-        } else {
-            sql = "SELECT draft_id FROM intake_drafts WHERE name = ? AND set_code = ?"
-                    + " AND (collector_number = '' OR collector_number IS NULL) AND removed = 0 LIMIT 1";
-            try (PreparedStatement ps = c.prepareStatement(sql)) {
-                ps.setString(1, card.name());
-                ps.setString(2, card.setCode());
-                try (ResultSet rs = ps.executeQuery()) {
-                    return rs.next() ? rs.getString(1) : null;
-                }
-            }
-        }
-    }
-
-    // Soft-delete a draft row (removed = 1) for undo support.
-    public static void removeDraft(Connection c, String draftId) throws Exception {
-        try (PreparedStatement ps = c.prepareStatement(
-                "UPDATE intake_drafts SET removed = 1 WHERE draft_id = ?")) {
-            ps.setString(1, draftId);
-            ps.executeUpdate();
-        }
-    }
-
-    // Undo a soft-delete (removed = 0).
-    public static void undoRemoveDraft(Connection c, String draftId) throws Exception {
-        try (PreparedStatement ps = c.prepareStatement(
-                "UPDATE intake_drafts SET removed = 0 WHERE draft_id = ?")) {
-            ps.setString(1, draftId);
-            ps.executeUpdate();
-        }
-    }
-
-    // Update quantity on a draft row.
-    public static void updateDraftQuantity(Connection c, String draftId, int newQty) throws Exception {
-        if (newQty <= 0) throw new IllegalArgumentException("Quantity must be positive");
-        try (PreparedStatement ps = c.prepareStatement(
-                "UPDATE intake_drafts SET quantity = ? WHERE draft_id = ?")) {
-            ps.setInt(1, newQty);
-            ps.setString(2, draftId);
-            ps.executeUpdate();
-        }
-    }
-
-    // Load only non-removed drafts (global; single-clerk tool).
-    public static List<DraftRow> loadDrafts(Connection c) throws Exception {
-        List<DraftRow> list = new ArrayList<>();
-        String sql = "SELECT draft_id, batch_id, scryfall_id, name, set_code, "
-                + "collector_number, condition, finish, quantity, price_php, image_uri, created_at "
-                + "FROM intake_drafts WHERE removed = 0 ORDER BY created_at ASC";
-        try (PreparedStatement ps = c.prepareStatement(sql)) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new DraftRow(
-                            rs.getString(1), rs.getString(2), rs.getString(3),
-                            rs.getString(4), rs.getString(5), rs.getString(6),
-                            rs.getString(7), rs.getString(8), rs.getInt(9),
-                            rs.getDouble(10), rs.getString(11), rs.getString(12)
-                    ));
-                }
-            }
-        }
-        return list;
-    }
-
-    public static int discardDrafts(Connection c) throws Exception {
-        String sql = "DELETE FROM intake_drafts";
-        try (PreparedStatement ps = c.prepareStatement(sql)) {
-            return ps.executeUpdate();
-        }
-    }
-
-    public static int purgeDraftsByBatch(Connection c, String batchId) throws Exception {
-        String sql = "DELETE FROM intake_drafts WHERE batch_id = ?";
-        try (PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, batchId);
-            return ps.executeUpdate();
-        }
-    }
-
-    public static int purgeDrafts(Connection c, List<String> draftIds) throws Exception {
-        if (draftIds == null || draftIds.isEmpty()) return 0;
-        int count = 0;
-        String sql = "DELETE FROM intake_drafts WHERE draft_id = ?";
-        try (PreparedStatement ps = c.prepareStatement(sql)) {
-            for (String id : draftIds) {
-                ps.setString(1, id);
-                count += ps.executeUpdate();
-            }
-        }
-        return count;
-    }
 
     /**
      * Persist cards into card_instances with status = 'UNSTORED' and box_id = NULL
      * so they become available in the Storage view as pending batches.
+     * Same card in the same spot (name + set + collector + finish + condition,
+     * still unfiled) merges into one row with summed quantity; a different box,
+     * foil, or condition keeps its own row.
      */
     public static int persistUnstoredInstances(Connection c, List<Card> cards) throws Exception {
         if (cards == null || cards.isEmpty()) return 0;
         int total = 0;
+        String find = "SELECT id, quantity FROM card_instances"
+                + " WHERE name = ? AND set_code = ? AND collector_number = ?"
+                + " AND finish = ? AND condition = ? AND status = 'UNSTORED' AND box_id IS NULL"
+                + " LIMIT 1";
         String sql = "INSERT INTO card_instances (id, scryfall_id, name, set_code, collector_number,"
                 + " rarity, condition, finish, language, status, box_id, created_at, quantity,"
                 + " sku, set_name, color, card_type, release_year, price_php, demand,"
                 + " mana_cost, power, toughness)"
                 + " VALUES (?,?,?,?,?,?,?,?,?,'UNSTORED',NULL,CURRENT_TIMESTAMP,?,"
                 + " ?,?,?,?,?,?,?,?,?,?)";
-        try (PreparedStatement ps = c.prepareStatement(sql)) {
+        String bump = "UPDATE card_instances SET quantity = quantity + ? WHERE id = ?";
+        try (PreparedStatement sel = c.prepareStatement(find);
+             PreparedStatement ps = c.prepareStatement(sql);
+             PreparedStatement upd = c.prepareStatement(bump)) {
             for (Card card : cards) {
                 int qty = Math.max(1, card.getQuantity());
                 String set = card.getSetCode() != null && !card.getSetCode().isBlank() ? card.getSetCode().toUpperCase() : "UNK";
                 String collNum = card.getCollectorNumber() != null && !card.getCollectorNumber().isBlank() ? card.getCollectorNumber() : "1";
                 String sku = card.getSku() != null ? card.getSku() : "";
                 String finish = card.isFoil() ? "foil" : "nonfoil";
-                for (int i = 0; i < qty; i++) {
+                sel.setString(1, card.getName());
+                sel.setString(2, set);
+                sel.setString(3, collNum);
+                sel.setString(4, finish);
+                sel.setString(5, "NM");
+                String matchId = null;
+                try (java.sql.ResultSet rs = sel.executeQuery()) {
+                    if (rs.next()) matchId = rs.getString(1);
+                }
+                if (matchId != null) {
+                    upd.setInt(1, qty);
+                    upd.setString(2, matchId);
+                    upd.executeUpdate();
+                } else {
                     ps.setString(1, UUID.randomUUID().toString());
                     ps.setString(2, "");
                     ps.setString(3, card.getName());
@@ -487,7 +365,7 @@ public final class RapidIntake {
                     ps.setString(7, "NM");
                     ps.setString(8, finish);
                     ps.setString(9, "EN");
-                    ps.setInt(10, 1);
+                    ps.setInt(10, qty);
                     ps.setString(11, sku);
                     ps.setString(12, card.getSetName() != null ? card.getSetName() : "");
                     ps.setString(13, card.getColor() != null ? card.getColor() : "");
@@ -498,11 +376,10 @@ public final class RapidIntake {
                     ps.setString(18, card.getManaCost() != null ? card.getManaCost() : "");
                     ps.setString(19, card.getPower() != null ? card.getPower() : "");
                     ps.setString(20, card.getToughness() != null ? card.getToughness() : "");
-                    ps.addBatch();
-                    total++;
+                    ps.executeUpdate();
                 }
+                total += qty;
             }
-            ps.executeBatch();
         }
         return total;
     }
@@ -513,13 +390,21 @@ public final class RapidIntake {
     }
 
     public static synchronized String nextSku(String setCode) {
-        String code = setCode == null || setCode.isBlank() ? "RAPID" : setCode.trim().toUpperCase();
-        return String.format("RAPID-%s-%04d", code, ++skuCounter);
+        String code = setCode == null || setCode.isBlank() ? "UNK" : setCode.trim().toUpperCase();
+        return String.format("MTG-%s-%04d", code, ++skuCounter);
+    }
+
+    /** Minted SKU from the collector number when known, counter fallback otherwise. */
+    public static String skuFor(String setCode, String collectorNumber) {
+        String code = setCode == null || setCode.isBlank() ? "UNK" : setCode.trim().toUpperCase();
+        String coll = collectorNumber == null ? "" : collectorNumber.trim();
+        if (!coll.isEmpty()) return "MTG-" + code + "-" + coll.toUpperCase();
+        return nextSku(setCode);
     }
 
     public static Card toCard(ResolvedCard r, String sku) {
         double price = r.phpPrice() == null ? 0.0 : r.phpPrice();
-        String targetSku = (sku == null || sku.isBlank()) ? nextSku(r.setCode()) : sku;
+        String targetSku = (sku == null || sku.isBlank()) ? skuFor(r.setCode(), r.collectorNumber()) : sku;
         return new Card(
                 targetSku,
                 r.name(),
@@ -539,25 +424,6 @@ public final class RapidIntake {
         );
     }
 
-    public static Card toCard(DraftRow d, String sku) {
-        boolean foil = "FOIL".equalsIgnoreCase(d.finish());
-        String targetSku = (sku == null || sku.isBlank()) ? nextSku(d.setCode()) : sku;
-        return new Card(
-                targetSku,
-                d.name(),
-                d.setCode(),
-                "Colorless",
-                "Card",
-                2026,
-                d.pricePhp(),
-                d.quantity(),
-                50,
-                foil,
-                null,
-                "", "", "",
-                d.setCode()
-        );
-    }
 
     // --- JSON Helpers ---
 
@@ -770,61 +636,23 @@ public final class RapidIntake {
             System.out.println("  ⚠ Network lookup skipped or failed: " + e.getMessage());
         }
 
-        // 3. Test SQLite Draft Persistence on temporary DB (Kill recovery, hand-off, clean purge)
+        // 3. Test SQLite UNSTORED persistence on temporary DB
         try {
-            java.io.File tempDb = java.io.File.createTempFile("tutorengine_draft_test_", ".db");
+            java.io.File tempDb = java.io.File.createTempFile("tutorengine_intake_test_", ".db");
             tempDb.deleteOnExit();
             System.setProperty("tutorengine.db", tempDb.getAbsolutePath());
             tutorengine.db.Db.migrate();
 
             try (Connection c = tutorengine.db.Db.open()) {
-                String batchA = "BATCH-001";
-                String batchB = "BATCH-002";
-
-                // Save 3 drafts in batch A
-                for (int i = 1; i <= 3; i++) {
-                    ResolvedCard dummy = new ResolvedCard(
-                            "scry-a-" + i, "Alice Card " + i, "Set A", "STA", String.valueOf(i),
-                            "rare", "Creature", 2026, "{1}{G}", "2", "2", i % 2 == 0, i, "NM",
-                            2.0 * i, 110.0 * i, "https://example.com/imga" + i, "CAB-T-TOP"
-                    );
-                    saveDraft(c, batchA, dummy);
+                List<Card> staged = List.of(
+                        new Card("MTG-STA-001", "Alice Card 1", "Set A", "Green", "Creature", 2026, 110.0, 1, 50, false, null),
+                        new Card("MTG-STB-002", "Bob Card 2", "Set B", "Blue", "Instant", 2026, 28.0, 2, 50, true, null)
+                );
+                int persisted = persistUnstoredInstances(c, staged);
+                if (persisted != 3) {
+                    throw new AssertionError("Expected 3 unstored card instances persisted, got " + persisted);
                 }
-
-                // Save 2 drafts in batch B
-                for (int i = 1; i <= 2; i++) {
-                    ResolvedCard dummy = new ResolvedCard(
-                            "scry-b-" + i, "Bob Card " + i, "Set B", "STB", String.valueOf(i),
-                            "uncommon", "Instant", 2026, "{U}", "", "", false, 1, "NM",
-                            0.5 * i, 28.0 * i, "https://example.com/imgb" + i, "RACK-M-TOP"
-                    );
-                    saveDraft(c, batchB, dummy);
-                }
-                System.out.println("  ✓ Simulated mid-batch stage: 3 drafts in batch A, 2 in batch B");
-            }
-
-            // SIMULATED KILL & RE-LAUNCH (Fresh Connection / Next Session)
-            try (Connection c2 = tutorengine.db.Db.open()) {
-                String batchA = "BATCH-001";
-
-                // All 5 drafts restored after simulated crash (global drafts)
-                List<DraftRow> drafts = loadDrafts(c2);
-                if (drafts.size() != 5) {
-                    throw new AssertionError("Crash recovery failed: expected 5 drafts, got " + drafts.size());
-                }
-                System.out.println("  ✓ Crash recovery verified: restored " + drafts.size() + " drafts in chronological order");
-
-                // Purge batch A
-                int purged = purgeDraftsByBatch(c2, batchA);
-                if (purged != 3) {
-                    throw new AssertionError("Expected 3 drafts purged for batch A, got " + purged);
-                }
-
-                // 2 drafts (batch B) remain
-                if (loadDrafts(c2).size() != 2) {
-                    throw new AssertionError("Expected 2 drafts remaining after purge");
-                }
-                System.out.println("  ✓ Clean purge verified: batch A gone, batch B drafts remain");
+                System.out.println("  ✓ UNSTORED card instances persisted: " + persisted + " instances");
             }
         } catch (Exception ex) {
             throw new RuntimeException("SQLite persistence test failed", ex);

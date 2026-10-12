@@ -1,5 +1,6 @@
 package tutorengine.ui;
 
+import atlantafx.base.theme.Styles;
 import java.util.Optional;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -85,7 +86,8 @@ public final class DialogHelper {
         });
 
         Button confirmBtn = new Button("Confirm");
-        confirmBtn.setStyle("-fx-font-weight: bold; -fx-base: #dc2626; -fx-text-fill: white;");
+        confirmBtn.getStyleClass().add(Styles.DANGER);
+        confirmBtn.setStyle("-fx-font-weight: bold;");
         confirmBtn.setOnAction(e -> {
             root.getChildren().remove(backdrop);
             if (onConfirm != null) onConfirm.run();

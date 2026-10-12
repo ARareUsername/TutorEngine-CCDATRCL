@@ -165,7 +165,10 @@ public final class CatalogView {
                 while (rs.next()) {
                     String setCode = nz(rs.getString(15));
                     String sku = nz(rs.getString(1));
-                    if (sku.isEmpty()) sku = "MTG-" + setCode + "-" + nz(rs.getString(16));
+                    String rawColl = nz(rs.getString(16)).replace("'", "").trim();
+                    String extracted = tutorengine.util.CSVLoader.extractCollectorNumber(sku, setCode);
+                    String collNum = !extracted.isEmpty() ? extracted : rawColl;
+                    if (sku.isEmpty()) sku = "MTG-" + setCode + "-" + collNum;
                     String setName = nz(rs.getString(3));
                     if (setName.isEmpty()) setName = setCode;
                     String rawBox = rs.getString(11);
@@ -178,7 +181,7 @@ public final class CatalogView {
                             "foil".equalsIgnoreCase(nz(rs.getString(10))), boxId,
                             nz(rs.getString(12)), nz(rs.getString(13)), nz(rs.getString(14)),
                             setCode, "",
-                            nz(rs.getString(16)), rs.getInt(17), nz(rs.getString(18))));
+                            collNum, rs.getInt(17), nz(rs.getString(18))));
                 }
             }
         }
@@ -296,6 +299,7 @@ public final class CatalogView {
         TableView<Card> table = new TableView<>();
         activeTable = table;
         table.setEditable(true);
+        table.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.MULTIPLE);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         VBox.setVgrow(table, javafx.scene.layout.Priority.ALWAYS);
         table.setPrefHeight(260);
@@ -614,6 +618,33 @@ public final class CatalogView {
                 );
             }
         });
+        Button bulkDeleteBtn = new Button("Delete selected");
+        bulkDeleteBtn.setTooltip(new Tooltip("Delete all selected rows completely (Ctrl+click for multi-select)"));
+        bulkDeleteBtn.setOnAction(e -> {
+            if (needLogin(result)) return;
+            List<Card> selected = new ArrayList<>(table.getSelectionModel().getSelectedItems());
+            if (selected.isEmpty()) {
+                result.setText("Nothing selected: Ctrl+click rows to select several.");
+                return;
+            }
+            DialogHelper.showConfirmation(
+                    "Confirm bulk delete",
+                    "Delete " + selected.size() + " card(s) completely from catalog?",
+                    () -> {
+                        for (Card c : selected) {
+                            catalog.remove(c.getSku());
+                            table.getItems().removeIf(k -> k.getSku().equals(c.getSku()));
+                            if (activeCards != null) activeCards.removeIf(k -> k.getSku().equals(c.getSku()));
+                            recordRemoveCard(c);
+                        }
+                        result.setText("Deleted " + selected.size() + " card(s). Undo restores them one by one.");
+                        detailPanel.clear();
+                    },
+                    () -> {
+                        result.setText("Bulk delete cancelled.");
+                    }
+            );
+        });
         Button undoBtn = new Button("Undo");
         undoBtn.setTooltip(new Tooltip("Undo last catalog action (Ctrl+Z)"));
         undoBtn.setOnAction(e -> {
@@ -634,6 +665,18 @@ public final class CatalogView {
             } else {
                 result.setText("Nothing to redo.");
             }
+        });
+
+        Button refreshBtn = new Button("↻ Refresh");
+        refreshBtn.setTooltip(new Tooltip("Reload catalog from database (source of truth)"));
+        refreshBtn.setOnAction(e -> {
+            if (needLogin(result)) return;
+            List<Card> fresh = loadCards();
+            catalog.clear();
+            catalog.putAll(CatalogView.indexOf(fresh));
+            table.getItems().setAll(fresh);
+            activeSkuGraph = tutorengine.algorithms.SkuCorrector.build(new ArrayList<>(catalog.values()));
+            result.setText("Catalog refreshed: " + fresh.size() + " card(s) from database.");
         });
 
         Button undoImportBtn = new Button("Undo import");
@@ -710,7 +753,7 @@ public final class CatalogView {
 
         // Detail dock under the table: the table never shifts when selecting.
         HBox formRow = new HBox(8, nameField, priceField, qtyField, slotField);
-        HBox btnRow = new HBox(8, addBtn, removeBtn, undoBtn, redoBtn, importBtn, undoImportBtn);
+        HBox btnRow = new HBox(8, addBtn, removeBtn, bulkDeleteBtn, undoBtn, redoBtn, importBtn, undoImportBtn, refreshBtn);
         VBox controls = new VBox(8, formRow, btnRow);
         VBox bottom = new VBox(8, detailPanel.getNode(), controls);
         bottom.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
@@ -819,7 +862,82 @@ public final class CatalogView {
         if (card == null) return;
         undoStack.push(CatalogAction.remove(card));
         redoStack.clear();
+        deleteCardFromDb(card);
         syncDetailPanel(card);
+    }
+
+    /** Delete a card's stored rows by SKU (fallback: name+set+collector). */
+    public static void deleteCardFromDb(Card card) {
+        if (card == null) return;
+        try (java.sql.Connection c = tutorengine.db.Db.open()) {
+            if (!nz(card.getSku()).isEmpty()) {
+                try (java.sql.PreparedStatement ps = c.prepareStatement(
+                        "DELETE FROM card_instances WHERE sku = ?")) {
+                    ps.setString(1, card.getSku());
+                    ps.executeUpdate();
+                }
+            } else {
+                try (java.sql.PreparedStatement ps = c.prepareStatement(
+                        "DELETE FROM card_instances WHERE IFNULL(name, '') = ?"
+                        + " AND IFNULL(set_code, '') = ? AND IFNULL(collector_number, '') = ?")) {
+                    ps.setString(1, nz(card.getName()));
+                    ps.setString(2, nz(card.getSetCode()));
+                    ps.setString(3, nz(card.getCollectorNumber()));
+                    ps.executeUpdate();
+                }
+            }
+        } catch (Exception ignored) {
+            // Memory state is source of truth for the session; DB follows best-effort.
+        }
+    }
+
+    /** Re-insert a card row (undo of remove); box restored only if still a valid container. */
+    public static void insertCardRow(Card card) {
+        if (card == null) return;
+        try (java.sql.Connection c = tutorengine.db.Db.open()) {
+            String boxId = null;
+            String loc = nz(card.getBoxLocationId());
+            if (!loc.isEmpty()) {
+                try (java.sql.PreparedStatement q = c.prepareStatement(
+                        "SELECT box_id FROM box_containers WHERE box_id = ?")) {
+                    q.setString(1, loc);
+                    try (java.sql.ResultSet rs = q.executeQuery()) {
+                        if (rs.next()) boxId = loc;
+                    }
+                }
+            }
+            try (java.sql.PreparedStatement ps = c.prepareStatement(
+                    "INSERT INTO card_instances (id, scryfall_id, name, set_code, collector_number,"
+                    + " rarity, condition, finish, language, status, box_id, created_at, quantity,"
+                    + " sku, set_name, color, card_type, release_year, price_php, demand,"
+                    + " mana_cost, power, toughness)"
+                    + " VALUES (?,?,?,?,?,?,?,?,?,'STORED',?,CURRENT_TIMESTAMP,?,"
+                    + " ?,?,?,?,?,?,?,?,?,?,?)")) {
+                ps.setString(1, java.util.UUID.randomUUID().toString());
+                ps.setString(2, "");
+                ps.setString(3, nz(card.getName()));
+                ps.setString(4, nz(card.getSetCode()));
+                ps.setString(5, nz(card.getCollectorNumber()));
+                ps.setString(6, "common");
+                ps.setString(7, "NM");
+                ps.setString(8, card.isFoil() ? "foil" : "nonfoil");
+                ps.setString(9, "EN");
+                ps.setString(10, boxId);
+                ps.setInt(11, Math.max(0, card.getQuantity()));
+                ps.setString(12, nz(card.getSku()));
+                ps.setString(13, nz(card.getSetName()));
+                ps.setString(14, nz(card.getColor()));
+                ps.setString(15, nz(card.getCardType()));
+                ps.setInt(16, card.getReleaseYear());
+                ps.setDouble(17, card.getPrice());
+                ps.setInt(18, card.getDemandScore());
+                ps.setString(19, nz(card.getManaCost()));
+                ps.setString(20, nz(card.getPower()));
+                ps.setString(21, nz(card.getToughness()));
+                ps.executeUpdate();
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     public static void saveQuantityToDb(String cardName, int quantity) {
@@ -868,6 +986,7 @@ public final class CatalogView {
                     activeTable.getSelectionModel().select(action.card);
                     activeTable.scrollTo(action.card);
                 }
+                insertCardRow(action.card);
             }
         }
     }
@@ -907,6 +1026,7 @@ public final class CatalogView {
                 if (activeCatalog != null) activeCatalog.remove(action.card.getSku());
                 if (activeCards != null) activeCards.removeIf(c -> c.getSku().equals(action.card.getSku()));
                 if (activeTable != null) activeTable.getItems().removeIf(c -> c.getSku().equals(action.card.getSku()));
+                deleteCardFromDb(action.card);
             }
         }
     }

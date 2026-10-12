@@ -110,8 +110,8 @@ public final class ScryfallLookup {
     }
 
     public static synchronized String nextSku(String setCode) {
-        String code = setCode == null || setCode.isBlank() ? "GEN" : setCode.trim().toUpperCase();
-        return String.format("LIVE-%s-%03d", code, ++skuSeq);
+        String code = setCode == null || setCode.isBlank() ? "UNK" : setCode.trim().toUpperCase();
+        return String.format("MTG-%s-%03d", code, ++skuSeq);
     }
 
     static String colorOf(List<String> colors) {

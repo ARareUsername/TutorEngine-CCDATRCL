@@ -1,6 +1,10 @@
 package tutorengine.ui;
 
+import atlantafx.base.theme.Styles;
 import java.awt.GraphicsEnvironment;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -12,6 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import tutorengine.db.Db;
 import tutorengine.model.Card;
 import tutorengine.util.CSVLoader;
 
@@ -34,7 +39,7 @@ public class FxApp extends Application {
     // Nav items, toolkit-free for headless checks. Demos hides unless dev flag.
     public static java.util.List<String> navItems() {
         var items = new java.util.ArrayList<>(
-                java.util.List.of("Catalog", "Rapid Intake", "Outtake", "Restock", "Storage", "Priority", "Benchmarks"));
+                java.util.List.of("Catalog", "Rapid Intake", "Storage", "Outtake", "Restock", "Priority", "Benchmarks"));
         if (Boolean.getBoolean("tutorengine.dev")) items.add("Demos");
         return items;
     }
@@ -85,6 +90,40 @@ public class FxApp extends Application {
         grid.add(new javafx.scene.control.Label("Card size:"), 0, 1);
         grid.add(cardBox, 1, 1);
 
+        // Debug: wipe catalog button
+var wipeBtn = new javafx.scene.control.Button("Wipe Catalog (delete all cards)");
+        wipeBtn.setStyle("-fx-background-color: #dc2626; -fx-text-fill: white;");
+        wipeBtn.setOnAction(e -> {
+            DialogHelper.showConfirmation(
+                    "Confirm Catalog Wipe",
+                    "This will permanently delete ALL cards from the catalog database.\n"
+                    + "This action cannot be undone. Continue?",
+                    () -> {
+                        try {
+                            try (Connection c = Db.open()) {
+                                try (java.sql.PreparedStatement ps = c.prepareStatement(
+                                        "DELETE FROM card_instances")) {
+                                    ps.executeUpdate();
+                                }
+                            }
+                            // Refresh catalog view to reflect empty state
+                            if (CatalogView.activeCatalog != null) CatalogView.activeCatalog.clear();
+                            if (CatalogView.activeTable != null) CatalogView.activeTable.getItems().clear();
+                            System.out.println("Catalog wiped: all cards deleted from database.");
+                        } catch (Exception ex) {
+                            System.err.println("Catalog wipe failed: " + ex.getMessage());
+                        }
+                    },
+                    () -> { /* user cancelled */ }
+            );
+        });
+
+        var grid2 = new javafx.scene.layout.GridPane();
+        grid2.setHgap(10);
+        grid2.setVgap(10);
+        grid2.add(new javafx.scene.control.Label(""), 0, 0);
+        grid2.add(wipeBtn, 1, 0);
+
         if (root != null) {
             StackPane backdrop = new StackPane();
             backdrop.setStyle("-fx-background-color: rgba(15, 23, 42, 0.65);");
@@ -108,7 +147,8 @@ public class FxApp extends Application {
             cancelBtn.setOnAction(e -> finalRoot.getChildren().remove(backdrop));
 
             Button saveBtn = new Button("Save");
-            saveBtn.setStyle("-fx-font-weight: bold; -fx-base: #0284c7; -fx-text-fill: white;");
+            saveBtn.getStyleClass().add(Styles.ACCENT);
+            saveBtn.setStyle("-fx-font-weight: bold;");
             saveBtn.setOnAction(e -> {
                 finalRoot.getChildren().remove(backdrop);
                 DisplaySettings.setText(textBox.getValue());
@@ -121,7 +161,7 @@ public class FxApp extends Application {
             HBox btnRow = new HBox(10, cancelBtn, saveBtn);
             btnRow.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
 
-            card.getChildren().addAll(titleLabel, subLabel, grid, btnRow);
+            card.getChildren().addAll(titleLabel, subLabel, grid, grid2, btnRow);
             backdrop.getChildren().add(card);
 
             backdrop.setOnKeyPressed(e -> {
@@ -201,9 +241,10 @@ public class FxApp extends Application {
         nav.getChildren().add(sectionLabel("COUNTER"));
         Button catalogBtn = navBtn(nav, "Catalog", "#059669");
         Button rapidIntakeBtn = navBtn(nav, "Rapid Intake", "#0ea5e9");
-        Button outtakeBtn = navBtn(nav, "Outtake", "#10b981");
-        Button restockBtn = navBtn(nav, "Restock", "#f59e0b");
         Button storageBtn = navBtn(nav, "Storage", "#0284c7");
+        Button outtakeBtn = navBtn(nav, "Outtake", "#10b981");
+        nav.getChildren().add(sectionLabel("VIEW ONLY"));
+        Button restockBtn = navBtn(nav, "Restock", "#f59e0b");
         Button priorityBtn = navBtn(nav, "Priority", "#d97706");
         nav.getChildren().add(sectionLabel("MANAGER"));
         Button benchBtn = navBtn(nav, "Benchmarks", "#7c3aed");
@@ -216,9 +257,9 @@ public class FxApp extends Application {
         }
         catalogBtn.setOnAction(e -> show.accept(catalogBtn, "Catalog"));
         rapidIntakeBtn.setOnAction(e -> show.accept(rapidIntakeBtn, "Rapid Intake"));
+        storageBtn.setOnAction(e -> show.accept(storageBtn, "Storage"));
         outtakeBtn.setOnAction(e -> show.accept(outtakeBtn, "Outtake"));
         restockBtn.setOnAction(e -> show.accept(restockBtn, "Restock"));
-        storageBtn.setOnAction(e -> show.accept(storageBtn, "Storage"));
         priorityBtn.setOnAction(e -> show.accept(priorityBtn, "Priority"));
         benchBtn.setOnAction(e -> show.accept(benchBtn, "Benchmarks"));
         RestockView.openRecordHandler = card -> {
@@ -262,12 +303,13 @@ public class FxApp extends Application {
         DialogHelper.registerPrimaryStage(stage);
         DialogHelper.registerRootContainer(shell);
         javafx.scene.Scene scene = new javafx.scene.Scene(shell, 1000, 640);
-        // Clerk shortcuts: Alt+1..6 tabs, Alt+R Rapid Intake
-        Button[] order = new Button[]{catalogBtn, rapidIntakeBtn, restockBtn, storageBtn, priorityBtn, benchBtn};
+        // Clerk shortcuts: Alt+1..7 tabs, Alt+R Refresh Catalog, Alt+R Rapid Intake
+        Button[] order = new Button[]{catalogBtn, rapidIntakeBtn, storageBtn, outtakeBtn, restockBtn, priorityBtn, benchBtn};
         javafx.scene.input.KeyCode[] keys = {
                 javafx.scene.input.KeyCode.DIGIT1, javafx.scene.input.KeyCode.DIGIT2,
                 javafx.scene.input.KeyCode.DIGIT3, javafx.scene.input.KeyCode.DIGIT4,
-                javafx.scene.input.KeyCode.DIGIT5, javafx.scene.input.KeyCode.DIGIT6};
+                javafx.scene.input.KeyCode.DIGIT5, javafx.scene.input.KeyCode.DIGIT6,
+                javafx.scene.input.KeyCode.DIGIT7};
         for (int i = 0; i < order.length; i++) {
             Button target = order[i];
             scene.getAccelerators().put(
@@ -275,6 +317,10 @@ public class FxApp extends Application {
                             javafx.scene.input.KeyCombination.ALT_DOWN),
                     target::fire);
         }
+        scene.getAccelerators().put(
+                new javafx.scene.input.KeyCodeCombination(javafx.scene.input.KeyCode.R,
+                        javafx.scene.input.KeyCombination.ALT_DOWN),
+                catalogBtn::fire);
         scene.getAccelerators().put(
                 new javafx.scene.input.KeyCodeCombination(javafx.scene.input.KeyCode.R,
                         javafx.scene.input.KeyCombination.ALT_DOWN),
