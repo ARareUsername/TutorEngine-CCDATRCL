@@ -845,7 +845,7 @@ public final class CatalogView {
         redoStack.clear();
 
         if ("quantity".equals(field) && newValue instanceof Integer) {
-            saveQuantityToDb(card.getName(), (Integer) newValue);
+            saveQuantityToDb(card.getName(), card.getSetCode(), (Integer) newValue);
         }
 
         syncDetailPanel(card);
@@ -940,12 +940,13 @@ public final class CatalogView {
         }
     }
 
-    public static void saveQuantityToDb(String cardName, int quantity) {
+    public static void saveQuantityToDb(String cardName, String setCode, int quantity) {
         try (java.sql.Connection c = tutorengine.db.Db.open();
              java.sql.PreparedStatement ps = c.prepareStatement(
-                     "UPDATE card_instances SET quantity = ? WHERE name = ?")) {
+                     "UPDATE card_instances SET quantity = ? WHERE name = ? AND set_code = ?")) {
             ps.setInt(1, quantity);
             ps.setString(2, cardName);
+            ps.setString(3, setCode);
             ps.executeUpdate();
         } catch (Exception ignored) {
         }
@@ -970,7 +971,7 @@ public final class CatalogView {
             case PROPERTY_CHANGE -> {
                 applyEditValue(action.card, action.field, action.oldValue);
                 if ("quantity".equals(action.field) && action.oldValue instanceof Integer) {
-                    saveQuantityToDb(action.card.getName(), (Integer) action.oldValue);
+                    saveQuantityToDb(action.card.getName(), action.card.getSetCode(), (Integer) action.oldValue);
                 }
             }
             case ADD_CARD -> {
@@ -1010,7 +1011,7 @@ public final class CatalogView {
             case PROPERTY_CHANGE -> {
                 applyEditValue(action.card, action.field, action.newValue);
                 if ("quantity".equals(action.field) && action.newValue instanceof Integer) {
-                    saveQuantityToDb(action.card.getName(), (Integer) action.newValue);
+                    saveQuantityToDb(action.card.getName(), action.card.getSetCode(), (Integer) action.newValue);
                 }
             }
             case ADD_CARD -> {
