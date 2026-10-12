@@ -54,7 +54,7 @@ public class BoxContainer {
     }
 
     public static void main(String[] args) {
-        BoxContainer bc = new BoxContainer("CAB-T-TOP", "White cabinet top: T cluster", "White Cabinet", "TOP", 0, 0, 1000, 240, "NAME_ASC");
+        BoxContainer bc = new BoxContainer("FRA-1", "White cabinet top: T cluster", "White Cabinet", "TOP", 0, 0, 1000, 240, "NAME_ASC");
         System.out.println("BoxContainer: " + bc + " fill=" + String.format("%.1f%%", bc.fillPercentage()));
         System.out.println("BoxContainer OK.");
     }

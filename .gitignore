@@ -7,3 +7,4 @@ tutorengine.db-shm
 tutorengine.db-journal
 .agent/
 .opencode/
+bin/

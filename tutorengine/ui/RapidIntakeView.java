@@ -50,7 +50,6 @@ public final class RapidIntakeView {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(14));
 
-        String[] employeeHandle = new String[]{ RapidIntake.defaultEmployeeHandle() };
         String[] activeBatchId = new String[]{ "BATCH-" + System.currentTimeMillis() };
         ResolvedCard[] currentResolved = new ResolvedCard[1];
         List<Variant> activeVariants = new ArrayList<>();
@@ -60,16 +59,10 @@ public final class RapidIntakeView {
         autoCommitCheck.setSelected(true);
         autoCommitCheck.setTooltip(new Tooltip("Directly commits added cards to the Catalog view and inventory on Enter"));
 
-        // --- Top Bar: Employee info & Override ---
-        Label empLabel = new Label("Clerk: " + employeeHandle[0]);
-        empLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: -color-fg-muted;");
-        Button switchHandleBtn = new Button("Change Clerk");
-        switchHandleBtn.setStyle("-fx-font-size: 11px;");
-
         Label batchLabel = new Label("Batch: " + activeBatchId[0]);
         batchLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -color-fg-muted;");
 
-        HBox metaBar = new HBox(10, empLabel, switchHandleBtn, batchLabel);
+        HBox metaBar = new HBox(10, batchLabel);
         metaBar.setAlignment(Pos.CENTER_LEFT);
 
         // --- Restore Banner Slot ---
@@ -112,7 +105,7 @@ public final class RapidIntakeView {
         Label detailsLabel = new Label("");
         detailsLabel.setStyle("-fx-font-size: 12px;");
         Label routingLabel = new Label("");
-        routingLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0369a1;");
+        routingLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -color-accent-fg;");
 
         HBox variantRibbon = new HBox(6);
         variantRibbon.setAlignment(Pos.CENTER_LEFT);
@@ -127,7 +120,7 @@ public final class RapidIntakeView {
         // 2. Staged Batch Table (with remove/undo + inline qty edit)
         ObservableList<Card> stagedCards = FXCollections.observableArrayList();
         TableView<Card> stagedTable = new TableView<>(stagedCards);
-        setupStagedTable(stagedTable, employeeHandle, statusLabel);
+        setupStagedTable(stagedTable, statusLabel);
         VBox.setVgrow(stagedTable, Priority.ALWAYS);
 
         // Name-fallback suggestion list (shown when shortcut parse fails)
@@ -172,10 +165,10 @@ public final class RapidIntakeView {
         Runnable checkDraftsBanner = () -> {
             bannerSlot.getChildren().clear();
             try (Connection c = Db.open()) {
-                List<DraftRow> drafts = RapidIntake.loadDrafts(c, employeeHandle[0]);
+                List<DraftRow> drafts = RapidIntake.loadDrafts(c);
                 if (!drafts.isEmpty()) {
-                    Label bannerText = new Label("Found " + drafts.size() + " uncommitted draft(s) from previous session for " + employeeHandle[0]);
-                    bannerText.setStyle("-fx-font-weight: bold; -fx-text-fill: #854d0e;");
+                    Label bannerText = new Label("Found " + drafts.size() + " uncommitted draft(s) from previous session.");
+                    bannerText.setStyle("-fx-font-weight: bold; -fx-text-fill: -color-warning-fg;");
                     Button restoreBtn = new Button("Restore Drafts");
                     restoreBtn.setStyle("-fx-base: #ca8a04; -fx-text-fill: white; -fx-font-weight: bold;");
                     Button discardBtn = new Button("Discard");
@@ -189,32 +182,37 @@ public final class RapidIntakeView {
                                 if (catalog != null) catalog.put(card.getSku(), card);
                                 if (catalogTable != null && !catalogTable.getItems().contains(card)) catalogTable.getItems().add(card);
                                 CatalogView.addCard(card);
+                                new Thread(() -> {
+                                    try (Connection conn = Db.open()) {
+                                        RapidIntake.persistUnstoredInstances(conn, card);
+                                    } catch (Exception ignored) {}
+                                }).start();
                             }
                         }
                         bannerSlot.getChildren().clear();
                         statusLabel.setText("Restored " + drafts.size() + " drafts to current batch.");
-                        statusLabel.setStyle("-fx-text-fill: #16a34a;");
+                        statusLabel.setStyle("-fx-text-fill: -color-success-fg;");
                         updateSummary.run();
                         shortcutField.requestFocus();
                     });
 
                     discardBtn.setOnAction(e -> {
                         try (Connection conn = Db.open()) {
-                            RapidIntake.discardDrafts(conn, employeeHandle[0]);
+                            RapidIntake.discardDrafts(conn);
                             bannerSlot.getChildren().clear();
                             statusLabel.setText("Discarded uncommitted drafts.");
                             statusLabel.setStyle("-fx-text-fill: -color-fg-muted;");
                             shortcutField.requestFocus();
                         } catch (Exception ex) {
                             statusLabel.setText("Error discarding drafts: " + ex.getMessage());
-                            statusLabel.setStyle("-fx-text-fill: #dc2626;");
+                            statusLabel.setStyle("-fx-text-fill: -color-danger-fg;");
                         }
                     });
 
                     HBox banner = new HBox(10, bannerText, restoreBtn, discardBtn);
                     banner.setAlignment(Pos.CENTER_LEFT);
                     banner.setPadding(new Insets(8, 12, 8, 12));
-                    banner.setStyle("-fx-background-color: #fef9c3; -fx-background-radius: 6; -fx-border-color: #fde047; -fx-border-radius: 6;");
+                    banner.setStyle("-fx-background-color: -color-warning-subtle; -fx-background-radius: 6; -fx-border-color: -color-warning-emphasis; -fx-border-radius: 6;");
                     bannerSlot.getChildren().add(banner);
                 }
             } catch (Exception ex) {
@@ -352,24 +350,31 @@ public final class RapidIntakeView {
                 final ResolvedCard stagedCopy = toStage;
                 new Thread(() -> {
                     try (Connection conn = Db.open()) {
-                        String draftId = RapidIntake.saveDraft(conn, employeeHandle[0], activeBatchId[0], stagedCopy);
+                        String draftId = RapidIntake.saveDraft(conn, activeBatchId[0], stagedCopy);
                         Platform.runLater(() -> stagedDraftIds.add(draftId));
                     } catch (Exception ex) {
                         Platform.runLater(() -> statusLabel.setText("Draft autosave failed: " + ex.getMessage()));
                     }
                 }).start();
 
+                String locDisp = newCard.getBoxLocationId() == null || newCard.getBoxLocationId().isBlank()
+                        ? "Unassigned" : newCard.getBoxLocationId();
                 if (autoCommitCheck.isSelected()) {
                     if (catalog != null) catalog.put(newCard.getSku(), newCard);
                     if (catalogTable != null && !catalogTable.getItems().contains(newCard)) catalogTable.getItems().add(newCard);
                     CatalogView.addCard(newCard);
-                    statusLabel.setText(String.format("✓ Saved to Catalog View: %s [%s #%s] x%d (%s) -> %s",
+                    new Thread(() -> {
+                        try (Connection conn = Db.open()) {
+                            RapidIntake.persistUnstoredInstances(conn, newCard);
+                        } catch (Exception ignored) {}
+                    }).start();
+                    statusLabel.setText(String.format("✓ Saved to Catalog & Storage Queue: %s [%s #%s] x%d (%s) -> %s",
                             newCard.getName(), toStage.setCode(), toStage.collectorNumber(),
-                            newCard.getQuantity(), toStage.foil() ? "Foil" : "Non-foil", newCard.getBoxLocationId()));
+                            newCard.getQuantity(), toStage.foil() ? "Foil" : "Non-foil", locDisp));
                 } else {
                     statusLabel.setText(String.format("✓ Staged %s [%s #%s] x%d (%s) -> %s (Click Commit Batch to save)",
                             newCard.getName(), toStage.setCode(), toStage.collectorNumber(),
-                            newCard.getQuantity(), toStage.foil() ? "Foil" : "Non-foil", newCard.getBoxLocationId()));
+                            newCard.getQuantity(), toStage.foil() ? "Foil" : "Non-foil", locDisp));
                 }
                 statusLabel.setStyle("-fx-text-fill: #16a34a;");
 
@@ -406,15 +411,17 @@ public final class RapidIntakeView {
         commitBatchBtn.setOnAction(e -> {
             if (stagedCards.isEmpty()) return;
             int count = stagedCards.size();
+            List<Card> committedCards = new ArrayList<>(stagedCards);
             for (Card c : stagedCards) {
                 if (catalog != null) catalog.put(c.getSku(), c);
                 if (catalogTable != null && !catalogTable.getItems().contains(c)) catalogTable.getItems().add(c);
                 CatalogView.addCard(c);
             }
 
-            // Purge drafts from SQLite
+            // Persist unstored card instances to SQLite & purge drafts
             new Thread(() -> {
                 try (Connection conn = Db.open()) {
+                    RapidIntake.persistUnstoredInstances(conn, committedCards);
                     RapidIntake.purgeDrafts(conn, stagedDraftIds);
                     RapidIntake.purgeDraftsByBatch(conn, activeBatchId[0]);
                 } catch (Exception ignored) {}
@@ -425,7 +432,7 @@ public final class RapidIntakeView {
             activeBatchId[0] = "BATCH-" + System.currentTimeMillis();
             batchLabel.setText("Batch: " + activeBatchId[0]);
 
-            statusLabel.setText("✓ Successfully committed " + count + " cards to Catalog View & inventory. Drafts purged.");
+            statusLabel.setText("✓ Successfully committed " + count + " cards to Storage Queue & Catalog View. Drafts purged.");
             statusLabel.setStyle("-fx-text-fill: #16a34a;");
             updateSummary.run();
             shortcutField.requestFocus();
@@ -455,7 +462,7 @@ public final class RapidIntakeView {
             new Thread(() -> {
                 try (Connection conn = Db.open()) {
                     // Find the draft for this card and soft-delete it
-                    List<DraftRow> drafts = RapidIntake.loadDrafts(conn, employeeHandle[0]);
+                    List<DraftRow> drafts = RapidIntake.loadDrafts(conn);
                     for (DraftRow d : drafts) {
                         if (d.name().equals(last.getName()) && d.setCode().equals(last.getSetCode())) {
                             RapidIntake.removeDraft(conn, d.draftId());
@@ -486,22 +493,6 @@ public final class RapidIntakeView {
             statusLabel.setStyle("-fx-text-fill: #16a34a;");
             lastRemovedDraftId[0] = null;
             shortcutField.requestFocus();
-        });
-
-        // --- Action: Switch Clerk Handle ---
-        switchHandleBtn.setOnAction(e -> {
-            javafx.scene.control.TextInputDialog tid = new javafx.scene.control.TextInputDialog(employeeHandle[0]);
-            tid.setTitle("Change Clerk");
-            tid.setHeaderText("Set clerk identifier for rapid intake and draft autosave:");
-            DialogHelper.showAndWait(tid).ifPresent(h -> {
-                String val = h.trim();
-                if (!val.isEmpty()) {
-                    employeeHandle[0] = val;
-                    empLabel.setText("Clerk: " + val);
-                    checkDraftsBanner.run();
-                    shortcutField.requestFocus();
-                }
-            });
         });
 
         // --- Keyboard Filter: Alt+1..9 for Variant Ribbon ---
@@ -548,7 +539,7 @@ public final class RapidIntakeView {
         return root;
     }
 
-    private static void setupStagedTable(TableView<Card> table, String[] employeeHandle, Label statusLabel) {
+    private static void setupStagedTable(TableView<Card> table, Label statusLabel) {
         TableColumn<Card, Number> rowCol = new TableColumn<>("#");
         rowCol.setPrefWidth(35);
         rowCol.setCellValueFactory(d -> new SimpleIntegerProperty(table.getItems().indexOf(d.getValue()) + 1));
@@ -588,7 +579,7 @@ public final class RapidIntakeView {
                         c.getClass(); // Card is immutable; update via DB + refresh
                         new Thread(() -> {
                             try (Connection conn = Db.open()) {
-                                List<DraftRow> drafts = RapidIntake.loadDrafts(conn, employeeHandle[0]);
+                                List<DraftRow> drafts = RapidIntake.loadDrafts(conn);
                                 for (DraftRow d : drafts) {
                                     if (d.name().equals(c.getName()) && d.setCode().equals(c.getSetCode())) {
                                         RapidIntake.updateDraftQuantity(conn, d.draftId(), v);
@@ -622,7 +613,9 @@ public final class RapidIntakeView {
 
         TableColumn<Card, String> slotCol = new TableColumn<>("Target Slot");
         slotCol.setPrefWidth(120);
-        slotCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getBoxLocationId()));
+        slotCol.setCellValueFactory(d -> new SimpleStringProperty(
+                d.getValue().getBoxLocationId() == null || d.getValue().getBoxLocationId().isBlank()
+                        ? "Unassigned" : d.getValue().getBoxLocationId()));
 
         table.getColumns().setAll(List.of(rowCol, skuCol, nameCol, setCol, foilCol, qtyCol, priceCol, slotCol));
     }

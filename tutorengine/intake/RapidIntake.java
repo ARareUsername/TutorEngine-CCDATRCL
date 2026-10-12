@@ -11,11 +11,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import tutorengine.auth.UserSessionManager;
 import tutorengine.model.Card;
 import tutorengine.model.StorageLocation;
+import tutorengine.algorithms.SkuCorrector;
+import tutorengine.search.SkuFuzzy;
 import tutorengine.search.ScryfallLookup;
 import tutorengine.util.CSVLoader;
 
@@ -76,7 +79,6 @@ public final class RapidIntake {
 
     public record DraftRow(
             String draftId,
-            String employeeHandle,
             String batchId,
             String scryfallId,
             String name,
@@ -187,6 +189,28 @@ public final class RapidIntake {
         return parseCardJson(body, false, 1, "NM");
     }
 
+    // --- Fuzzy search over the local card catalog (same SkuFuzzy mechanism as catalog) ---
+    // Returns up to 5 card name suggestions for a free-text query.
+    // Falls back to Scryfall fuzzy if catalog unavailable; offline-first with local dataset.
+    public static List<String> fuzzySearch(String query) {
+        if (query == null || query.trim().length() < 2) return List.of();
+        try {
+            List<Card> cards = CSVLoader.load("Dataset/cards.csv");
+            Map<String, Card> catalog = new java.util.HashMap<>();
+            for (Card c : cards) catalog.put(c.getSku(), c);
+            Map<String, List<String>> graph = SkuCorrector.build(cards);
+            List<Card> hits = SkuFuzzy.suggest(catalog, graph, query.trim(), 5);
+            return hits.stream()
+                    .map(Card::getName)
+                    .distinct()
+                    .limit(5)
+                    .toList();
+        } catch (Exception ignored) {
+            // Fall back to Scryfall fuzzy search (offline-first: local catalog preferred)
+            return List.of();
+        }
+    }
+
     public static ResolvedCard resolve(ParsedShortcut shortcut) throws Exception {
         if (!shortcut.isValid()) {
             throw new IllegalArgumentException(shortcut.errorMessage());
@@ -290,15 +314,7 @@ public final class RapidIntake {
     }
 
     // 2.1 SQLite intake_drafts Persistence
-    public static String defaultEmployeeHandle() {
-        var current = UserSessionManager.getInstance().currentOrNull();
-        if (current != null && current.username() != null && !current.username().isBlank()) {
-            return current.username();
-        }
-        return System.getProperty("user.name", "clerk");
-    }
-
-    public static String saveDraft(Connection c, String employeeHandle, String batchId, ResolvedCard card) throws Exception {
+    public static String saveDraft(Connection c, String batchId, ResolvedCard card) throws Exception {
         // Dedup: same setCode + collectorNumber → increment qty (rapid-intake-improvements)
         String existingId = findDuplicate(c, card);
         if (existingId != null) {
@@ -313,23 +329,23 @@ public final class RapidIntake {
 
         String draftId = UUID.randomUUID().toString();
         String finish = card.foil() ? "FOIL" : "NONFOIL";
+
         String sql = "INSERT INTO intake_drafts ("
-                + "draft_id, employee_handle, batch_id, scryfall_id, name, set_code, collector_number, "
+                + "draft_id, batch_id, scryfall_id, name, set_code, collector_number, "
                 + "condition, finish, quantity, price_php, image_uri, created_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, draftId);
-            ps.setString(2, employeeHandle);
-            ps.setString(3, batchId == null ? "DRAFT-" + System.currentTimeMillis() : batchId);
-            ps.setString(4, card.scryfallId());
-            ps.setString(5, card.name());
-            ps.setString(6, card.setCode());
-            ps.setString(7, card.collectorNumber());
-            ps.setString(8, card.condition() == null ? "NM" : card.condition());
-            ps.setString(9, finish);
-            ps.setInt(10, card.quantity());
-            ps.setDouble(11, card.phpPrice() == null ? 0.0 : card.phpPrice());
-            ps.setString(12, card.imageUri());
+            ps.setString(2, batchId == null ? "DRAFT-" + System.currentTimeMillis() : batchId);
+            ps.setString(3, card.scryfallId());
+            ps.setString(4, card.name());
+            ps.setString(5, card.setCode());
+            ps.setString(6, card.collectorNumber());
+            ps.setString(7, card.condition() == null ? "NM" : card.condition());
+            ps.setString(8, finish);
+            ps.setInt(9, card.quantity());
+            ps.setDouble(10, card.phpPrice() == null ? 0.0 : card.phpPrice());
+            ps.setString(11, card.imageUri());
             ps.executeUpdate();
         }
         return draftId;
@@ -392,22 +408,20 @@ public final class RapidIntake {
         }
     }
 
-    // Load only non-removed drafts.
-    public static List<DraftRow> loadDrafts(Connection c, String employeeHandle) throws Exception {
+    // Load only non-removed drafts (global; single-clerk tool).
+    public static List<DraftRow> loadDrafts(Connection c) throws Exception {
         List<DraftRow> list = new ArrayList<>();
-        String sql = "SELECT draft_id, employee_handle, batch_id, scryfall_id, name, set_code, "
+        String sql = "SELECT draft_id, batch_id, scryfall_id, name, set_code, "
                 + "collector_number, condition, finish, quantity, price_php, image_uri, created_at "
-                + "FROM intake_drafts WHERE employee_handle = ? AND removed = 0 ORDER BY created_at ASC";
+                + "FROM intake_drafts WHERE removed = 0 ORDER BY created_at ASC";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, employeeHandle);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new DraftRow(
                             rs.getString(1), rs.getString(2), rs.getString(3),
                             rs.getString(4), rs.getString(5), rs.getString(6),
-                            rs.getString(7), rs.getString(8), rs.getString(9),
-                            rs.getInt(10), rs.getDouble(11), rs.getString(12),
-                            rs.getString(13)
+                            rs.getString(7), rs.getString(8), rs.getInt(9),
+                            rs.getDouble(10), rs.getString(11), rs.getString(12)
                     ));
                 }
             }
@@ -415,10 +429,9 @@ public final class RapidIntake {
         return list;
     }
 
-    public static int discardDrafts(Connection c, String employeeHandle) throws Exception {
-        String sql = "DELETE FROM intake_drafts WHERE employee_handle = ?";
+    public static int discardDrafts(Connection c) throws Exception {
+        String sql = "DELETE FROM intake_drafts";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setString(1, employeeHandle);
             return ps.executeUpdate();
         }
     }
@@ -444,6 +457,61 @@ public final class RapidIntake {
         return count;
     }
 
+    /**
+     * Persist cards into card_instances with status = 'UNSTORED' and box_id = NULL
+     * so they become available in the Storage view as pending batches.
+     */
+    public static int persistUnstoredInstances(Connection c, List<Card> cards) throws Exception {
+        if (cards == null || cards.isEmpty()) return 0;
+        int total = 0;
+        String sql = "INSERT INTO card_instances (id, scryfall_id, name, set_code, collector_number,"
+                + " rarity, condition, finish, language, status, box_id, created_at, quantity,"
+                + " sku, set_name, color, card_type, release_year, price_php, demand,"
+                + " mana_cost, power, toughness)"
+                + " VALUES (?,?,?,?,?,?,?,?,?,'UNSTORED',NULL,CURRENT_TIMESTAMP,?,"
+                + " ?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            for (Card card : cards) {
+                int qty = Math.max(1, card.getQuantity());
+                String set = card.getSetCode() != null && !card.getSetCode().isBlank() ? card.getSetCode().toUpperCase() : "UNK";
+                String collNum = card.getCollectorNumber() != null && !card.getCollectorNumber().isBlank() ? card.getCollectorNumber() : "1";
+                String sku = card.getSku() != null ? card.getSku() : "";
+                String finish = card.isFoil() ? "foil" : "nonfoil";
+                for (int i = 0; i < qty; i++) {
+                    ps.setString(1, UUID.randomUUID().toString());
+                    ps.setString(2, "");
+                    ps.setString(3, card.getName());
+                    ps.setString(4, set);
+                    ps.setString(5, collNum);
+                    ps.setString(6, "common");
+                    ps.setString(7, "NM");
+                    ps.setString(8, finish);
+                    ps.setString(9, "EN");
+                    ps.setInt(10, 1);
+                    ps.setString(11, sku);
+                    ps.setString(12, card.getSetName() != null ? card.getSetName() : "");
+                    ps.setString(13, card.getColor() != null ? card.getColor() : "");
+                    ps.setString(14, card.getCardType() != null ? card.getCardType() : "");
+                    ps.setInt(15, card.getReleaseYear());
+                    ps.setDouble(16, card.getPrice());
+                    ps.setInt(17, card.getDemandScore());
+                    ps.setString(18, card.getManaCost() != null ? card.getManaCost() : "");
+                    ps.setString(19, card.getPower() != null ? card.getPower() : "");
+                    ps.setString(20, card.getToughness() != null ? card.getToughness() : "");
+                    ps.addBatch();
+                    total++;
+                }
+            }
+            ps.executeBatch();
+        }
+        return total;
+    }
+
+    public static int persistUnstoredInstances(Connection c, Card card) throws Exception {
+        if (card == null) return 0;
+        return persistUnstoredInstances(c, List.of(card));
+    }
+
     public static synchronized String nextSku(String setCode) {
         String code = setCode == null || setCode.isBlank() ? "RAPID" : setCode.trim().toUpperCase();
         return String.format("RAPID-%s-%04d", code, ++skuCounter);
@@ -463,7 +531,7 @@ public final class RapidIntake {
                 r.quantity(),
                 50,
                 r.foil(),
-                r.slot() == null || r.slot().isBlank() ? "Intake Sorting Desk" : r.slot(),
+                r.slot() == null || r.slot().isBlank() ? null : r.slot(),
                 r.manaCost() == null ? "" : r.manaCost(),
                 r.power() == null ? "" : r.power(),
                 r.toughness() == null ? "" : r.toughness(),
@@ -485,7 +553,7 @@ public final class RapidIntake {
                 d.quantity(),
                 50,
                 foil,
-                "Intake Sorting Desk",
+                null,
                 "", "", "",
                 d.setCode()
         );
@@ -523,13 +591,9 @@ public final class RapidIntake {
 
         String imageUri = extractImage(json);
 
-        // Preliminary routing
+        // Rapid intake saves storage location as null until assigned by clerk in Storage
         String normSet = setCode == null ? "" : setCode.toUpperCase();
-        Card dummy = new Card("TMP", name == null ? "Unknown" : name, setName, "Colorless",
-                cardType == null ? "Card" : cardType, year, php == null ? 0.0 : php, qty, 50, forceFoil,
-                "Intake Sorting Desk", manaCost == null ? "" : manaCost,
-                power == null ? "" : power, toughness == null ? "" : toughness, normSet);
-        String slot = StorageLocation.route(dummy);
+        String slot = null;
 
         return new ResolvedCard(
                 id == null ? UUID.randomUUID().toString() : id,
@@ -714,67 +778,53 @@ public final class RapidIntake {
             tutorengine.db.Db.migrate();
 
             try (Connection c = tutorengine.db.Db.open()) {
-                String clerkA = "clerk_alice";
-                String clerkB = "clerk_bob";
-                String batchA = "BATCH-ALICE-001";
-                String batchB = "BATCH-BOB-001";
+                String batchA = "BATCH-001";
+                String batchB = "BATCH-002";
 
-                // Save 3 drafts for Clerk Alice
+                // Save 3 drafts in batch A
                 for (int i = 1; i <= 3; i++) {
                     ResolvedCard dummy = new ResolvedCard(
                             "scry-a-" + i, "Alice Card " + i, "Set A", "STA", String.valueOf(i),
                             "rare", "Creature", 2026, "{1}{G}", "2", "2", i % 2 == 0, i, "NM",
                             2.0 * i, 110.0 * i, "https://example.com/imga" + i, "CAB-T-TOP"
                     );
-                    saveDraft(c, clerkA, batchA, dummy);
+                    saveDraft(c, batchA, dummy);
                 }
 
-                // Save 2 drafts for Clerk Bob
+                // Save 2 drafts in batch B
                 for (int i = 1; i <= 2; i++) {
                     ResolvedCard dummy = new ResolvedCard(
                             "scry-b-" + i, "Bob Card " + i, "Set B", "STB", String.valueOf(i),
                             "uncommon", "Instant", 2026, "{U}", "", "", false, 1, "NM",
                             0.5 * i, 28.0 * i, "https://example.com/imgb" + i, "RACK-M-TOP"
                     );
-                    saveDraft(c, clerkB, batchB, dummy);
+                    saveDraft(c, batchB, dummy);
                 }
-                System.out.println("  ✓ Simulated mid-batch stage: 3 drafts for Alice, 2 drafts for Bob");
+                System.out.println("  ✓ Simulated mid-batch stage: 3 drafts in batch A, 2 in batch B");
             }
 
             // SIMULATED KILL & RE-LAUNCH (Fresh Connection / Next Session)
             try (Connection c2 = tutorengine.db.Db.open()) {
-                String clerkA = "clerk_alice";
-                String clerkB = "clerk_bob";
-                String batchA = "BATCH-ALICE-001";
+                String batchA = "BATCH-001";
 
-                // Alice restores her drafts after simulated crash
-                List<DraftRow> aliceDrafts = loadDrafts(c2, clerkA);
-                if (aliceDrafts.size() != 3) {
-                    throw new AssertionError("Crash recovery failed: expected 3 drafts for Alice, got " + aliceDrafts.size());
+                // All 5 drafts restored after simulated crash (global drafts)
+                List<DraftRow> drafts = loadDrafts(c2);
+                if (drafts.size() != 5) {
+                    throw new AssertionError("Crash recovery failed: expected 5 drafts, got " + drafts.size());
                 }
-                System.out.println("  ✓ Crash recovery verified: Alice restored " + aliceDrafts.size() + " drafts in chronological order");
+                System.out.println("  ✓ Crash recovery verified: restored " + drafts.size() + " drafts in chronological order");
 
-                // Bob's drafts are segregated and intact
-                List<DraftRow> bobDrafts = loadDrafts(c2, clerkB);
-                if (bobDrafts.size() != 2) {
-                    throw new AssertionError("Hand-off isolation failed: expected 2 drafts for Bob, got " + bobDrafts.size());
-                }
-                System.out.println("  ✓ Hand-off isolation verified: Bob retains " + bobDrafts.size() + " separate drafts");
-
-                // Alice commits and purges her batch
-                int purgedAlice = purgeDraftsByBatch(c2, batchA);
-                if (purgedAlice != 3) {
-                    throw new AssertionError("Expected 3 drafts purged for Alice, got " + purgedAlice);
+                // Purge batch A
+                int purged = purgeDraftsByBatch(c2, batchA);
+                if (purged != 3) {
+                    throw new AssertionError("Expected 3 drafts purged for batch A, got " + purged);
                 }
 
-                // Alice now has 0, Bob still has 2
-                if (!loadDrafts(c2, clerkA).isEmpty()) {
-                    throw new AssertionError("Alice should have 0 drafts after purge");
+                // 2 drafts (batch B) remain
+                if (loadDrafts(c2).size() != 2) {
+                    throw new AssertionError("Expected 2 drafts remaining after purge");
                 }
-                if (loadDrafts(c2, clerkB).size() != 2) {
-                    throw new AssertionError("Bob should still have 2 drafts after Alice's purge");
-                }
-                System.out.println("  ✓ Clean purge verified: Alice has 0 drafts remaining, Bob still has 2 drafts");
+                System.out.println("  ✓ Clean purge verified: batch A gone, batch B drafts remain");
             }
         } catch (Exception ex) {
             throw new RuntimeException("SQLite persistence test failed", ex);

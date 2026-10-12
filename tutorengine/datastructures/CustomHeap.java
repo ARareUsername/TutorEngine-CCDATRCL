@@ -9,33 +9,93 @@ import tutorengine.model.Card;
 // Minor java.util use: ArrayList only as the array backing + copy in sortedSnapshot().
 public class CustomHeap {
     private final List<Card> h = new ArrayList<>();
+    private final java.util.function.ToDoubleFunction<Card> scoreFn;
 
-    public void offer(Card c) { h.add(c); siftUp(h.size() - 1); }
-    public Card peek() { return h.isEmpty() ? null : h.get(0); }
+    public CustomHeap() {
+        this(Card::calculatePriority);
+    }
+
+    public CustomHeap(java.util.function.ToDoubleFunction<Card> scoreFn) {
+        this.scoreFn = scoreFn != null ? scoreFn : Card::calculatePriority;
+    }
+
+    public double score(Card c) {
+        return c == null ? Double.NEGATIVE_INFINITY : scoreFn.applyAsDouble(c);
+    }
+
+    public void offer(Card c) {
+        if (c == null) return;
+        h.add(c);
+        siftUp(h.size() - 1);
+    }
+
+    public Card peek() {
+        return h.isEmpty() ? null : h.get(0);
+    }
+
     public Card poll() {
         if (h.isEmpty()) return null;
-        Card top = h.get(0), last = h.remove(h.size() - 1);
-        if (!h.isEmpty()) { h.set(0, last); siftDown(0); }
+        Card top = h.get(0);
+        Card last = h.remove(h.size() - 1);
+        if (!h.isEmpty()) {
+            h.set(0, last);
+            siftDown(0);
+        }
         return top;
     }
-    public int size() { return h.size(); }
-    public boolean isEmpty() { return h.isEmpty(); }
+
+    public int size() {
+        return h.size();
+    }
+
+    public boolean isEmpty() {
+        return h.isEmpty();
+    }
+
+    public void clear() {
+        h.clear();
+    }
+
+    public List<Card> getRawList() {
+        return new ArrayList<>(h);
+    }
+
+    public List<Card> sortedSnapshot() {
+        CustomHeap copy = new CustomHeap(this.scoreFn);
+        for (Card c : h) copy.offer(c);
+        List<Card> out = new ArrayList<>(copy.size());
+        while (!copy.isEmpty()) {
+            out.add(copy.poll());
+        }
+        return out;
+    }
+
+    public boolean verifyHeapProperty() {
+        for (int i = 0; i < h.size(); i++) {
+            int l = 2 * i + 1, r = l + 1;
+            if (l < h.size() && score(h.get(i)) < score(h.get(l))) return false;
+            if (r < h.size() && score(h.get(i)) < score(h.get(r))) return false;
+        }
+        return true;
+    }
 
     private void siftUp(int i) {
         while (i > 0) {
             int p = (i - 1) / 2;
-            if (h.get(i).calculatePriority() <= h.get(p).calculatePriority()) break;
-            swap(i, p); i = p;
+            if (score(h.get(i)) <= score(h.get(p))) break;
+            swap(i, p);
+            i = p;
         }
     }
 
     private void siftDown(int i) {
         for (;;) {
             int l = 2 * i + 1, r = l + 1, big = i;
-            if (l < h.size() && h.get(l).calculatePriority() > h.get(big).calculatePriority()) big = l;
-            if (r < h.size() && h.get(r).calculatePriority() > h.get(big).calculatePriority()) big = r;
+            if (l < h.size() && score(h.get(l)) > score(h.get(big))) big = l;
+            if (r < h.size() && score(h.get(r)) > score(h.get(big))) big = r;
             if (big == i) return;
-            swap(i, big); i = big;
+            swap(i, big);
+            i = big;
         }
     }
 

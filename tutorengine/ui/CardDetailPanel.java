@@ -55,6 +55,13 @@ public class CardDetailPanel {
         imageContainer.setMinHeight(160);
         imageContainer.setAlignment(Pos.CENTER);
         imageContainer.setStyle("-fx-background-color: -color-bg-subtle; -fx-background-radius: 6px; -fx-border-color: -color-border-subtle; -fx-border-radius: 6px;");
+        imageContainer.setCursor(javafx.scene.Cursor.HAND);
+        javafx.scene.control.Tooltip.install(imageContainer, new javafx.scene.control.Tooltip("Click to enlarge"));
+        imageContainer.setOnMouseClicked(e -> {
+            if (currentCard != null) {
+                DialogHelper.showImageLightbox(currentCard);
+            }
+        });
 
         titleLabel = new Label("Select a card");
         titleLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
@@ -143,7 +150,8 @@ public class CardDetailPanel {
         priceQtyLabel.setText(String.format("Price: PHP %.2f  |  Quantity: %d  |  Demand Score: %d/100",
                 c.getPrice(), c.getQuantity(), c.getDemandScore()));
 
-        locationLabel.setText("Shelf: " + StorageLocation.route(c) + " (Box: " + c.getBoxLocationId() + ")");
+        String boxStr = (c.getBoxLocationId() == null || c.getBoxLocationId().isBlank()) ? "Unassigned" : c.getBoxLocationId();
+        locationLabel.setText("Shelf: " + StorageLocation.route(c) + " (Box: " + boxStr + ")");
 
         StringBuilder statsSb = new StringBuilder();
         if (!c.getManaCost().isEmpty()) {
@@ -172,7 +180,7 @@ public class CardDetailPanel {
             @Override
             protected Image call() {
                 if (isCancelled()) return null;
-                return CardImageCache.getFx(c.getSku(), c.getName(), w, pv, c.getSetCode());
+                return CardImageCache.getFx(c.getSku(), c.getName(), w, pv, c.getSetCode(), c.getCollectorNumber());
             }
         };
 

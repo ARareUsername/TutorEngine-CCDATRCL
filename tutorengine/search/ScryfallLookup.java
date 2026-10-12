@@ -133,7 +133,7 @@ public final class ScryfallLookup {
 
     // --- minimal JSON scan (flat string/number/array shapes only) ---
 
-    static String str(String json, String key) {
+    public static String str(String json, String key) {
         String k = "\"" + key + "\"";
         int i = json.indexOf(k);
         if (i < 0) return null;
@@ -220,7 +220,7 @@ public final class ScryfallLookup {
         return null;
     }
 
-    static String get(String url) throws Exception {
+    public static String get(String url) throws Exception {
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(10))

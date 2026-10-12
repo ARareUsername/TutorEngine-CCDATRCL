@@ -5,9 +5,7 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import tutorengine.audit.AuditLog;
 import tutorengine.db.Db;
-import tutorengine.model.AuditCommit;
 import tutorengine.model.Card;
 
 // Git-style Working Buffer and Staging Area (tutorengine_implementation_specification.md §3)
@@ -149,19 +147,16 @@ public class WorkingBuffer {
         staging.clear();
     }
 
-    public synchronized String commitStaged(String employeeName) throws Exception {
-        if (staging.isEmpty()) return null;
+    public synchronized int commitStaged() throws Exception {
+        if (staging.isEmpty()) return 0;
         int totalCards = 0;
         for (WorkingItem item : staging) totalCards += item.getQuantity();
-
-        String tag = AuditCommit.generateTag(employeeName, totalCards);
-        String commitHash = AuditLog.recordCommit(tag, employeeName, totalCards);
 
         try (Connection c = Db.open();
              PreparedStatement ps = c.prepareStatement(
                      "INSERT INTO card_instances (id, scryfall_id, name, set_code, collector_number,"
-                     + " rarity, condition, finish, language, status, box_id, commit_id, created_at)"
-                     + " VALUES (?,?,?,?,?,?,?,?,?,'UNSTORED',NULL,?,CURRENT_TIMESTAMP)")) {
+                     + " rarity, condition, finish, language, status, box_id, created_at)"
+                     + " VALUES (?,?,?,?,?,?,?,?,?,'UNSTORED',NULL,CURRENT_TIMESTAMP)")) {
             for (WorkingItem item : staging) {
                 for (int i = 0; i < item.getQuantity(); i++) {
                     ps.setString(1, UUID.randomUUID().toString());
@@ -173,7 +168,6 @@ public class WorkingBuffer {
                     ps.setString(7, item.getCondition());
                     ps.setString(8, item.getFinish());
                     ps.setString(9, "EN");
-                    ps.setString(10, commitHash);
                     ps.addBatch();
                 }
             }
@@ -181,7 +175,7 @@ public class WorkingBuffer {
         }
 
         staging.clear();
-        return tag;
+        return totalCards;
     }
 
     public static void main(String[] args) {
@@ -207,8 +201,8 @@ public class WorkingBuffer {
             wb.stageAll();
             System.out.println("Staging size: " + wb.getStaging().size() + ", Buffer size: " + wb.getBuffer().size());
 
-            String tag = wb.commitStaged("Karl");
-            System.out.println("Committed tag: " + tag);
+            int committed = wb.commitStaged();
+            System.out.println("Committed cards: " + committed);
             System.out.println("Staging size after commit: " + wb.getStaging().size() + " (want 0)");
 
             // Verify SQLite persistence
