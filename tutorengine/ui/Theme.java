@@ -19,6 +19,8 @@ public final class Theme {
     // Card-state badges (AtlantaFX style classes, toolkit-free strings).
     public static final String BADGE_OK = "success";
     public static final String BADGE_LOW_STOCK = "warning";
+    public static final String BADGE_WARN = "warning";
+    public static final String BADGE_DANGER = "danger";
     public static final String BADGE_FOIL = "accent";
 
     private Theme() {}

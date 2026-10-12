@@ -62,7 +62,15 @@ public final class CardImageCache {
     }
 
     public static Path pathFor(String sku, Variant v) {
-        return DIR.resolve(sku.replaceAll("[^A-Za-z0-9-]", "_") + v.suffix + ".jpg");
+        return pathFor(sku, v, "");
+    }
+
+    // Collector-scoped key so printings of one card never share a file.
+    public static Path pathFor(String sku, Variant v, String collectorNumber) {
+        String base = sku.replaceAll("[^A-Za-z0-9-]", "_");
+        String num = collectorNumber == null ? "" : collectorNumber.trim().replaceAll("[^A-Za-z0-9]", "");
+        if (!num.isEmpty()) base += "-c" + num;
+        return DIR.resolve(base + v.suffix + ".jpg");
     }
 
     // Cached thumbnail scaled to `width` px (aspect kept); null = unavailable.
@@ -91,8 +99,14 @@ public final class CardImageCache {
     // token names like "Wolf" to a different card ("Human // Wolf") without it.
     public static synchronized javafx.scene.image.Image getFx(
             String sku, String cardName, int width, Variant v, String setCode) {
+        return getFx(sku, cardName, width, v, setCode, "");
+    }
+
+    // collectorNumber pins the exact printing; blank falls back to set+name.
+    public static synchronized javafx.scene.image.Image getFx(
+            String sku, String cardName, int width, Variant v, String setCode, String collectorNumber) {
         try {
-            byte[] bytes = fetchBytes(sku, cardName, v, setCode);
+            byte[] bytes = fetchBytes(sku, cardName, v, setCode, collectorNumber);
             if (bytes == null) return null;
             return new javafx.scene.image.Image(new java.io.ByteArrayInputStream(bytes),
                     Math.max(1, width), 0, true, true);
@@ -131,12 +145,16 @@ public final class CardImageCache {
     }
 
     static synchronized byte[] fetchBytes(String sku, String cardName, Variant v, String setCode) {
+        return fetchBytes(sku, cardName, v, setCode, "");
+    }
+
+    static synchronized byte[] fetchBytes(String sku, String cardName, Variant v, String setCode, String collectorNumber) {
         try {
             if (!migrated) { migrated = true; migrateCache(); }
             Files.createDirectories(DIR);
-            Path p = pathFor(sku, v);
+            Path p = pathFor(sku, v, collectorNumber);
             if (Files.exists(p)) return Files.readAllBytes(p);
-            fetch(sku, cardName, p, v, setCode);
+            fetch(sku, cardName, p, v, setCode, collectorNumber);
             evictIfNeeded();
             return Files.exists(p) ? Files.readAllBytes(p) : null;
         } catch (Exception e) {
@@ -171,23 +189,38 @@ public final class CardImageCache {
     }
 
     private static void fetch(String sku, String cardName, Path dest, Variant v) throws Exception {
-        fetch(sku, cardName, dest, v, "");
+        fetch(sku, cardName, dest, v, "", "");
     }
 
     private static void fetch(String sku, String cardName, Path dest, Variant v, String setCode) throws Exception {
+        fetch(sku, cardName, dest, v, setCode, "");
+    }
+
+    private static void fetch(String sku, String cardName, Path dest, Variant v, String setCode, String collectorNumber) throws Exception {
         long wait = MIN_GAP_MS - (System.currentTimeMillis() - lastFetchMs);
         if (wait > 0) Thread.sleep(wait);
         lastFetchMs = System.currentTimeMillis();
-        // Double-faced names ("A // B") 404 on exact: query the front face.
-        String query = cardName.contains("//") ? cardName.split("//")[0].trim() : cardName;
-        String set = setCode == null ? "" : setCode.trim().toLowerCase();
-        String base = "https://api.scryfall.com/cards/named?exact="
-                + URLEncoder.encode(query, StandardCharsets.UTF_8)
-                + "&format=image&version=" + v.api;
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
+        // Exact printing first: set + collector number pins the card on display.
+        String set = setCode == null ? "" : setCode.trim().toLowerCase();
+        String num = collectorNumber == null ? "" : collectorNumber.trim();
+        if (!set.isEmpty() && !num.isEmpty()) {
+            HttpResponse<byte[]> exact = send(client, "https://api.scryfall.com/cards/" + set + "/"
+                    + URLEncoder.encode(num, StandardCharsets.UTF_8)
+                    + "?format=image&version=" + v.api);
+            if (exact.statusCode() == 200 && exact.body().length > 0) {
+                Files.write(dest, exact.body());
+                return;
+            }
+        }
+        // Double-faced names ("A // B") 404 on exact: query the front face.
+        String query = cardName.contains("//") ? cardName.split("//")[0].trim() : cardName;
+        String base = "https://api.scryfall.com/cards/named?exact="
+                + URLEncoder.encode(query, StandardCharsets.UTF_8)
+                + "&format=image&version=" + v.api;
         HttpResponse<byte[]> r = send(client, base + (set.isEmpty() ? "" : "&set=" + set));
         // Set-constrained miss (custom printings): fall back to name-only.
         if (r.statusCode() == 404 && !set.isEmpty()) r = send(client, base);

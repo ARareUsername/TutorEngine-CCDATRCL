@@ -106,32 +106,42 @@ public class StorageLocation {
             SET_SLOT.put(s, "CAB-UW-MID");
     }
 
-    // Card-level placement: a boxLocationId that names a slot id pins it
-    // (clerk override on the add form); otherwise type first (lands/tokens
-    // live in utility boxes), then set-code cluster, then bulk-rares overflow.
-    // Never null.
+    // Card-level placement: pins to card's boxLocationId if set in <set>-<box number> format.
+    // Otherwise routes to <set>-1 based on setCode, or "Unassigned" if neither exists.
     public static String route(Card c) {
         return route(c, "");
     }
 
-    // Collector-number-aware overload: identifies the specific printing within
-    // a version group. Fallback to setCode-only routing when no collector
-    // number is provided.
+    // Collector-number-aware overload.
     public static String route(Card c, String collectorNumber) {
-        String cn = collectorNumber == null ? "" : collectorNumber.trim();
-        if (!cn.isEmpty()) {
-            String code = c.getSetCode() == null ? "" : c.getSetCode().trim().toUpperCase();
-            return SET_SLOT.getOrDefault(code, "CAB-RARE-LOW");
-        }
-        // Fallback: existing routing logic.
+        if (c == null) return "Unassigned";
         String pinned = c.getBoxLocationId() == null ? "" : c.getBoxLocationId().trim();
-        for (StorageLocation s : slots())
-            if (s.getId().equalsIgnoreCase(pinned)) return s.getId();
-        String type = c.getCardType() == null ? "" : c.getCardType().trim();
-        if (type.equalsIgnoreCase("Land")) return "CAB-LANDS-LOW";
-        if (type.equalsIgnoreCase("Token")) return "CAB-TOKEN-LOW";
+        if (!pinned.isEmpty()) {
+            if (pinned.equalsIgnoreCase("Unassigned")) return "Unassigned";
+            if (pinned.matches("[A-Za-z0-9]+-[0-9]+")) return pinned.toUpperCase();
+            if (pinned.matches("[A-Za-z0-9]+")) {
+                for (StorageLocation s : slots()) {
+                    if (s.getId().equalsIgnoreCase(pinned)) return s.getId();
+                }
+                return pinned.toUpperCase() + "-1";
+            }
+            return pinned;
+        }
         String code = c.getSetCode() == null ? "" : c.getSetCode().trim().toUpperCase();
-        return SET_SLOT.getOrDefault(code, "CAB-RARE-LOW");
+        if (!code.isEmpty()) {
+            return code + "-1";
+        }
+        return "Unassigned";
+    }
+
+    public static boolean isValidSlot(String id) {
+        if (id == null || id.isBlank()) return false;
+        String clean = id.trim();
+        if (clean.matches("[A-Za-z0-9]+-[0-9]+")) return true;
+        for (StorageLocation s : slots()) {
+            if (s.getId().equalsIgnoreCase(clean)) return true;
+        }
+        return false;
     }
 
     public static void main(String[] args) {

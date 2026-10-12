@@ -129,11 +129,6 @@ public final class IntakeDialog {
         // Validate inline so Confirm never closes on bad input (specific message stays).
         ((Button) dlg.getDialogPane().lookupButton(ButtonType.OK)).addEventFilter(
                 javafx.event.ActionEvent.ACTION, e -> {
-            if (!tutorengine.auth.UserSessionManager.getInstance().isAuthenticated()) {
-                status.setText("Log in to add cards (Switch User, top bar).");
-                e.consume();
-                return;
-            }
             if (draft[0] == null) {
                 status.setText("Pick a suggested card first.");
                 e.consume();

@@ -55,14 +55,12 @@ public class LifecycleHarness {
         check("Buffer cleared after stageAll", wb.getBuffer().size(), 0);
         check("Staging populated", wb.getStaging().size(), 5);
 
-        String commitTag = wb.commitStaged("KarlBondoc");
-        System.out.println("  Generated Commit Tag: " + commitTag);
-        if (!commitTag.startsWith("BATCH-") || !commitTag.contains("-KarlBondoc-") || !commitTag.endsWith("cards")) {
-            throw new AssertionError("Commit tag format invalid: " + commitTag);
-        }
+        int committed = wb.commitStaged();
+        System.out.println("  Committed cards: " + committed);
+        check("Committed card count", committed, 10);
         check("Staging area cleared after commit", wb.getStaging().size(), 0);
 
-        // Verify SQLite state: audit_commits and card_instances (UNSTORED)
+        // Verify SQLite state: card_instances (UNSTORED)
         int unstoredCount = 0;
         try (Connection c = Db.open();
              PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM card_instances WHERE status = 'UNSTORED'");

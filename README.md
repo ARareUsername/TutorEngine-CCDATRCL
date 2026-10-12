@@ -23,7 +23,7 @@ If you prefer using the command line:
 * Build: `mvn compile`
 * Run JavaFX UI (needs a display): `mvn javafx:run`
 * Run CLI demo: `mvn exec:java -Dexec.mainClass=tutorengine.Main`
-* Headless view checks (no display needed): `mvn -q exec:java -Dexec.mainClass=tutorengine.ui.CatalogView` (also `Theme`, `PriorityView`, `GraphView`, `BenchmarkView`)
+* Headless view checks (no display needed): `mvn -q exec:java -Dexec.mainClass=tutorengine.ui.CatalogView` (also `Theme`, `PriorityView`, `BenchmarkView`)
 
 ---
 
@@ -56,6 +56,12 @@ If you prefer using the command line:
 * [x] Box capacity guard & divider navigation (box-capacity-dividers: BoxCapacity states NOMINAL/NEAR/FULL, overflow rerouting to CAB-RARE-LOW, provisioning prompt, DividerGuide A–Z section guidance appended to Locate flow in Store Map)
 * [x] Shelf trip slips & mobile viewer (shelf-trip-slips: TripSession presort model, TripServer LAN HttpServer at /t/<id>, 80mm printable plain-text routing slips, TripView UI, and partial-batch exclusion with UNSTORED_FLAGGED safeguards)
 * [x] Rapid shortcut intake & crash-safe drafts (rapid-intake-drafts: RapidIntake parser for <SET> <NUM> [foil] [x<QTY>], Scryfall collector lookup, Alt+1..9 variant ribbon, RapidIntakeView UI with autofocus loop, and crash-safe SQLite intake_drafts autosave with restore/discard recovery)
+* [x] Catalog inline editing & undo/redo (catalog-edit-quantities: editable TableView cells, price/qty validation, audit commit logging, Ctrl+Z/Ctrl+Y undo/redo stack, DB migration v7)
+* [x] Counter workflows (counter-workflows: IntakeView staging screen with live transaction diary Alt+6, RestockView attention deck Alt+7 merging STOCK/LOW/PRIORITY/FILL with click-to-open record, recent-SKU history dropdown, card image lightbox modal)
+* [x] Catalog quantity adjustments (catalog-quantity-adjustments: quantity-aware Add/Remove dock actions, 0..999 bounds protection, out-of-stock zero retention, removal of redundant New card modal button)
+* [x] Catalog unified undo & functionality (catalog-undo-and-functionality: polymorphic CatalogAction history covering inline edits, stock increments/decrements, session additions, and 0-qty deletions; unified Undo/Redo toolbar buttons; global Ctrl+Z/Ctrl+Y event filter; live CardDetailPanel synchronization)
+* [x] Unified storage naming (unify-storage-naming: system-wide <set>-<box number> naming, null storage location on rapid intake, 2D shelf coordinates alignment in Storage view, and live Catalog/Priority cross-view synchronization)
+
 
 ### David, Abraham John D. — Data & Loader
 *Target Files: `util/CSVLoader.java`, `Dataset/cards.csv`*

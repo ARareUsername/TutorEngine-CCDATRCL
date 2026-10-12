@@ -76,13 +76,13 @@ public final class PriorityView {
         subtitleLabel.setStyle("-fx-text-fill: -color-fg-muted;");
 
         Label slotsBadge = new Label("Glass Wall: 12 Display Slots");
-        slotsBadge.setStyle("-fx-background-color: #e0f2fe; -fx-text-fill: #0369a1; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
+        slotsBadge.setStyle("-fx-background-color: -color-accent-subtle; -fx-text-fill: -color-accent-fg; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
 
         Label topScoreBadge = new Label();
-        topScoreBadge.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
+        topScoreBadge.setStyle("-fx-background-color: -color-warning-subtle; -fx-text-fill: -color-warning-fg; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
 
         Label invariantBadge = new Label("Heap Invariant: ✓ Verified (Parent >= Children)");
-        invariantBadge.setStyle("-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
+        invariantBadge.setStyle("-fx-background-color: -color-success-subtle; -fx-text-fill: -color-success-fg; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
 
         HBox badgesRow = new HBox(8, slotsBadge, topScoreBadge, invariantBadge);
         badgesRow.setAlignment(Pos.CENTER_LEFT);
@@ -282,7 +282,7 @@ public final class PriorityView {
 
             boolean valid = heap.verifyHeapProperty();
             invariantBadge.setText("Heap Invariant: " + (valid ? "✓ Verified (Parent >= Children)" : "⚠️ Invariant Broken"));
-            invariantBadge.setStyle("-fx-background-color: " + (valid ? "#dcfce7" : "#fee2e2") + "; -fx-text-fill: " + (valid ? "#15803d" : "#b91c1c") + "; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
+            invariantBadge.setStyle("-fx-background-color: " + (valid ? "-color-success-subtle" : "-color-danger-subtle") + "; -fx-text-fill: " + (valid ? "-color-success-fg" : "-color-danger-fg") + "; -fx-padding: 3px 8px; -fx-background-radius: 4px; -fx-font-weight: bold;");
 
             Card rootCard = heap.peek();
             if (rootCard != null) {
@@ -311,28 +311,29 @@ public final class PriorityView {
 
                 boolean isTop = (i == 0);
                 String borderStyle = isTop
-                        ? "-fx-border-color: #f59e0b; -fx-border-width: 2px; -fx-background-color: white;"
-                        : "-fx-border-color: #cbd5e1; -fx-border-width: 1px; -fx-background-color: white;";
+                        ? "-fx-border-color: -color-warning-emphasis; -fx-border-width: 2px; -fx-background-color: -color-bg-default;"
+                        : "-fx-border-color: -color-border-subtle; -fx-border-width: 1px; -fx-background-color: -color-bg-default;";
                 slotCard.setStyle(borderStyle + " -fx-border-radius: 6px; -fx-background-radius: 6px;");
 
                 Label slotBadge = new Label(isTop ? "★ SLOT #1 (CENTERPIECE)" : "SLOT #" + slotNum);
                 slotBadge.setStyle(isTop
-                        ? "-fx-background-color: #fef3c7; -fx-text-fill: #b45309; -fx-font-weight: bold; -fx-font-size: 10px; -fx-padding: 2px 5px; -fx-background-radius: 3px;"
-                        : "-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-font-size: 10px; -fx-padding: 2px 5px; -fx-background-radius: 3px;");
+                        ? "-fx-background-color: -color-warning-subtle; -fx-text-fill: -color-warning-fg; -fx-font-weight: bold; -fx-font-size: 10px; -fx-padding: 2px 5px; -fx-background-radius: 3px;"
+                        : "-fx-background-color: -color-bg-subtle; -fx-text-fill: -color-fg-muted; -fx-font-weight: bold; -fx-font-size: 10px; -fx-padding: 2px 5px; -fx-background-radius: 3px;");
 
                 Label nameLbl = new Label(c.getName());
                 nameLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
                 nameLbl.setWrapText(false);
 
                 Label priceLbl = new Label(String.format("PHP %.2f", c.getPrice()) + (c.isFoil() ? " · FOIL" : ""));
-                priceLbl.setStyle("-fx-text-fill: #059669; -fx-font-weight: bold;");
+                priceLbl.setStyle("-fx-text-fill: -color-success-fg; -fx-font-weight: bold;");
 
                 Label scoreLbl = new Label(String.format("Score: %.2f | Demand: %d/100", s, c.getDemandScore()));
                 scoreLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: -color-fg-muted;");
 
-                String currentBox = StorageLocation.route(c);
+                String currentBox = c.getBoxLocationId() != null && !c.getBoxLocationId().isBlank()
+                        ? c.getBoxLocationId() : StorageLocation.route(c);
                 Label locationLbl = new Label("📍 Pull from: " + currentBox);
-                locationLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #0369a1;");
+                locationLbl.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -color-accent-fg;");
 
                 slotCard.getChildren().addAll(slotBadge, nameLbl, priceLbl, scoreLbl, locationLbl);
                 slotCard.setCursor(javafx.scene.Cursor.HAND);
@@ -351,7 +352,9 @@ public final class PriorityView {
                 Card c = sorted.get(i);
                 double s = c.calculatePriorityWithWeights(weights[0], weights[1], weights[2], weights[3]);
                 String status = (i < capacity) ? "★ On Glass Wall (Slot #" + (i + 1) + ")" : "In Storage (On Deck #" + (i - capacity + 1) + ")";
-                tableRows.add(new ShowcaseRow(i + 1, status, c.getSku(), c.getName(), c.getPrice(), c.getQuantity(), c.getDemandScore(), c.isFoil(), s, StorageLocation.route(c), c));
+                String loc = c.getBoxLocationId() != null && !c.getBoxLocationId().isBlank()
+                        ? c.getBoxLocationId() : StorageLocation.route(c);
+                tableRows.add(new ShowcaseRow(i + 1, status, c.getSku(), c.getName(), c.getPrice(), c.getQuantity(), c.getDemandScore(), c.isFoil(), s, loc, c));
             }
             showcaseTable.setItems(tableRows);
 

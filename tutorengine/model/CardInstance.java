@@ -15,14 +15,13 @@ public class CardInstance {
     private String language;
     private String status;
     private String boxId;
-    private final String commitId;
     private final String createdAt;
     private String storedAt;
 
     public CardInstance(String id, String scryfallId, String name, String setCode,
                         String collectorNumber, String rarity, String condition,
                         String finish, String language, String status,
-                        String boxId, String commitId, String createdAt, String storedAt) {
+                        String boxId, String createdAt, String storedAt) {
         this.id = id != null ? id : UUID.randomUUID().toString();
         this.scryfallId = scryfallId != null ? scryfallId : "";
         this.name = name;
@@ -34,17 +33,16 @@ public class CardInstance {
         this.language = language != null ? language : "EN";
         this.status = status != null ? status : "UNSTORED";
         this.boxId = boxId;
-        this.commitId = commitId != null ? commitId : "";
         this.createdAt = createdAt;
         this.storedAt = storedAt;
     }
 
     public static CardInstance createUnstored(String scryfallId, String name, String setCode,
                                               String collectorNumber, String rarity, String condition,
-                                              String finish, String commitId) {
+                                              String finish) {
         return new CardInstance(UUID.randomUUID().toString(), scryfallId, name, setCode,
                 collectorNumber, rarity, condition, finish, "EN", "UNSTORED",
-                null, commitId, null, null);
+                null, null, null);
     }
 
     public String getId() { return id; }
@@ -63,7 +61,6 @@ public class CardInstance {
     public void setStatus(String status) { this.status = status; }
     public String getBoxId() { return boxId; }
     public void setBoxId(String boxId) { this.boxId = boxId; }
-    public String getCommitId() { return commitId; }
     public String getCreatedAt() { return createdAt; }
     public String getStoredAt() { return storedAt; }
     public void setStoredAt(String storedAt) { this.storedAt = storedAt; }
@@ -74,7 +71,7 @@ public class CardInstance {
     }
 
     public static void main(String[] args) {
-        CardInstance ci = CardInstance.createUnstored("scry-123", "Sol Ring", "CMM", "100", "uncommon", "NM", "foil", "BATCH-001");
+        CardInstance ci = CardInstance.createUnstored("scry-123", "Sol Ring", "CMM", "100", "uncommon", "NM", "foil");
         System.out.println("CardInstance: " + ci);
         System.out.println("CardInstance OK.");
     }

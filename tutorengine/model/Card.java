@@ -113,6 +113,11 @@ public class Card implements Comparable<Card> {
     public double getPrice() { return price; }
     public int getQuantity() { return quantity; }
     public int getDemandScore() { return demandScore; }
+    
+    public void setPrice(double price) { this.price = price; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public void setDemandScore(int demandScore) { this.demandScore = demandScore; }
+    
     public boolean isFoil() { return isFoil; }
     public String getBoxLocationId() { return boxLocationId; }
     public String getManaCost() { return manaCost; }
@@ -122,6 +127,15 @@ public class Card implements Comparable<Card> {
     public String getCollectorNumber() { return collectorNumber; }
     public int getVersionSeq() { return versionSeq; }
     public String getVersionLabel() { return versionLabel; }
+
+    public void setCollectorNumber(String collectorNumber) { this.collectorNumber = collectorNumber; }
+
+    public void setBoxLocationId(String boxLocationId) { this.boxLocationId = boxLocationId; }
+
+    public void setVersionSeq(int versionSeq) { this.versionSeq = versionSeq; }
+
+    public void setVersionLabel(String versionLabel) { this.versionLabel = versionLabel; }
+
     public String getImageUrl() {
         if (imageUrl != null && !imageUrl.isEmpty()) return imageUrl;
         return "https://api.scryfall.com/cards/named?exact="

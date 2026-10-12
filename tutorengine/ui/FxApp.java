@@ -12,8 +12,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import tutorengine.auth.Employees;
-import tutorengine.auth.UserSessionManager;
 import tutorengine.model.Card;
 import tutorengine.util.CSVLoader;
 
@@ -36,7 +34,7 @@ public class FxApp extends Application {
     // Nav items, toolkit-free for headless checks. Demos hides unless dev flag.
     public static java.util.List<String> navItems() {
         var items = new java.util.ArrayList<>(
-                java.util.List.of("Catalog", "Rapid Intake", "Staging", "Storage", "Trips", "Priority", "Store Map", "Benchmarks", "Audit"));
+                java.util.List.of("Catalog", "Rapid Intake", "Outtake", "Restock", "Storage", "Priority", "Benchmarks"));
         if (Boolean.getBoolean("tutorengine.dev")) items.add("Demos");
         return items;
     }
@@ -186,13 +184,11 @@ public class FxApp extends Application {
         java.util.Map<String, javafx.scene.Node> viewCache = new java.util.HashMap<>();
         java.util.function.Function<String, javafx.scene.Node> viewFor = name -> viewCache.computeIfAbsent(name, n -> switch (n) {
             case "Rapid Intake" -> RapidIntakeView.build(CatalogView.activeCatalog, CatalogView.activeTable);
-            case "Staging" -> StagingView.build();
+            case "Outtake" -> OuttakeView.build(CatalogView.activeCatalog, CatalogView.activeTable);
+            case "Restock" -> RestockView.build(cards);
             case "Storage" -> StorageView.build();
-            case "Trips" -> TripView.build();
             case "Priority" -> PriorityView.build(cards);
-            case "Store Map" -> GraphView.build();
             case "Benchmarks" -> BenchmarkView.build();
-            case "Audit" -> AuditView.build();
             case "Demos" -> DemoView.build(cards);
             default -> CatalogView.build(cards);
         });
@@ -205,14 +201,12 @@ public class FxApp extends Application {
         nav.getChildren().add(sectionLabel("COUNTER"));
         Button catalogBtn = navBtn(nav, "Catalog", "#059669");
         Button rapidIntakeBtn = navBtn(nav, "Rapid Intake", "#0ea5e9");
-        Button stagingBtn = navBtn(nav, "Staging", "#10b981");
+        Button outtakeBtn = navBtn(nav, "Outtake", "#10b981");
+        Button restockBtn = navBtn(nav, "Restock", "#f59e0b");
         Button storageBtn = navBtn(nav, "Storage", "#0284c7");
-        Button tripsBtn = navBtn(nav, "Trips", "#6366f1");
         Button priorityBtn = navBtn(nav, "Priority", "#d97706");
-        Button mapBtn = navBtn(nav, "Store Map", "#2563eb");
         nav.getChildren().add(sectionLabel("MANAGER"));
         Button benchBtn = navBtn(nav, "Benchmarks", "#7c3aed");
-        Button auditBtn = navBtn(nav, "Audit", "#0e7490");
         Button demosBtn = null;
         if (Boolean.getBoolean("tutorengine.dev")) {
             nav.getChildren().add(sectionLabel("DEV"));
@@ -222,26 +216,21 @@ public class FxApp extends Application {
         }
         catalogBtn.setOnAction(e -> show.accept(catalogBtn, "Catalog"));
         rapidIntakeBtn.setOnAction(e -> show.accept(rapidIntakeBtn, "Rapid Intake"));
-        stagingBtn.setOnAction(e -> show.accept(stagingBtn, "Staging"));
+        outtakeBtn.setOnAction(e -> show.accept(outtakeBtn, "Outtake"));
+        restockBtn.setOnAction(e -> show.accept(restockBtn, "Restock"));
         storageBtn.setOnAction(e -> show.accept(storageBtn, "Storage"));
-        tripsBtn.setOnAction(e -> show.accept(tripsBtn, "Trips"));
         priorityBtn.setOnAction(e -> show.accept(priorityBtn, "Priority"));
-        mapBtn.setOnAction(e -> show.accept(mapBtn, "Store Map"));
         benchBtn.setOnAction(e -> show.accept(benchBtn, "Benchmarks"));
-        auditBtn.setOnAction(e -> show.accept(auditBtn, "Audit"));
-        String[] mapPreselect = new String[1]; // set by CatalogView Locate
+        RestockView.openRecordHandler = card -> {
+            show.accept(catalogBtn, "Catalog");
+            CatalogView.selectCardBySku(card.getSku());
+        };
         CatalogView.locateHandler = slot -> {
-            viewCache.put("Store Map", GraphView.build(cards, slot, CatalogView.lastLocatedCard));
-            setActive(activeBtn, mapBtn);
-            content.getChildren().setAll(viewCache.get("Store Map"));
-            crossfade(content);
+            show.accept(storageBtn, "Storage");
         };
         BorderPane root = new BorderPane();
 
-        // Session widget: who is on the counter, plus switch/lock.
-        Label activeLabel = new Label("Not logged in");
-        Button switchBtn = new Button("Switch User");
-        Button lockBtn = new Button("Lock");
+        // Standalone tool: no login, no session. Top bar keeps display controls only.
         Button themeBtn = new Button("Dark mode");
         themeBtn.setOnAction(e -> {
             Theme.toggle();
@@ -253,60 +242,12 @@ public class FxApp extends Application {
         BorderPane top = new BorderPane();
         top.getStyleClass().add("top-bar");
         top.setPadding(new javafx.geometry.Insets(8, 14, 8, 14));
-        var topLeft = new javafx.scene.layout.HBox(8, activeLabel, switchBtn, lockBtn);
-        topLeft.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         var topRight = new javafx.scene.layout.HBox(8, settingsBtn, themeBtn);
         topRight.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-        top.setLeft(topLeft);
         top.setRight(topRight);
         root.setTop(top);
 
-        // Lock overlay covers the whole shell until someone authenticates.
         StackPane shell = new StackPane(root);
-        javafx.scene.layout.StackPane overlay = new javafx.scene.layout.StackPane();
-        overlay.setStyle("-fx-background-color: rgba(15,23,42,0.55);");
-        Runnable refreshActive = () -> {
-            var who = UserSessionManager.getInstance().currentOrNull();
-            activeLabel.setText(who == null ? "Not logged in"
-                    : "Active: " + who.displayName() + " (" + who.role() + ")");
-        };
-        Runnable showLock = () -> {
-            boolean firstRun = false;
-            try {
-                firstRun = Employees.empty();
-            } catch (Exception ex) {
-                overlay.getChildren().setAll(new Label("Employee store unavailable: " + ex.getMessage()));
-                overlay.setVisible(true);
-                return;
-            }
-            overlay.getChildren().setAll(firstRun
-                    ? AuthView.setupForm(() -> {
-                        overlay.setVisible(false);
-                        refreshActive.run();
-                    })
-                    : AuthView.loginForm(() -> {
-                        overlay.setVisible(false);
-                        refreshActive.run();
-                    }));
-            overlay.setVisible(true);
-        };
-        switchBtn.setOnAction(e -> {
-            try {
-                UserSessionManager.getInstance().logout();
-            } catch (Exception ex) {
-                // logout best-effort; lock screen still shows
-            }
-            refreshActive.run();
-            showLock.run();
-        });
-        lockBtn.setOnAction(e -> showLock.run());
-        shell.getChildren().add(overlay);
-
-        // 10-minute idle auto-lock; any input resets the clock.
-        var idle = new javafx.animation.PauseTransition(javafx.util.Duration.minutes(10));
-        idle.setOnFinished(e -> {
-            if (UserSessionManager.getInstance().isAuthenticated()) showLock.run();
-        });
 
         catalogBtn.fire(); // initial view (also sets the active highlight)
 
@@ -321,13 +262,8 @@ public class FxApp extends Application {
         DialogHelper.registerPrimaryStage(stage);
         DialogHelper.registerRootContainer(shell);
         javafx.scene.Scene scene = new javafx.scene.Scene(shell, 1000, 640);
-        // Any input resets the idle clock (registered before first show).
-        scene.addEventFilter(javafx.scene.input.InputEvent.ANY, e -> idle.playFromStart());
-        idle.play();
-        // Clerk shortcuts: Alt+1..6 jump straight to a tab, no mouse needed.
-        Button[] order = demosBtn == null
-                ? new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn, auditBtn}
-                : new Button[]{catalogBtn, priorityBtn, mapBtn, benchBtn, auditBtn, demosBtn};
+        // Clerk shortcuts: Alt+1..6 tabs, Alt+R Rapid Intake
+        Button[] order = new Button[]{catalogBtn, rapidIntakeBtn, restockBtn, storageBtn, priorityBtn, benchBtn};
         javafx.scene.input.KeyCode[] keys = {
                 javafx.scene.input.KeyCode.DIGIT1, javafx.scene.input.KeyCode.DIGIT2,
                 javafx.scene.input.KeyCode.DIGIT3, javafx.scene.input.KeyCode.DIGIT4,
@@ -343,6 +279,13 @@ public class FxApp extends Application {
                 new javafx.scene.input.KeyCodeCombination(javafx.scene.input.KeyCode.R,
                         javafx.scene.input.KeyCombination.ALT_DOWN),
                 rapidIntakeBtn::fire);
+        if (demosBtn != null) {
+            final Button dev = demosBtn;
+            scene.getAccelerators().put(
+                    new javafx.scene.input.KeyCodeCombination(javafx.scene.input.KeyCode.DIGIT8,
+                            javafx.scene.input.KeyCombination.ALT_DOWN),
+                    dev::fire);
+        }
         try {
             var res = FxApp.class.getResource("tutorengine.css");
             if (res != null) {
@@ -364,14 +307,11 @@ public class FxApp extends Application {
         // Restore the saved text tier (default Standard when unset).
         root.setStyle("-fx-font-size: " + DisplaySettings.text().px + "px;");
         stage.show();
-        // Employee store first: gated startup (setup on empty DB, else login).
         try {
             tutorengine.db.Db.migrate();
         } catch (Exception ex) {
-            overlay.getChildren().setAll(new Label("Employee store unavailable: " + ex.getMessage()));
-            overlay.setVisible(true);
+            System.out.println("Database unavailable: " + ex.getMessage());
             return;
         }
-        showLock.run();
     }
 }

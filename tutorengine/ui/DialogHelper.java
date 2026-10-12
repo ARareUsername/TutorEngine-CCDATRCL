@@ -10,6 +10,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogEvent;
 import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -105,6 +106,83 @@ public final class DialogHelper {
 
         root.getChildren().add(backdrop);
         confirmBtn.requestFocus();
+    }
+
+    // Displays a click-to-enlarge modal image lightbox showing the full normal image
+    public static void showImageLightbox(tutorengine.model.Card card) {
+        if (card == null) return;
+        StackPane root = getRootContainer();
+        if (root == null) return;
+
+        StackPane backdrop = new StackPane();
+        backdrop.setStyle("-fx-background-color: rgba(15, 23, 42, 0.85);");
+        backdrop.setAlignment(Pos.CENTER);
+
+        VBox box = new VBox(10);
+        box.setMaxWidth(520);
+        box.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        box.setPadding(new Insets(16));
+        box.setStyle("-fx-background-color: -color-bg-default; -fx-background-radius: 8; -fx-border-color: -color-border-subtle; -fx-border-radius: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 24, 0, 0, 6);");
+        box.setAlignment(Pos.CENTER);
+
+        Label title = new Label(card.getName() + " (" + card.getSetCode() + " " + card.getCollectorNumber() + ")");
+        title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        title.setWrapText(true);
+
+        Button closeBtn = new Button("✕ Close");
+        closeBtn.setOnAction(e -> root.getChildren().remove(backdrop));
+
+        HBox topBar = new HBox(12, title, closeBtn);
+        HBox.setHgrow(title, javafx.scene.layout.Priority.ALWAYS);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+
+        ImageView iv = new ImageView();
+        iv.setFitWidth(400);
+        iv.setPreserveRatio(true);
+
+        Label loadingLbl = new Label("Loading image…");
+        loadingLbl.setStyle("-fx-text-fill: -color-fg-muted;");
+        StackPane imgPane = new StackPane(loadingLbl, iv);
+        imgPane.setPrefSize(400, 560);
+        imgPane.setAlignment(Pos.CENTER);
+
+        javafx.concurrent.Task<javafx.scene.image.Image> loadTask = new javafx.concurrent.Task<>() {
+            @Override
+            protected javafx.scene.image.Image call() {
+                return CardImageCache.getFx(card.getSku(), card.getName(), 488, CardImageCache.Variant.NORMAL, card.getSetCode(), card.getCollectorNumber());
+            }
+        };
+        loadTask.setOnSucceeded(e -> {
+            javafx.scene.image.Image img = loadTask.getValue();
+            if (img != null) {
+                iv.setImage(img);
+                loadingLbl.setVisible(false);
+            } else {
+                loadingLbl.setText("Image not available offline");
+            }
+        });
+        loadTask.setOnFailed(e -> loadingLbl.setText("Could not load image"));
+        Thread th = new Thread(loadTask, "lightbox-image-loader");
+        th.setDaemon(true);
+        th.start();
+
+        box.getChildren().addAll(topBar, imgPane);
+        backdrop.getChildren().add(box);
+
+        backdrop.setOnMouseClicked(e -> {
+            if (e.getTarget() == backdrop) {
+                root.getChildren().remove(backdrop);
+            }
+        });
+        backdrop.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                root.getChildren().remove(backdrop);
+            }
+        });
+        backdrop.setFocusTraversable(true);
+
+        root.getChildren().add(backdrop);
+        closeBtn.requestFocus();
     }
 
     // Resolves an effective window owner (explicit or default primary stage)

@@ -20,7 +20,7 @@ import tutorengine.model.StorageLocation;
 import tutorengine.model.TransactionLog;
 import tutorengine.priority.PriorityDesk;
 import tutorengine.search.SkuFuzzy;
-import tutorengine.ui.GraphView;
+import tutorengine.ui.StorageView;
 import tutorengine.util.CSVLoader;
 
 // OWNER: Bondoc, Karl B. — command-line demo and final integration point.
@@ -114,7 +114,7 @@ public class Main {
         String slot = StorageLocation.route(cards.get(0));
         System.out.println("Retrieve " + cards.get(0).getSku() + " from " + slot + ": "
                 + String.join(" -> ", StoreNavigator.bfsPath(storeFloor, StoreNavigator.CHECKOUT, slot)));
-        System.out.println("Box fill (slot: cards stored): " + GraphView.fillCounts(cards));
+        System.out.println("Box fill (slot: cards stored): " + StorageView.fillCounts(cards));
 
         System.out.println("\n[4] Hash collision demo (new HashMap<>(7) -> 8 buckets):");
         Map<String, Card> tiny = new HashMap<>(7);
