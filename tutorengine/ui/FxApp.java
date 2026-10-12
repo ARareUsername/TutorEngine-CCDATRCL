@@ -18,6 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tutorengine.db.Db;
 import tutorengine.model.Card;
+import tutorengine.ui.CardImageCache;
 import tutorengine.util.CSVLoader;
 
 // JavaFX entry point (run: mvn javafx:run). Left-nav shell; one view per module.
@@ -123,6 +124,30 @@ var wipeBtn = new javafx.scene.control.Button("Wipe Catalog (delete all cards)")
         grid2.setVgap(10);
         grid2.add(new javafx.scene.control.Label(""), 0, 0);
         grid2.add(wipeBtn, 1, 0);
+
+var preloadBtn = new javafx.scene.control.Button("Preload All Card Images (offline)");
+        preloadBtn.setStyle("-fx-background-color: #059669; -fx-text-fill: white;");
+preloadBtn.setOnAction(e -> {
+            try {
+                List<Card> cards = CSVLoader.load("Dataset/cards.csv");
+                int loaded = 0;
+                for (Card card : cards) {
+                    try {
+                        javafx.scene.image.Image img = CardImageCache.getFx(card.getSku(), card.getName(), 146);
+                        loaded++;
+                    } catch (Exception ignored) {
+                        // Skip cards that can't be loaded (offline mode, etc.)
+                    }
+                }
+                System.out.println("Preloaded " + loaded + "/" + cards.size() + " card images into cache for offline mode.");
+                System.out.println("Images stored in: ImageCache/ directory");
+                System.out.println("The app can now display these cards without network connection.");
+            } catch (Exception ex) {
+                System.err.println("Preload failed: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+        grid2.add(preloadBtn, 2, 0);
 
         if (root != null) {
             StackPane backdrop = new StackPane();
